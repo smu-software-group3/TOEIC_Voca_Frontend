@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/server";
+import Form from "../components/Form";
+import Input from "../components/Input";
+import Button from "../components/Button";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -34,10 +37,10 @@ export default function Login() {
   return (
     <div>
       <h1>로그인</h1>
-      <form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email">이메일</label>
-          <input
+          <Input
             id="email"
             type="email"
             value={email}
@@ -47,7 +50,7 @@ export default function Login() {
         </div>
         <div>
           <label htmlFor="password">비밀번호</label>
-          <input
+          <Input
             id="password"
             type="password"
             value={password}
@@ -56,10 +59,12 @@ export default function Login() {
           />
         </div>
         {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? "로그인 중..." : "로그인"}
-        </button>
-      </form>
+        <Button
+          type="submit"
+          disabled={loading}
+          buttonText={loading ? "로그인 중..." : "로그인"}
+        />
+      </Form>
     </div>
   );
 }
