@@ -13,9 +13,6 @@ const getServerUrl = () => {
 export async function login(email, password) {
   const url = `${getServerUrl()}/api/auth/login`;
 
-  console.log("로그인 요청 URL:", url);
-  console.log("로그인 요청 데이터:", { email, password });
-
   try {
     const response = await axios.post(
       url,
