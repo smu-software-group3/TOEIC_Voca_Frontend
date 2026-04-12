@@ -7,6 +7,7 @@ function App() {
   return (
     <div className="App">
       <button onClick={() => navigate('/login')}>Login</button>
+      <button onClick={() => navigate('/register')}>Register</button>
     </div>
   );
 }
