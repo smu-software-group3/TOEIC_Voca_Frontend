@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const getServerUrl = () => {
   const baseUrl = process.env.REACT_APP_SERVER_URL || "";
@@ -19,7 +19,7 @@ export async function login(email, password) {
   try {
     const response = await axios.post(
       url,
-      { email, password },
+      { email, password, passwordConfirm },
       {
         headers: {
           "Content-Type": "application/json",
@@ -29,7 +29,30 @@ export async function login(email, password) {
 
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.message || "로그인 요청에 실패했습니다.";
+    const message =
+      error.response?.data?.message || "회원가입 요청에 실패했습니다.";
+    throw new Error(message);
+  }
+}
+
+export async function verifyEmail(email, code) {
+  const url = `${getServerUrl()}/api/auth/verify`;
+
+  try {
+    const response = await axios.post(
+      url,
+      { email, code },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "이메일 인증 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
