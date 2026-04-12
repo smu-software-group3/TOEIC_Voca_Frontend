@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Form({onSubmit, children}) {
+export function Form({onSubmit, children}) {
   return (
     <form onSubmit={onSubmit} style={{
       display: 'flex',
