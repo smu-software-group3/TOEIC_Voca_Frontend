@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const getServerUrl = () => {
   const baseUrl = process.env.REACT_APP_SERVER_URL || "";
 
@@ -11,19 +13,15 @@ const getServerUrl = () => {
 export async function login(email, password) {
   const url = `${getServerUrl()}/api/auth/login`;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+  console.log("로그인 요청 URL:", url);
+  console.log("로그인 요청 데이터:", { email, password });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    const message = errorData?.message || "로그인 요청에 실패했습니다.";
+  try {
+    const response = await axios.post(url, null, { params: { email, password } });
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "로그인 요청에 실패했습니다.";
     throw new Error(message);
   }
-
-  return response.json();
 }
