@@ -17,7 +17,15 @@ export async function login(email, password) {
   console.log("로그인 요청 데이터:", { email, password });
 
   try {
-    const response = await axios.post(url, null, { params: { email, password } });
+    const response = await axios.post(
+      url,
+      { email, password },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {

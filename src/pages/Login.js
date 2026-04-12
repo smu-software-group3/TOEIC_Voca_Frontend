@@ -16,7 +16,8 @@ export default function Login() {
 
     try {
       const data = await login(email, password);
-      if (!data?.token) {
+      console.log("로그인 응답 데이터:", data);
+      if (!data?.data) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
       }
       localStorage.setItem("token", data.token);
