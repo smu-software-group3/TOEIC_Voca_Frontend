@@ -16,12 +16,29 @@ export async function login(email, password) {
   try {
     const response = await axios.post(
       url,
+      { email, password },
+      { headers: { "Content-Type": "application/json" } },
+    );
+
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "로그인 요청에 실패했습니다.";
+    throw new Error(message);
+  }
+}
+
+export async function signup(email, password, passwordConfirm) {
+  const url = `${getServerUrl()}/api/auth/register`;
+
+  console.log("Signup URL:", url);
+  console.log("Signup Data:", { email, password, passwordConfirm });
+
+  try {
+    const response = await axios.post(
+      url,
       { email, password, passwordConfirm },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      { headers: { "Content-Type": "application/json" } },
     );
 
     return response.data;
@@ -43,7 +60,7 @@ export async function verifyEmail(email, code) {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return response.data;
