@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../api/server";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -14,7 +16,12 @@ export default function Login() {
 
     try {
       const data = await login(email, password);
+      if (!data?.token) {
+        throw new Error("로그인 토큰을 받지 못했습니다.");
+      }
+      localStorage.setItem("token", data.token);
       console.log("로그인 성공:", data);
+      navigate("/");
       // TODO: 로그인 성공 후 리다이렉트 또는 사용자 상태 저장
     } catch (err) {
       setError(err.message);
