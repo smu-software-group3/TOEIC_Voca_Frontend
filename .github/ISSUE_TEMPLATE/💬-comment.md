@@ -1,0 +1,20 @@
+---
+name: "💬 COMMENT"
+about: 주석 수정 이슈템플릿입니다.
+title: "💬 comment: "
+labels: comment
+assignees: ''
+
+---
+
+# Title
+
+- 자세한 개요 작성
+
+# TODO
+
+- [ ] 투두 내용 작성
+
+# etc
+
+- 참고자료 등 기타 내용 작성
