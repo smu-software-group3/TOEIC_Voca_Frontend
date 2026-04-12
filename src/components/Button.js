@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Button({buttonText, onClick}) {
+export function Button({buttonText, onClick}) {
   return (
     <button onClick={onClick} style={{
       width: '100%',

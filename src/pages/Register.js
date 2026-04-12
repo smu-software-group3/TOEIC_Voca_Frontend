@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signup, verifyEmail } from "../api/server";
+import { Form } from "../components/Form";
+import { Input } from "../components/Input";
+import { Button } from "../components/Button";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -55,10 +58,10 @@ export default function Register() {
     <div className="register-page">
       <h1>회원가입</h1>
       {!registrationComplete ? (
-        <form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email">이메일</label>
-            <input
+            <Input
               id="email"
               type="email"
               value={email}
@@ -68,7 +71,7 @@ export default function Register() {
           </div>
           <div>
             <label htmlFor="password">비밀번호</label>
-            <input
+            <Input
               id="password"
               type="password"
               value={password}
@@ -78,7 +81,7 @@ export default function Register() {
           </div>
           <div>
             <label htmlFor="confirmPassword">비밀번호 확인</label>
-            <input
+            <Input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
@@ -86,17 +89,17 @@ export default function Register() {
               required
             />
           </div>
-          <button type="submit">회원가입</button>
-        </form>
+          <Button type="submit" buttonText = "회원가입" />
+        </Form>
       ) : (
-        <form onSubmit={handleVerify}>
+        <Form onSubmit={handleVerify}>
           <div>
             <label htmlFor="email">이메일</label>
-            <input id="email" type="email" value={email} disabled />
+            <Input id="email" type="email" value={email} disabled />
           </div>
           <div>
             <label htmlFor="verificationCode">인증 코드</label>
-            <input
+            <Input
               id="verificationCode"
               type="text"
               value={verificationCode}
@@ -104,8 +107,8 @@ export default function Register() {
               required
             />
           </div>
-          <button type="submit">이메일 인증</button>
-        </form>
+          <Button type="submit" buttonText = "인증 완료" />
+        </Form>
       )}
       {message && <p style={{ color: "green" }}>{message}</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
