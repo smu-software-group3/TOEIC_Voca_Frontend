@@ -4,30 +4,31 @@ import { Input } from "../components/Input";
 import { Button } from "../components/Button";
 
 export default function PasswordChange() {
-  const [email, setEmail] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [isVerificationSent, setIsVerificationSent] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  };
 
-  const handleNoopClick = (e) => {
-    e.preventDefault();
-  };
+    setMessage("");
+    setError("");
 
-  const handleVerificationSend = (e) => {
-    e.preventDefault();
-    setIsVerificationSent(true);
-    setIsEmailVerified(false);
-  };
+    if (!currentPassword || !newPassword || !newPasswordConfirm) {
+      setError("모든 항목을 입력해주세요.");
+      return;
+    }
 
-  const handleVerificationCheck = (e) => {
-    e.preventDefault();
-    setIsEmailVerified(true);
+    const payload = {
+      currentPassword,
+      newPassword,
+      newPasswordConfirm,
+    };
+
+    console.log("비밀번호 변경 요청 payload:", payload);
+    setMessage("비밀번호 변경 요청을 전송했습니다.");
   };
 
   return (
@@ -54,48 +55,41 @@ export default function PasswordChange() {
             lineHeight: 1.5,
           }}
         >
-          등록된 이메일로 인증 후 비밀번호를 변경할 수 있습니다.
+          현재 비밀번호와 새 비밀번호를 입력해 비밀번호를 변경합니다.
         </p>
 
         <Input
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="password"
+          placeholder="현재 비밀번호"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
         />
-        <Button buttonText="인증번호 받기" onClick={handleVerificationSend} />
 
-        {isVerificationSent && (
-          <>
-            <Input
-              placeholder="인증번호"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-            />
-            <Button buttonText="인증번호 확인" onClick={handleVerificationCheck} />
-          </>
+        <Input
+          type="password"
+          placeholder="새 비밀번호"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+        <Input
+          type="password"
+          placeholder="새 비밀번호 확인"
+          value={newPasswordConfirm}
+          onChange={(e) => setNewPasswordConfirm(e.target.value)}
+        />
+
+        {error && (
+          <p style={{ margin: 0, fontSize: "13px", color: "#dc2626" }}>
+            {error}
+          </p>
+        )}
+        {message && (
+          <p style={{ margin: 0, fontSize: "13px", color: "#047857" }}>
+            {message}
+          </p>
         )}
 
-        {isEmailVerified && (
-          <>
-            <p style={{ margin: 0, fontSize: "13px", color: "#047857" }}>
-              이메일 인증이 완료되었습니다.
-            </p>
-            <Input
-              type="password"
-              placeholder="새 비밀번호"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <Input
-              type="password"
-              placeholder="새 비밀번호 확인"
-              value={newPasswordConfirm}
-              onChange={(e) => setNewPasswordConfirm(e.target.value)}
-            />
-            <Button buttonText="비밀번호 변경" onClick={handleNoopClick} />
-          </>
-        )}
+        <Button buttonText="비밀번호 변경" />
       </Form>
     </div>
   );
