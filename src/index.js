@@ -6,6 +6,7 @@ import reportWebVitals from "./reportWebVitals";
 import Login from "./pages/Login";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Register from "./pages/Register";
+import PasswordChange from "./pages/PasswordChange";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     path: "/register",
     element: <Register />,
   },
+  {
+    path: "/pwc",
+    element: <PasswordChange />,
+  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
