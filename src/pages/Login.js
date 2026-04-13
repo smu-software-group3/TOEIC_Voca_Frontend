@@ -64,6 +64,9 @@ export default function Login() {
           disabled={loading}
           buttonText={loading ? "로그인 중..." : "로그인"}
         />
+        <button onClick={() => navigate("/pwc")} style={{ marginTop: "16px" }}>
+          비밀번호 변경
+        </button>
       </Form>
     </div>
   );
