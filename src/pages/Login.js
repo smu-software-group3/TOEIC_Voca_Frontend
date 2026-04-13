@@ -23,7 +23,7 @@ export default function Login() {
       if (!data?.data) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
       }
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.data.accessToken);
       console.log("로그인 성공:", data);
       navigate("/");
       // TODO: 로그인 성공 후 리다이렉트 또는 사용자 상태 저장
