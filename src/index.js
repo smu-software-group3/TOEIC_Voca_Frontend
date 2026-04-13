@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Register from "./pages/Register";
 import PasswordChange from "./pages/PasswordChange";
+import PasswordFind from "./pages/PasswordFind";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
   {
     path: "/pwc",
     element: <PasswordChange />,
+  },
+  {
+    path: "/pwf",
+    element: <PasswordFind />,
   }
 ]);
 
