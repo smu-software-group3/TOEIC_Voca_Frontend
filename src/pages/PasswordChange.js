@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form } from "../components/Form";
-import { Input } from "../components/Input";
-import { Button } from "../components/Button";
 import { changePassword } from "../api/server";
+import "./PasswordChange.css";
 
 export default function PasswordChange() {
   const navigate = useNavigate();
@@ -51,65 +49,86 @@ export default function PasswordChange() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f3f4f6",
-        padding: "24px",
-        boxSizing: "border-box",
-      }}
-    >
-      <Form onSubmit={handleSubmit}>
-        <h2 style={{ margin: 0, textAlign: "center", color: "#111827" }}>
-          비밀번호 변경
-        </h2>
-        <p
-          style={{
-            margin: 0,
-            fontSize: "14px",
-            color: "#4b5563",
-            lineHeight: 1.5,
-          }}
-        >
-          현재 비밀번호와 새 비밀번호를 입력해 비밀번호를 변경합니다.
-        </p>
+    <div className="pwc-page">
+      <div className="pwc-card">
+        <div className="pwc-left">
+          <div className="pwc-logo">
+            <span className="pwc-logo-part pwc-logo-voca">VOCA</span>
+            <span className="pwc-logo-part pwc-logo-stats">STATS</span>
+          </div>
+          <p className="pwc-logo-sub">VOCABULARY · STATISTICS</p>
+          <h1 className="pwc-headline">보안을 위해 비밀번호를 안전하게 변경하세요</h1>
+          <p className="pwc-subtext">현재 비밀번호 확인 후 새 비밀번호로 업데이트합니다.</p>
+          <ul className="pwc-features">
+            <li className="pwc-feature">
+              <span className="pwc-feature-icon pwc-feature-icon-purple">🔐</span>
+              현재 비밀번호 확인
+            </li>
+            <li className="pwc-feature">
+              <span className="pwc-feature-icon pwc-feature-icon-green">✅</span>
+              새 비밀번호로 즉시 반영
+            </li>
+          </ul>
+        </div>
 
-        <Input
-          type="password"
-          placeholder="현재 비밀번호"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-        />
-
-        <Input
-          type="password"
-          placeholder="새 비밀번호"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="새 비밀번호 확인"
-          value={newPasswordConfirm}
-          onChange={(e) => setNewPasswordConfirm(e.target.value)}
-        />
-
-        {error && (
-          <p style={{ margin: 0, fontSize: "13px", color: "#dc2626" }}>
-            {error}
+        <div className="pwc-right">
+          <h2 className="pwc-title">비밀번호 변경</h2>
+          <p className="pwc-hint">
+            로그인 정보가 기억나지 않나요?{" "}
+            <button type="button" className="pwc-link" onClick={() => navigate("/pwf")}>
+              비밀번호 찾기
+            </button>
           </p>
-        )}
-        {message && (
-          <p style={{ margin: 0, fontSize: "13px", color: "#047857" }}>
-            {message}
-          </p>
-        )}
 
-        <Button buttonText={loading ? "변경 중..." : "비밀번호 변경"} />
-      </Form>
+          <form onSubmit={handleSubmit} className="pwc-form">
+            <div className="pwc-field">
+              <label className="pwc-label" htmlFor="currentPassword">현재 비밀번호</label>
+              <input
+                id="currentPassword"
+                className="pwc-input"
+                type="password"
+                placeholder="현재 비밀번호를 입력하세요"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="pwc-field">
+              <label className="pwc-label" htmlFor="newPassword">새 비밀번호</label>
+              <input
+                id="newPassword"
+                className="pwc-input"
+                type="password"
+                placeholder="새 비밀번호를 입력하세요"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="pwc-field">
+              <label className="pwc-label" htmlFor="newPasswordConfirm">새 비밀번호 확인</label>
+              <input
+                id="newPasswordConfirm"
+                className="pwc-input"
+                type="password"
+                placeholder="새 비밀번호를 다시 입력하세요"
+                autoComplete="new-password"
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
+              />
+            </div>
+
+            {error && <p className="pwc-message error">{error}</p>}
+            {message && <p className="pwc-message success">{message}</p>}
+
+            <button type="submit" className="pwc-btn" disabled={loading}>
+              {loading ? "변경 중..." : "비밀번호 변경"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Form } from "../components/Form";
-import { Input } from "../components/Input";
-import { Button } from "../components/Button";
+import { useNavigate } from "react-router-dom";
 import { findPassword } from "../api/server";
+import "./PasswordFind.css";
 
 export default function PasswordFind() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -40,51 +40,60 @@ export default function PasswordFind() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f3f4f6",
-        padding: "24px",
-        boxSizing: "border-box",
-      }}
-    >
-      <Form onSubmit={handleSubmit}>
-        <h2 style={{ margin: 0, textAlign: "center", color: "#111827" }}>
-          비밀번호 찾기
-        </h2>
-        <p
-          style={{
-            margin: 0,
-            fontSize: "14px",
-            color: "#4b5563",
-            lineHeight: 1.5,
-          }}
-        >
-          가입한 이메일을 입력하면 임시 비밀번호를 이메일로 발송합니다.
-        </p>
+    <div className="pwf-page">
+      <div className="pwf-card">
+        <div className="pwf-left">
+          <div className="pwf-logo">
+            <span className="pwf-logo-part pwf-logo-voca">VOCA</span>
+            <span className="pwf-logo-part pwf-logo-stats">STATS</span>
+          </div>
+          <p className="pwf-logo-sub">VOCABULARY · STATISTICS</p>
+          <h1 className="pwf-headline">비밀번호를 잊으셨나요? 이메일로 즉시 재설정하세요</h1>
+          <p className="pwf-subtext">가입 이메일로 임시 비밀번호를 전송해 드립니다.</p>
+          <ul className="pwf-features">
+            <li className="pwf-feature">
+              <span className="pwf-feature-icon pwf-feature-icon-purple">📧</span>
+              이메일 한 번으로 간편 요청
+            </li>
+            <li className="pwf-feature">
+              <span className="pwf-feature-icon pwf-feature-icon-green">⚡</span>
+              임시 비밀번호 즉시 발급
+            </li>
+          </ul>
+        </div>
 
-        <Input
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {error && (
-          <p style={{ margin: 0, fontSize: "13px", color: "#dc2626" }}>
-            {error}
+        <div className="pwf-right">
+          <h2 className="pwf-title">비밀번호 찾기</h2>
+          <p className="pwf-hint">
+            비밀번호가 기억나셨나요?{" "}
+            <button type="button" className="pwf-link" onClick={() => navigate("/login")}>
+              로그인
+            </button>
           </p>
-        )}
-        {message && (
-          <p style={{ margin: 0, fontSize: "13px", color: "#047857" }}>
-            {message}
-          </p>
-        )}
 
-        <Button buttonText={loading ? "전송 중..." : "임시 비밀번호 발급"} />
-      </Form>
+          <form onSubmit={handleSubmit} className="pwf-form">
+            <div className="pwf-field">
+              <label className="pwf-label" htmlFor="email">이메일</label>
+              <input
+                id="email"
+                className="pwf-input"
+                type="email"
+                placeholder="example@email.com"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            {error && <p className="pwf-message error">{error}</p>}
+            {message && <p className="pwf-message success">{message}</p>}
+
+            <button type="submit" className="pwf-btn" disabled={loading}>
+              {loading ? "전송 중..." : "임시 비밀번호 발급"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
