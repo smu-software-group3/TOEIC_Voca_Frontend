@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api/server";
-import { Form } from "../components/Form";
-import { Input } from "../components/Input";
-import { Button } from "../components/Button";
+import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,39 +33,89 @@ export default function Login() {
   };
 
   return (
-    <div>
-      <h1>로그인</h1>
-      <Form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">이메일</label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-left">
+          <div className="login-logo">
+            <span className="login-logo-part login-logo-voca">VOCA</span>
+            <span className="login-logo-part login-logo-stats">STATS</span>
+          </div>
+          <p className="login-logo-sub">VOCABULARY · STATISTICS</p>
+          <h1 className="login-headline">어휘와 통계로 완성하는 영어 학습</h1>
+          <p className="login-subtext">단어를 외우고, 데이터로 확인하세요.</p>
+          <ul className="login-features">
+            <li className="login-feature">
+              <span className="login-feature-icon login-feature-icon-purple">📖</span>
+              단어장 · 테스트 · 계정 관리
+            </li>
+            <li className="login-feature">
+              <span className="login-feature-icon login-feature-icon-green">📊</span>
+              학습 통계 · 진도 확인
+            </li>
+          </ul>
         </div>
-        <div>
-          <label htmlFor="password">비밀번호</label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+
+        <div className="login-right">
+          <h2 className="login-form-title">로그인</h2>
+          <p className="login-register-hint">
+            처음이신가요?{" "}
+            <button
+              type="button"
+              className="login-register-link"
+              onClick={() => navigate("/register")}
+            >
+              회원가입
+            </button>
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <div className="login-field">
+              <label className="login-label" htmlFor="email">
+                이메일
+              </label>
+              <input
+                id="email"
+                className="login-input"
+                type="email"
+                placeholder="example@email.com"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="login-field">
+              <label className="login-label" htmlFor="password">
+                비밀번호
+              </label>
+              <input
+                id="password"
+                className="login-input"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="login-forgot"
+                onClick={() => navigate("/pwf")}
+              >
+                비밀번호를 잊으셨나요?
+              </button>
+            </div>
+
+            {error && <p className="login-error">{error}</p>}
+
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? "로그인 중..." : "로그인"}
+            </button>
+          </form>
         </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <Button
-          type="submit"
-          disabled={loading}
-          buttonText={loading ? "로그인 중..." : "로그인"}
-        />
-        <button onClick={() => navigate("/pwf")} style={{ marginTop: "16px" }}>
-          비밀번호 찾기
-        </button>
-      </Form>
+      </div>
     </div>
   );
 }
