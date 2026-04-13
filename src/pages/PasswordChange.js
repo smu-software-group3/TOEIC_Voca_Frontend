@@ -1,34 +1,53 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form } from "../components/Form";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
+import { changePassword } from "../api/server";
 
 export default function PasswordChange() {
+  const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setMessage("");
     setError("");
+    setLoading(true);
 
     if (!currentPassword || !newPassword || !newPasswordConfirm) {
       setError("모든 항목을 입력해주세요.");
+      setLoading(false);
       return;
     }
 
-    const payload = {
-      currentPassword,
-      newPassword,
-      newPasswordConfirm,
-    };
+    try {
+      const response = await changePassword(
+        currentPassword,
+        newPassword,
+        newPasswordConfirm,
+      );
+      console.log("비밀번호 변경 성공:", response);
 
-    console.log("비밀번호 변경 요청 payload:", payload);
-    setMessage("비밀번호 변경 요청을 전송했습니다.");
+      if (response.success === true) {
+        setMessage("비밀번호가 성공적으로 변경되었습니다. 로그인 페이지로 이동합니다.");
+        setTimeout(() => {
+          navigate("/login");
+        }, 1200);
+      } else {
+        setError("비밀번호 변경에 실패했습니다.");
+      }
+    } catch (err) {
+      setError(err.message || "비밀번호 변경에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,7 +108,7 @@ export default function PasswordChange() {
           </p>
         )}
 
-        <Button buttonText="비밀번호 변경" />
+        <Button buttonText={loading ? "변경 중..." : "비밀번호 변경"} />
       </Form>
     </div>
   );
