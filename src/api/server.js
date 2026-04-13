@@ -98,3 +98,25 @@ export async function changePassword(
     throw new Error(message);
   }
 }
+
+export async function findPassword(email) {
+  const url = `${getServerUrl()}/api/password/find`;
+
+  try {
+    const response = await axios.post(
+      url,
+      { email },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message || "비밀번호 찾기 요청에 실패했습니다.";
+    throw new Error(message);
+  }
+}
