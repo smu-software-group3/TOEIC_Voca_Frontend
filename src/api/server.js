@@ -126,3 +126,34 @@ export async function findPassword(email) {
     throw new Error(message);
   }
 }
+
+// 단어장 조회 조건을 쿼리 파라미터로 전달해 단어 목록을 가져온다.
+export async function getWords({ keyword = "", difficulty = "", page = 1, size = 20, sort = "spelling,asc" }) {
+  const url = `${getServerUrl()}/api/words`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      params: {
+        keyword,
+        difficulty,
+        page,
+        size,
+        sort,
+      },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message = error.response?.data?.message || "단어장 조회 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
