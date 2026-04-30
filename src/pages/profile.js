@@ -1,10 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
+
+const mockUserProfile = {
+  username: "johndoe",
+  birthDate: "1995-03-15",
+  category: "Standard",
+  email: "johndoe@example.com",
+};
 
 function Profile() {
+  const [userProfile] = useState(mockUserProfile);
+
   return (
     <div>
       <h1>프로필</h1>
-      <p>이 페이지에서 회원 프로필을 확인할 수 있습니다.</p>
+      <h2>사용자 정보</h2>
+      <ul>
+        <li>사용자명: {userProfile.username}</li>
+        <li>생년월일: {userProfile.birthDate}</li>
+        <li>사용자분류: {userProfile.category}</li>
+        <li>이메일: {userProfile.email}</li>
+      </ul>
     </div>
   );
 }
