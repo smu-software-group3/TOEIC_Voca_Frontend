@@ -238,3 +238,27 @@ export async function checkWordAnswer(wordId, submittedMeaning) {
     throw requestError;
   }
 }
+
+// 현재 로그인한 사용자의 프로필 정보를 조회한다.
+export async function getMemberInfo() {
+  const url = `${getServerUrl()}/api/members/me`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message = error.response?.data?.message || "회원 정보 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}

@@ -17,6 +17,13 @@ function App() {
       <button onClick={() => navigate("/register")}>Register</button>
       <button onClick={() => navigate("/pwc")}>비밀번호 변경</button>
       <button onClick={() => navigate("/word")}>단어장 조회</button>
+      <button onClick={() => navigate("/profile")}>프로필</button>
+      <button onClick={() => {
+        const token = "your-temporary-token";
+        localStorage.setItem("token", token);
+      }}>
+        임시 토큰 발행
+      </button>
       <Outlet />
     </div>
   );
