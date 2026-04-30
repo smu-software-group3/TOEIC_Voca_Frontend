@@ -1,8 +1,8 @@
 import React from 'react'
 
-export function Button({buttonText, onClick}) {
+export function Button({buttonText, onClick, type = 'submit', style, disabled, ...props}) {
   return (
-    <button onClick={onClick} style={{
+    <button type={type} onClick={onClick} disabled={disabled} {...props} style={{
       width: '100%',
       padding: '14px',
       backgroundColor: '#3d1a7a',
@@ -12,6 +12,8 @@ export function Button({buttonText, onClick}) {
       fontSize: '16px',
       fontWeight: 'bold',
       cursor: 'pointer',
+      opacity: disabled ? 0.65 : 1,
+      ...style,
     }}>{buttonText}</button>
   )
 }
