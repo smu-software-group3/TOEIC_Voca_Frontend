@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocaStats — 객관식 테스트</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 65%, #e4e0ff 100%);
+  min-height: 100vh; display: flex;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(167,139,250,0.32) 0%, transparent 35%),
+    radial-gradient(circle at 10% 85%, rgba(45,212,191,0.22) 0%, transparent 35%);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(3px 3px at 18% 7%, rgba(124,58,237,0.5), transparent),
+    radial-gradient(2px 2px at 75% 14%, rgba(13,148,136,0.45), transparent),
+    radial-gradient(3px 3px at 88% 28%, rgba(109,40,217,0.45), transparent),
+    radial-gradient(2px 2px at 22% 75%, rgba(13,148,136,0.4), transparent),
+    radial-gradient(3px 3px at 82% 82%, rgba(124,58,237,0.45), transparent);
+}
+.sidebar {
+  width: 158px; flex-shrink: 0;
+  background: linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%);
+  padding: 20px 12px; display: flex; flex-direction: column; gap: 2px;
+  min-height: 100vh; position: fixed; top: 0; left: 0; bottom: 0;
+  border-right: 0.5px solid rgba(139,92,246,0.15); z-index: 10;
+}
+.sb-logo { display: flex; align-items: center; gap: 9px; margin-bottom: 24px; padding: 0 4px; }
+.sb-logo-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#7c3aed,#0d9488); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px rgba(124,58,237,0.4); flex-shrink: 0; }
+.sb-sec { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; padding: 10px 8px 3px; color: #a78bfa; }
+.sb-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; font-size: 12px; color: #64748b; text-decoration: none; transition: all 0.15s; }
+.sb-item:hover { background: rgba(139,92,246,0.12); color: #a78bfa; }
+.sb-item.active { background: rgba(139,92,246,0.22); color: #c4b5fd; font-weight: 600; }
+.sb-bottom { margin-top: auto; padding-top: 16px; border-top: 0.5px solid rgba(139,92,246,0.12); }
+.sb-avatar { display: flex; align-items: center; gap: 8px; padding: 4px 6px; text-decoration: none; }
+.sb-avatar-img { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#0d9488); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.main { margin-left: 158px; flex: 1; padding: 30px 36px; position: relative; z-index: 1; }
+.top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.badge-mode { background: linear-gradient(90deg,rgba(139,92,246,0.2),rgba(109,40,217,0.12)); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #4c1d95; font-weight: 700; border: 0.5px solid rgba(139,92,246,0.28); }
+.q-info { font-size: 13px; color: #5b21b6; font-weight: 600; }
+.score { font-size: 13px; font-weight: 700; color: #0d9488; }
+.prog-track { background: rgba(139,92,246,0.15); border-radius: 20px; height: 8px; margin-bottom: 24px; border: 0.5px solid rgba(139,92,246,0.2); }
+.prog-fill { background: linear-gradient(90deg,#7c3aed,#2dd4bf); height: 8px; border-radius: 20px; box-shadow: 0 0 8px rgba(124,58,237,0.3); transition: width 0.4s; }
+.q-card { background: rgba(255,255,255,0.72); border-radius: 20px; border: 0.5px solid rgba(139,92,246,0.18); padding: 30px 28px; text-align: center; margin-bottom: 18px; position: relative; overflow: hidden; }
+.q-card::before { content: ''; position: absolute; top: -25px; right: -25px; width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle,rgba(167,139,250,0.2) 0%,transparent 70%); pointer-events: none; }
+.q-eyebrow { font-size: 11px; font-weight: 700; color: #7c3aed; letter-spacing: 0.09em; margin-bottom: 12px; }
+.q-word { font-size: 14px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; }
+.q-meaning { font-size: 28px; font-weight: 700; color: #1e1b4b; letter-spacing: -0.3px; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.opt-btn {
+  display: flex; align-items: center; gap: 10px;
+  border: 1.5px solid rgba(139,92,246,0.2);
+  border-radius: 13px; padding: 13px 16px;
+  background: rgba(255,255,255,0.62);
+  cursor: pointer; font-size: 13px; font-weight: 500; color: #3730a3;
+  transition: all 0.15s; text-align: left;
+}
+.opt-btn:hover { border-color: rgba(139,92,246,0.45); background: rgba(237,233,254,0.4); }
+.opt-btn.correct { border-color: #0d9488; background: linear-gradient(90deg,rgba(204,251,241,0.7),rgba(255,255,255,0.5)); color: #0f766e; }
+.opt-btn.wrong { border-color: #dc2626; background: linear-gradient(90deg,rgba(254,226,226,0.7),rgba(255,255,255,0.5)); color: #991b1b; }
+.opt-btn.disabled { cursor: default; pointer-events: none; }
+.opt-letter { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; background: rgba(139,92,246,0.12); color: #7c3aed; }
+.opt-btn.correct .opt-letter { background: rgba(13,148,136,0.15); color: #0d9488; }
+.opt-btn.wrong .opt-letter { background: rgba(220,38,38,0.1); color: #dc2626; }
+.feedback { background: linear-gradient(90deg,rgba(204,251,241,0.6),rgba(240,253,250,0.5)); border-radius: 12px; border: 0.5px solid rgba(13,148,136,0.25); padding: 13px 18px; margin-bottom: 16px; display: none; align-items: center; gap: 12px; }
+.feedback.show { display: flex; }
+.feedback.wrong-fb { background: linear-gradient(90deg,rgba(254,226,226,0.6),rgba(255,255,255,0.5)); border-color: rgba(220,38,38,0.25); }
+.fb-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.bottom-row { display: flex; justify-content: space-between; align-items: center; }
+.btn-exit { background: rgba(255,255,255,0.65); border: 0.5px solid rgba(139,92,246,0.2); border-radius: 9px; padding: 10px 16px; font-size: 13px; color: #7c6fad; cursor: pointer; text-decoration: none; }
+.btn-next { background: linear-gradient(135deg,#6d28d9,#0d9488); border: none; border-radius: 10px; padding: 11px 24px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; box-shadow: 0 2px 12px rgba(109,40,217,0.25); display: none; transition: opacity 0.15s; }
+.btn-next:hover { opacity: 0.88; }
+.btn-next.show { display: inline-block; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-linecap="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#e9d5ff" stroke-width="2"/>
+        <path d="M2 17l10 5 10-5" stroke="#5eead4" stroke-width="2"/>
+        <path d="M2 12l10 5 10-5" stroke="#c4b5fd" stroke-width="2"/>
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:700;letter-spacing:-0.3px;"><span style="color:#c4b5fd;">Vo</span><span style="color:#5eead4;">ca</span><span style="color:#a78bfa;">S</span></div>
+      <div style="font-size:9px;color:#334155;letter-spacing:0.05em;">VOCAB STATS</div>
+    </div>
+  </div>
+  <p class="sb-sec">VOCA</p>
+  <a href="wordbook.html" class="sb-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>단어장
+  </a>
+  <a href="test.html" class="sb-item active">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>테스트
+  </a>
+  <div class="sb-bottom">
+    <a href="profile.html" class="sb-avatar">
+      <div class="sb-avatar-img">지우</div>
+      <span style="font-size:12px;color:#475569;">내 계정</span>
+    </a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="top-row">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="badge-mode">객관식</span>
+      <span class="q-info" id="qInfo">문제 1 / 5</span>
+    </div>
+    <span class="score" id="scoreDisplay">맞은 문제: 0</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:20%;"></div></div>
+
+  <div class="q-card">
+    <p class="q-eyebrow">뜻에 맞는 단어를 고르세요</p>
+    <p class="q-word" id="qWord"></p>
+    <p class="q-meaning" id="qMeaning"></p>
+  </div>
+
+  <div class="opts" id="opts"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="fb-icon" id="fbIcon"></div>
+    <div><p style="font-size:12px;font-weight:700;" id="fbTitle"></p><p style="font-size:13px;color:#134e4a;" id="fbBody"></p></div>
+  </div>
+
+  <div class="bottom-row">
+    <a href="test.html" class="btn-exit">← 나가기</a>
+    <button class="btn-next" id="btnNext" onclick="nextQ()">다음 문제 →</button>
+  </div>
+</main>
+
+<script>
+const questions = [
+  { meaning: '"불분명한, 모호한"', word: 'ambiguous', opts: ['meticulous','ambiguous','resilient','persevere'], correct: 1 },
+  { meaning: '"꼼꼼한, 세심한"', word: 'meticulous', opts: ['elaborate','inaugural','meticulous','resilient'], correct: 2 },
+  { meaning: '"인내하다, 꾸준히 하다"', word: 'persevere', opts: ['persevere','ambiguous','elaborate','meticulous'], correct: 0 },
+  { meaning: '"회복력 있는, 탄력적인"', word: 'resilient', opts: ['inaugural','meticulous','persevere','resilient'], correct: 3 },
+  { meaning: '"정교한, 자세히 설명하다"', word: 'elaborate', opts: ['resilient','elaborate','ambiguous','inaugural'], correct: 1 },
+];
+const letters = ['A','B','C','D'];
+let cur = 0, score = 0, answered = false;
+
+function render() {
+  const q = questions[cur];
+  document.getElementById('qInfo').textContent = `문제 ${cur+1} / ${questions.length}`;
+  document.getElementById('scoreDisplay').textContent = `맞은 문제: ${score}`;
+  document.getElementById('progFill').style.width = `${((cur+1)/questions.length)*100}%`;
+  document.getElementById('qMeaning').textContent = q.meaning;
+  document.getElementById('qWord').textContent = '';
+  answered = false;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').className = 'btn-next';
+  const optsEl = document.getElementById('opts');
+  optsEl.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${o}`;
+    btn.onclick = () => choose(i);
+    optsEl.appendChild(btn);
+  });
+}
+
+function choose(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[cur];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.classList.add('disabled'));
+  const fb = document.getElementById('feedback');
+  if (idx === q.correct) {
+    btns[idx].classList.add('correct');
+    score++;
+    document.getElementById('scoreDisplay').textContent = `맞은 문제: ${score}`;
+    fb.className = 'feedback show';
+    document.getElementById('fbIcon').innerHTML = `<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#0d9488,#2dd4bf);display:flex;align-items:center;justify-content:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+    document.getElementById('fbTitle').style.color = '#0d9488';
+    document.getElementById('fbTitle').textContent = '정답!';
+    document.getElementById('fbBody').textContent = `정답은 "${q.word}" 입니다.`;
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.correct].classList.add('correct');
+    fb.className = 'feedback wrong-fb show';
+    document.getElementById('fbIcon').innerHTML = `<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`;
+    document.getElementById('fbTitle').style.color = '#dc2626';
+    document.getElementById('fbTitle').textContent = '오답!';
+    document.getElementById('fbBody').style.color = '#991b1b';
+    document.getElementById('fbBody').textContent = `정답은 "${q.word}" 입니다.`;
+  }
+  document.getElementById('btnNext').className = 'btn-next show';
+}
+
+function nextQ() {
+  cur++;
+  if (cur >= questions.length) {
+    document.querySelector('.main').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:#7c3aed;margin-bottom:8px;">테스트 완료</p>
+        <h2 style="font-size:28px;font-weight:700;color:#1e1b4b;margin-bottom:8px;">수고하셨습니다!</h2>
+        <p style="font-size:16px;color:#7c6fad;margin-bottom:32px;">${questions.length}문제 중 <strong style="color:#7c3aed;">${score}문제</strong> 정답</p>
+        <div style="display:flex;gap:12px;">
+          <a href="test.html" style="background:rgba(255,255,255,0.7);border:0.5px solid rgba(139,92,246,0.2);border-radius:10px;padding:11px 20px;font-size:13px;color:#7c6fad;text-decoration:none;">← 다시 선택</a>
+          <a href="wordbook.html" style="background:linear-gradient(135deg,#4c1d95,#1e1b4b);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;color:#fff;text-decoration:none;box-shadow:0 2px 12px rgba(109,40,217,0.25);">단어장 보기</a>
+        </div>
+      </div>`;
+    return;
+  }
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

@@ -3,6 +3,20 @@ import { getWords } from "../api/server";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 
+// map difficulty to a color for visual display
+function difficultyColor(difficulty) {
+  switch (difficulty) {
+    case "HARD":
+      return "#ef4444"; // red
+    case "MEDIUM":
+      return "#f59e0b"; // yellow
+    case "EASY":
+      return "#10b981"; // green
+    default:
+      return "#94a3b8"; // gray
+  }
+}
+
 // 정렬 문자열을 서버 형식(spelling,asc)으로 조합한다.
 function makeSortValue(sortField, sortOrder) {
   return `${sortField},${sortOrder}`;
@@ -32,7 +46,6 @@ function Word() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 필터 값이 바뀌면 서버에 조회 요청을 보내 단어장 데이터를 갱신한다.
   useEffect(() => {
     const fetchWords = async () => {
       setLoading(true);
@@ -46,12 +59,9 @@ function Word() {
           size,
           sort: makeSortValue(sortField, sortOrder),
         });
-        console.log("단어장 조회 응답:", response);
 
         if (!response?.success) {
-          throw new Error(
-            response?.message || "단어장 조회 요청에 실패했습니다.",
-          );
+          throw new Error(response?.message || "단어장 조회 요청에 실패했습니다.");
         }
 
         const pageData = response.data || {};
@@ -64,6 +74,7 @@ function Word() {
         } else {
           setError(requestError.message || "단어장 조회 요청에 실패했습니다.");
         }
+
         setWords([]);
         setTotalPages(0);
         setTotalElements(0);
@@ -75,109 +86,107 @@ function Word() {
     fetchWords();
   }, [keyword, difficulty, sortField, sortOrder, page, size]);
 
-  // 이전 페이지로 이동하며 첫 페이지에서는 이동을 막는다.
-  const handlePrevPage = () => {
-    setPage((prevPage) => Math.max(1, prevPage - 1));
-  };
+  const handlePrevPage = () => setPage((prev) => Math.max(1, prev - 1));
+  const handleNextPage = () => setPage((prev) => (totalPages === 0 ? prev : Math.min(totalPages, prev + 1)));
 
-  // 다음 페이지로 이동하며 마지막 페이지에서는 이동을 막는다.
-  const handleNextPage = () => {
-    setPage((prevPage) => {
-      if (totalPages === 0) {
-        return prevPage;
-      }
-
-      return Math.min(totalPages, prevPage + 1);
-    });
-  };
-
-  // 조회 조건이 바뀌면 첫 페이지부터 다시 조회하도록 페이지를 초기화한다.
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
     setPage(1);
   };
 
   return (
-    <div>
-      <h1>단어장 조회</h1>
-      <p>키워드, 난이도, 정렬 방식으로 단어장을 조회할 수 있습니다.</p>
+    <main style={{ padding: 28, background: "linear-gradient(145deg, #f8fafc 0%, #eef2ff 50%)", minHeight: "100vh" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <h1 style={{ marginBottom: 6, color: "#4c1d95" }}>단어장 조회</h1>
+        <p style={{ marginBottom: 18, color: "#6d28d9" }}>키워드, 난이도, 정렬 방식으로 단어장을 조회할 수 있습니다.</p>
 
-      <div style={{ display: "grid", gap: "12px", maxWidth: "420px" }}>
-        <label htmlFor="word-keyword-input">검색어</label>
-        <Input
-          id="word-keyword-input"
-          placeholder="예: app"
-          value={keyword}
-          onChange={handleFilterChange(setKeyword)}
-          autoComplete="off"
-        />
+        <section style={{ background: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 6px 20px rgba(15, 23, 42, 0.06)", marginBottom: 18 }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <Input
+              placeholder="검색어를 입력하세요 (예: app)"
+              value={keyword}
+              onChange={handleFilterChange(setKeyword)}
+              autoComplete="off"
+              style={{ flex: 1 }}
+            />
 
-        <label htmlFor="word-difficulty-select">난이도</label>
-        <select
-          id="word-difficulty-select"
-          value={difficulty}
-          onChange={handleFilterChange(setDifficulty)}
-        >
-          <option value="">전체</option>
-          <option value="EASY">쉬움</option>
-          <option value="MEDIUM">중간</option>
-          <option value="HARD">어려움</option>
-        </select>
+            <select value={difficulty} onChange={handleFilterChange(setDifficulty)} style={{ padding: "10px", borderRadius: 8 }}>
+              <option value="">전체</option>
+              <option value="EASY">쉬움</option>
+              <option value="MEDIUM">중간</option>
+              <option value="HARD">어려움</option>
+            </select>
 
-        <label htmlFor="word-sort-field-select">정렬 기준</label>
-        <select
-          id="word-sort-field-select"
-          value={sortField}
-          onChange={handleFilterChange(setSortField)}
-        >
-          <option value="spelling">철자</option>
-          <option value="difficulty">난이도</option>
-        </select>
+            <select value={sortField} onChange={handleFilterChange(setSortField)} style={{ padding: "10px", borderRadius: 8 }}>
+              <option value="spelling">철자</option>
+              <option value="difficulty">난이도</option>
+            </select>
 
-        <label htmlFor="word-sort-order-select">정렬 방향</label>
-        <select
-          id="word-sort-order-select"
-          value={sortOrder}
-          onChange={handleFilterChange(setSortOrder)}
-        >
-          <option value="asc">오름차순</option>
-          <option value="desc">내림차순</option>
-        </select>
+            <select value={sortOrder} onChange={handleFilterChange(setSortOrder)} style={{ padding: "10px", borderRadius: 8 }}>
+              <option value="asc">오름차순</option>
+              <option value="desc">내림차순</option>
+            </select>
+
+            <Button type="button" buttonText="검색" onClick={() => setPage(1)} disabled={loading} style={{ width: 92 }} />
+          </div>
+        </section>
+
+        {error && <p role="alert" style={{ color: "#b91c1c" }}>{error}</p>}
+        {loading && <p>조회 중입니다...</p>}
+
+        <section>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <h2 style={{ margin: 0, color: "#4c1d95" }}>조회 결과</h2>
+            <div style={{ color: "#6b21a8" }}>총 {totalElements}개 · {totalPages}페이지</div>
+          </div>
+
+          <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 12 }}>
+            {words.length > 0 ? (
+              words.map((item) => (
+                <li
+                  key={item.wordId}
+                  style={{
+                    background: "#fff",
+                    padding: 14,
+                    borderRadius: 10,
+                    boxShadow: "0 4px 12px rgba(2,6,23,0.04)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#4c1d95" }}>{item.spelling}</div>
+                    <div style={{ color: "#6d28d9", marginTop: 6 }}>{item.meaning}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "6px 10px",
+                        borderRadius: 18,
+                        background: difficultyColor(item.difficulty),
+                        color: "#fff",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {translateDifficulty(item.difficulty)}
+                    </span>
+                  </div>
+                </li>
+              ))
+            ) : (
+              !loading && <li style={{ padding: 12, color: "#6b21a8" }}>조회 결과가 없습니다.</li>
+            )}
+          </ul>
+
+          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+            <Button type="button" buttonText="이전" onClick={handlePrevPage} disabled={page <= 1 || loading} />
+            <Button type="button" buttonText="다음" onClick={handleNextPage} disabled={loading || totalPages === 0 || page >= totalPages} />
+          </div>
+        </section>
       </div>
-
-      {error && <p role="alert">{error}</p>}
-      {loading && <p>조회 중입니다...</p>}
-
-      <h2>조회 결과</h2>
-      <p>
-        총 {totalElements}개 / 현재 {page}페이지
-      </p>
-
-      <ul>
-        {words.length > 0
-          ? words.map((item) => (
-              <li key={item.wordId}>
-                {item.spelling} - {item.meaning} ({translateDifficulty(item.difficulty)})
-              </li>
-            ))
-          : !loading && <li>조회 결과가 없습니다.</li>}
-      </ul>
-
-      <div style={{ display: "flex", gap: "8px", maxWidth: "420px" }}>
-        <Button
-          type="button"
-          buttonText="이전 페이지"
-          onClick={handlePrevPage}
-          disabled={page <= 1 || loading}
-        />
-        <Button
-          type="button"
-          buttonText="다음 페이지"
-          onClick={handleNextPage}
-          disabled={loading || totalPages === 0 || page >= totalPages}
-        />
-      </div>
-    </div>
+    </main>
   );
 }
 
