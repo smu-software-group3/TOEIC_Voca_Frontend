@@ -42,7 +42,10 @@ function Word() {
     <div>
       <h1>단어 검색</h1>
 
-      <p>검색어는 영어로만 입력할 수 있습니다. 입력이 비어 있으면 mock 단어장이 표시됩니다.</p>
+      <p>
+        검색어는 영어로만 입력할 수 있습니다. 입력이 비어 있으면 mock 단어장이
+        표시됩니다.
+      </p>
 
       <label htmlFor="word-search-input">검색할 단어</label>
       <Input
