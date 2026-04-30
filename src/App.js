@@ -1,23 +1,23 @@
-import logo from "./logo.svg";
-import "./App.css";
-import { Outlet, useNavigate } from "react-router-dom";
+import logo from './logo.svg';
+import './App.css';
 
 function App() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
   return (
     <div className="App">
-      <button onClick={handleLogout}>Logout</button>
-      <button onClick={() => navigate("/login")}>Login</button>
-      <button onClick={() => navigate("/register")}>Register</button>
-      <button onClick={() => navigate("/pwc")}>비밀번호 변경</button>
-      <button onClick={() => navigate("/word")}>단어장 조회</button>
-      <Outlet />
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
     </div>
   );
 }
