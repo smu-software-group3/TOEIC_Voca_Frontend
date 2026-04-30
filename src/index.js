@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Login from "./pages/Login";
+import Word from "./pages/word";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Register from "./pages/Register";
 import PasswordChange from "./pages/PasswordChange";
@@ -13,6 +14,12 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    children: [
+      {
+        path: "word",
+        element: <Word />,
+      },
+    ],
   },
   {
     path: "/login",
