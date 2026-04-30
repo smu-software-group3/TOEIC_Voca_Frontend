@@ -1,6 +1,7 @@
 import React from "react";
 
 export function Input({ placeholder, value, onChange, type, style, ...props }) {
+  // 공통 입력 스타일을 적용하고 필요하면 추가 props를 그대로 전달한다.
   return (
     <input
       type={type || "text"}

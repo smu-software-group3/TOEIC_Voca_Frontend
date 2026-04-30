@@ -14,6 +14,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // 기본 가입 정보를 서버에 보내고 다음 단계로 넘어간다.
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage("");
@@ -41,6 +42,7 @@ export default function Register() {
     }
   };
 
+  // 이메일 인증 코드를 확인하고 성공 시 로그인 화면으로 이동한다.
   const handleVerify = async (event) => {
     event.preventDefault();
     setMessage("");

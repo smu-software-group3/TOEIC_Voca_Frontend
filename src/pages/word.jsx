@@ -14,6 +14,7 @@ function Word() {
   const [results, setResults] = useState(mockWordBook);
   const [error, setError] = useState("");
 
+  // 입력값이 바뀔 때마다 영어 여부를 확인하고 mock 단어장을 다시 필터링한다.
   useEffect(() => {
     const trimmedWord = word.trim();
     const englishOnlyPattern = /^[A-Za-z\s]*$/;

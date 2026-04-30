@@ -1,6 +1,7 @@
 import React from "react";
 
 export function Form({ onSubmit, children, className, style, ...props }) {
+  // 폼 레이아웃과 제출 이벤트를 공통 방식으로 묶어 제공한다.
   return (
     <form
       onSubmit={onSubmit}

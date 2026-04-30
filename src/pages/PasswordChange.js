@@ -12,6 +12,7 @@ export default function PasswordChange() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 입력값을 검증한 뒤 서버에 비밀번호 변경 요청을 보낸다.
   const handleSubmit = async (e) => {
     e.preventDefault();
 

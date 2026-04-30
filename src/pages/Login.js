@@ -10,6 +10,7 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // 로그인 요청을 보내고 토큰을 저장한 뒤 메인 화면으로 이동한다.
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);

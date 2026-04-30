@@ -10,6 +10,7 @@ export default function PasswordFind() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 이메일을 검증한 뒤 임시 비밀번호 발급을 요청한다.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
