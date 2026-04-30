@@ -157,3 +157,84 @@ export async function getWords({ keyword = "", difficulty = "", page = 1, size =
     throw requestError;
   }
 }
+
+// 랜덤 단어를 요청해 단어 테스트의 출제 후보를 가져온다.
+export async function getRandomWords(count) {
+  const url = `${getServerUrl()}/api/words/random`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      params: { count },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message = error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 객관식 문제와 선택지를 단어 ID 기준으로 요청한다.
+export async function getWordTestQuestion(wordId) {
+  const url = `${getServerUrl()}/api/word-tests/questions`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post(
+      url,
+      { wordId },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message = error.response?.data?.message || "객관식 문제 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 사용자가 제출한 답안을 서버로 보내 정답 여부를 확인한다.
+export async function checkWordAnswer(wordId, submittedMeaning) {
+  const url = `${getServerUrl()}/api/word-tests/answers`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post(
+      url,
+      { wordId, submittedMeaning },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message = error.response?.data?.message || "정답 확인에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
