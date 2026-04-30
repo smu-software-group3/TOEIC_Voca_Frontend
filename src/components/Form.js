@@ -1,8 +1,8 @@
 import React from 'react'
 
-export function Form({onSubmit, children}) {
+export function Form({onSubmit, children, className, style, ...props}) {
   return (
-    <form onSubmit={onSubmit} style={{
+    <form onSubmit={onSubmit} className={className} {...props} style={{
       display: 'flex',
       flexDirection: 'column',
       gap: '16px',
@@ -11,6 +11,8 @@ export function Form({onSubmit, children}) {
       padding: '40px',
       backgroundColor: '#ffffff',
       borderRadius: '12px',
+      boxShadow: '0 18px 45px rgba(15, 23, 42, 0.12)',
+      ...style,
     }}>
       {children}
     </form>
