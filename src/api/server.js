@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
   const baseUrl = process.env.REACT_APP_SERVER_URL || "";
 
@@ -10,6 +11,7 @@ const getServerUrl = () => {
   return baseUrl.startsWith("http") ? baseUrl : `http://${baseUrl}`;
 };
 
+// 로그인 요청을 보내고 응답 데이터를 반환한다.
 export async function login(email, password) {
   const url = `${getServerUrl()}/api/auth/login`;
 
@@ -28,6 +30,7 @@ export async function login(email, password) {
   }
 }
 
+// 회원가입 정보를 서버에 전달한다.
 export async function signup(email, password, passwordConfirm) {
   const url = `${getServerUrl()}/api/auth/register`;
 
@@ -49,6 +52,7 @@ export async function signup(email, password, passwordConfirm) {
   }
 }
 
+// 이메일 인증 코드를 서버에 전송한다.
 export async function verifyEmail(email, code) {
   const url = `${getServerUrl()}/api/auth/verify`;
 
@@ -71,6 +75,7 @@ export async function verifyEmail(email, code) {
   }
 }
 
+// 현재 비밀번호와 새 비밀번호를 서버에 전달해 변경한다.
 export async function changePassword(
   currentPassword,
   newPassword,
@@ -99,6 +104,7 @@ export async function changePassword(
   }
 }
 
+// 이메일로 임시 비밀번호 발급을 요청한다.
 export async function findPassword(email) {
   const url = `${getServerUrl()}/api/password/find`;
 

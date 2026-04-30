@@ -8,6 +8,7 @@ const mockUserProfile = {
 };
 
 function Profile() {
+  // 서버 응답을 대체하는 mock 프로필 데이터를 현재 화면에 연결한다.
   const [userProfile] = useState(mockUserProfile);
 
   return (

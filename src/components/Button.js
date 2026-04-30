@@ -8,6 +8,7 @@ export function Button({
   disabled,
   ...props
 }) {
+  // 버튼의 기본 시각 스타일과 비활성화 상태를 공통으로 처리한다.
   return (
     <button
       type={type}

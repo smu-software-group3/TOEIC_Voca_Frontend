@@ -1,10 +1,10 @@
-import logo from "./logo.svg";
 import "./App.css";
 import { Outlet, useNavigate } from "react-router-dom";
 
 function App() {
   const navigate = useNavigate();
 
+  // 로그아웃 시 토큰을 지우고 로그인 화면으로 이동한다.
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");

@@ -50,6 +50,8 @@ const router = createBrowserRouter([
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
+// 라우터를 루트 DOM에 연결해 앱 렌더링을 시작한다.
 root.render(
   // <React.StrictMode>
   <RouterProvider router={router} />,

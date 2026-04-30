@@ -20,6 +20,7 @@ function WordTest() {
 
   const currentQuestion = mockTestQuestions[currentIndex];
 
+  // 현재 문제의 답안을 채점하고 다음 문제로 넘어간다.
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -44,6 +45,7 @@ function WordTest() {
     }, 1500);
   };
 
+  // 테스트 상태를 초기화해 처음부터 다시 풀 수 있게 한다.
   const handleRetry = () => {
     setCurrentIndex(0);
     setUserAnswer("");
