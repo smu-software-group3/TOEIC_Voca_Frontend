@@ -5,6 +5,7 @@ import "./Register.css";
 
 export default function Register() {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -28,11 +29,12 @@ export default function Register() {
     }
 
     try {
-      await signup(email.trim(), password, confirmPassword);
+      await signup(email.trim(), username.trim(), password, confirmPassword);
       setMessage(
         "회원가입이 완료되었습니다. 이메일로 받은 인증 코드를 입력해주세요.",
       );
       setRegistrationComplete(true);
+      setUsername("");
       setPassword("");
       setConfirmPassword("");
     } catch (err) {
@@ -70,28 +72,40 @@ export default function Register() {
         <div className="register-left">
           <div className="register-logo">
             <span className="register-logo-part register-logo-voca">VOCA</span>
-            <span className="register-logo-part register-logo-stats">STATS</span>
+            <span className="register-logo-part register-logo-stats">
+              STATS
+            </span>
           </div>
           <p className="register-logo-sub">VOCABULARY · STATISTICS</p>
-          <h1 className="register-headline">지금 시작하면 내일의 어휘가 달라집니다</h1>
+          <h1 className="register-headline">
+            지금 시작하면 내일의 어휘가 달라집니다
+          </h1>
           <p className="register-subtext">2단계로 간편하게 가입하세요.</p>
 
           <ul className="register-steps">
             <li className="register-step">
-              <div className={`register-step-num ${currentStep === 1 ? "active" : "done"}`}>
+              <div
+                className={`register-step-num ${currentStep === 1 ? "active" : "done"}`}
+              >
                 {currentStep === 1 ? "1" : "✓"}
               </div>
               <div>
                 <span className="register-step-title">기본 정보 입력</span>
-                <span className="register-step-desc">이메일 · 비밀번호 등록</span>
+                <span className="register-step-desc">
+                  이메일 · 비밀번호 등록
+                </span>
               </div>
             </li>
             <li className="register-step">
-              <div className={`register-step-num ${currentStep === 2 ? "active" : "idle"}`}>
+              <div
+                className={`register-step-num ${currentStep === 2 ? "active" : "idle"}`}
+              >
                 2
               </div>
               <div>
-                <span className={`register-step-title ${currentStep === 2 ? "" : "idle"}`}>
+                <span
+                  className={`register-step-title ${currentStep === 2 ? "" : "idle"}`}
+                >
                   이메일 인증
                 </span>
                 <span className="register-step-desc">인증 코드 확인</span>
@@ -101,7 +115,9 @@ export default function Register() {
         </div>
 
         <div className="register-right">
-          <h2 className="register-title">{registrationComplete ? "이메일 인증" : "회원가입"}</h2>
+          <h2 className="register-title">
+            {registrationComplete ? "이메일 인증" : "회원가입"}
+          </h2>
           <p className="register-hint">
             이미 계정이 있으신가요?{" "}
             <button
@@ -114,8 +130,12 @@ export default function Register() {
           </p>
 
           <div className="register-progress">
-            <div className={`register-dot ${currentStep === 1 ? "active" : "done"}`} />
-            <div className={`register-dot ${currentStep === 2 ? "active" : ""}`} />
+            <div
+              className={`register-dot ${currentStep === 1 ? "active" : "done"}`}
+            />
+            <div
+              className={`register-dot ${currentStep === 2 ? "active" : ""}`}
+            />
           </div>
 
           {!registrationComplete ? (
@@ -132,6 +152,22 @@ export default function Register() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="register-field">
+                <label className="register-label" htmlFor="username">
+                  이름
+                </label>
+                <input
+                  id="username"
+                  className="register-input"
+                  type="text"
+                  placeholder="이름을 입력하세요"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>

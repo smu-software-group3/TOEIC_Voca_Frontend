@@ -224,6 +224,7 @@ export function Sidebar() {
             color: "#64748b",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            display: hasToken ? "none" : "flex",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
@@ -248,6 +249,7 @@ export function Sidebar() {
             color: "#64748b",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            display: hasToken ? "none" : "flex",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";

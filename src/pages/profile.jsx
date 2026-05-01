@@ -2,11 +2,25 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteMyAccount, getMemberInfo, updateMyProfile } from "../api/server";
 
+const USER_TYPE_OPTIONS = [
+  { value: "HIGH_SCHOOL_STUDENT", label: "고등학생" },
+  { value: "UNIVERSITY_STUDENT", label: "대학생" },
+  { value: "EMPLOYEE", label: "직장인" },
+  { value: "JOB_SEEKER", label: "취준생" },
+  { value: "SELF_EMPLOYED", label: "자영업자" },
+  { value: "OTHER", label: "기타" },
+];
+
+function getUserTypeLabel(userType) {
+  const option = USER_TYPE_OPTIONS.find((item) => item.value === userType);
+  return option?.label || "미설정";
+}
+
 function mapProfileToEditForm(profile) {
   return {
     username: profile?.username || profile?.nickname || "",
     birthDate: profile?.birthDate || profile?.birth || "",
-    job: profile?.userType || "",
+    userType: profile?.userType || "",
   };
 }
 
@@ -22,7 +36,7 @@ function Profile() {
   const [editForm, setEditForm] = useState({
     username: "",
     birthDate: "",
-    job: "",
+    userType: "",
   });
 
   const fetchMemberInfo = async () => {
@@ -98,8 +112,8 @@ function Profile() {
       return;
     }
 
-    if (!editForm.job.trim()) {
-      setActionError("직업을 입력해주세요.");
+    if (!editForm.userType) {
+      setActionError("직업을 선택해주세요.");
       return;
     }
 
@@ -110,7 +124,7 @@ function Profile() {
       const response = await updateMyProfile({
         username: trimmedUsername,
         birthDate: editForm.birthDate,
-        userType: editForm.job,
+        userType: editForm.userType,
       });
 
       if (!response?.success) {
@@ -597,15 +611,14 @@ function Profile() {
           {/* 직업 */}
           <div style={{ marginBottom: "16px" }}>
             {isEditing ? (
-              <input
-                value={editForm.job}
+              <select
+                value={editForm.userType}
                 onChange={(event) =>
                   setEditForm((prev) => ({
                     ...prev,
-                    job: event.target.value,
+                    userType: event.target.value,
                   }))
                 }
-                placeholder="직업을 입력하세요"
                 style={{
                   width: "100%",
                   fontSize: "13px",
@@ -616,7 +629,14 @@ function Profile() {
                   color: "#1e1b4b",
                   boxSizing: "border-box",
                 }}
-              />
+              >
+                <option value="">선택하세요</option>
+                {USER_TYPE_OPTIONS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
             ) : (
               <span
                 style={{
@@ -629,7 +649,7 @@ function Profile() {
                   color: "#6b21a8",
                 }}
               >
-                {userProfile.userType || "미설정"}
+                {getUserTypeLabel(userProfile.userType)}
               </span>
             )}
           </div>

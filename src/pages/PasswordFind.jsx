@@ -49,15 +49,23 @@ export default function PasswordFind() {
             <span className="pwf-logo-part pwf-logo-stats">STATS</span>
           </div>
           <p className="pwf-logo-sub">VOCABULARY · STATISTICS</p>
-          <h1 className="pwf-headline">비밀번호를 잊으셨나요? 이메일로 즉시 재설정하세요</h1>
-          <p className="pwf-subtext">가입 이메일로 임시 비밀번호를 전송해 드립니다.</p>
+          <h1 className="pwf-headline">
+            비밀번호를 잊으셨나요? 이메일로 즉시 재설정하세요
+          </h1>
+          <p className="pwf-subtext">
+            가입 이메일로 임시 비밀번호를 전송해 드립니다.
+          </p>
           <ul className="pwf-features">
             <li className="pwf-feature">
-              <span className="pwf-feature-icon pwf-feature-icon-purple">📧</span>
+              <span className="pwf-feature-icon pwf-feature-icon-purple">
+                📧
+              </span>
               이메일 한 번으로 간편 요청
             </li>
             <li className="pwf-feature">
-              <span className="pwf-feature-icon pwf-feature-icon-green">⚡</span>
+              <span className="pwf-feature-icon pwf-feature-icon-green">
+                ⚡
+              </span>
               임시 비밀번호 즉시 발급
             </li>
           </ul>
@@ -67,14 +75,20 @@ export default function PasswordFind() {
           <h2 className="pwf-title">비밀번호 찾기</h2>
           <p className="pwf-hint">
             비밀번호가 기억나셨나요?{" "}
-            <button type="button" className="pwf-link" onClick={() => navigate("/login")}>
+            <button
+              type="button"
+              className="pwf-link"
+              onClick={() => navigate("/login")}
+            >
               로그인
             </button>
           </p>
 
           <form onSubmit={handleSubmit} className="pwf-form">
             <div className="pwf-field">
-              <label className="pwf-label" htmlFor="email">이메일</label>
+              <label className="pwf-label" htmlFor="email">
+                이메일
+              </label>
               <input
                 id="email"
                 className="pwf-input"

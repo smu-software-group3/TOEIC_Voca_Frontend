@@ -27,7 +27,7 @@ export default function Login() {
       navigate("/");
       // TODO: 로그인 성공 후 리다이렉트 또는 사용자 상태 저장
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "로그인에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -46,11 +46,15 @@ export default function Login() {
           <p className="login-subtext">단어를 외우고, 데이터로 확인하세요.</p>
           <ul className="login-features">
             <li className="login-feature">
-              <span className="login-feature-icon login-feature-icon-purple">📖</span>
+              <span className="login-feature-icon login-feature-icon-purple">
+                📖
+              </span>
               단어장 · 테스트 · 계정 관리
             </li>
             <li className="login-feature">
-              <span className="login-feature-icon login-feature-icon-green">📊</span>
+              <span className="login-feature-icon login-feature-icon-green">
+                📊
+              </span>
               학습 통계 · 진도 확인
             </li>
           </ul>

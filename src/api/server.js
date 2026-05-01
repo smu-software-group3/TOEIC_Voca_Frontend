@@ -25,29 +25,39 @@ export async function login(email, password) {
     return response.data;
   } catch (error) {
     const message =
-      error.response?.data?.message || "로그인 요청에 실패했습니다.";
+      error?.response?.status === 400
+        ? "잘못된 입력값입니다. 이메일과 비밀번호를 확인해주세요."
+        : error?.response?.status === 401
+        ? "이메일 또는 비밀번호가 일치하지 않습니다."
+        : error?.response?.status === 404
+        ? "존재하지 않는 계정입니다. 회원가입을 먼저 해주세요."
+        : "로그인 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
 
 // 회원가입 정보를 서버에 전달한다.
-export async function signup(email, password, passwordConfirm) {
+export async function signup(email, username, password, passwordConfirm) {
   const url = `${getServerUrl()}/api/auth/register`;
 
   console.log("Signup URL:", url);
-  console.log("Signup Data:", { email, password, passwordConfirm });
+  console.log("Signup Data:", { email, username, password, passwordConfirm });
 
   try {
     const response = await axios.post(
       url,
-      { email, password, passwordConfirm },
+      { email, username, password, passwordConfirm },
       { headers: { "Content-Type": "application/json" } },
     );
 
     return response.data;
   } catch (error) {
     const message =
-      error.response?.data?.message || "회원가입 요청에 실패했습니다.";
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 정보를 확인해주세요."
+        : error.response?.status === 409
+        ? "이미 사용 중인 이메일 또는 이름입니다."
+        : "회원가입 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -70,7 +80,11 @@ export async function verifyEmail(email, code) {
     return response.data;
   } catch (error) {
     const message =
-      error.response?.data?.message || "이메일 인증 요청에 실패했습니다.";
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 인증 코드를 확인해주세요."
+        : error.response?.status === 404
+        ? "존재하지 않는 계정입니다. 회원가입을 먼저 해주세요."
+        : "이메일 인증 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -95,7 +109,11 @@ export async function logout() {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.data?.message || "로그아웃 요청에 실패했습니다.";
+    const message = error.response?.status === 401
+      ? "인증이 필요합니다. 다시 로그인해주세요."
+      : error.response?.status === 404
+      ? "존재하지 않는 계정입니다."
+      : "로그아웃 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -120,7 +138,11 @@ export async function deleteMyAccount() {
   } catch (error) {
     const code = error.response?.data?.code;
     const message =
-      error.response?.data?.message || "회원 탈퇴 요청에 실패했습니다.";
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+        ? "존재하지 않는 계정입니다."
+        : error.response?.data?.message || "회원 탈퇴 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -134,7 +156,7 @@ export async function updateMyProfile({ username, birthDate, userType }) {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.put(
+    const response = await axios.patch(
       url,
       { username, birthDate, userType },
       {
@@ -149,7 +171,13 @@ export async function updateMyProfile({ username, birthDate, userType }) {
   } catch (error) {
     const code = error.response?.data?.code;
     const message =
-      error.response?.data?.message || "회원 정보 수정 요청에 실패했습니다.";
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+        ? "존재하지 않는 계정입니다."
+        : error.response?.status === 400
+        ? "잘못된 입력값입니다. 정보를 확인해주세요."
+        : error.response?.data?.message || "회원 정보 수정 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -181,7 +209,13 @@ export async function changePassword(
     return response.data;
   } catch (error) {
     const message =
-      error.response?.data?.message || "비밀번호 변경 요청에 실패했습니다.";
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 비밀번호를 확인해주세요."
+        : error.response?.status === 401
+        ? "현재 비밀번호가 올바르지 않습니다."
+        : error.response?.status === 404
+        ? "존재하지 않는 계정입니다."
+        : "비밀번호 변경 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -204,23 +238,25 @@ export async function findPassword(email) {
     return response.data;
   } catch (error) {
     const message =
-      error.response?.data?.message || "비밀번호 찾기 요청에 실패했습니다.";
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 이메일을 확인해주세요."
+        : error.response?.status === 404
+        ? "존재하지 않는 계정입니다."
+        : error.response?.data?.message || "비밀번호 찾기 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
 
 // 단어장 조회 조건을 쿼리 파라미터로 전달해 단어 목록을 가져온다.
-export async function getWords({ keyword = "", difficulty = "", page = 1, size = 20, sort = "spelling,asc" }) {
+export async function getWords({ spelling = "", difficulty = "", sort = "asc" }) {
   const url = `${getServerUrl()}/api/words`;
   const token = localStorage.getItem("token");
 
   try {
     const response = await axios.get(url, {
       params: {
-        keyword,
+        spelling,
         difficulty,
-        page,
-        size,
         sort,
       },
       headers: {
@@ -232,7 +268,9 @@ export async function getWords({ keyword = "", difficulty = "", page = 1, size =
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.data?.message || "단어장 조회 요청에 실패했습니다.";
+    const message = error.response?.status === 400
+      ? "잘못된 입력값입니다. 정보를 확인해주세요."
+      : error.response?.data?.message || "단어장 조회 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -257,7 +295,9 @@ export async function getRandomWords(count) {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
+    const message = error.response?.status === 400
+      ? "잘못된 입력값입니다. 정보를 확인해주세요."
+      : error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -267,7 +307,7 @@ export async function getRandomWords(count) {
 
 // 객관식 문제와 선택지를 단어 ID 기준으로 요청한다.
 export async function getWordTestQuestion(wordId) {
-  const url = `${getServerUrl()}/api/word-tests/questions`;
+  const url = `${getServerUrl()}/api/words/questions`;
   const token = localStorage.getItem("token");
 
   try {
@@ -285,7 +325,13 @@ export async function getWordTestQuestion(wordId) {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.data?.message || "객관식 문제 조회에 실패했습니다.";
+    const message = error.response?.status === 401
+      ? "인증이 필요합니다. 다시 로그인해주세요."
+      : error.response?.status === 404
+      ? "단어를 찾을 수 없습니다."
+      : error.response?.status === 422
+      ? "오답 보기를 구성하기 위한 단어가 부족합니다."
+      : error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -295,7 +341,7 @@ export async function getWordTestQuestion(wordId) {
 
 // 사용자가 제출한 답안을 서버로 보내 정답 여부를 확인한다.
 export async function checkWordAnswer(wordId, submittedMeaning) {
-  const url = `${getServerUrl()}/api/word-tests/answers`;
+  const url = `${getServerUrl()}/api/words/check-answer`;
   const token = localStorage.getItem("token");
 
   try {
@@ -313,7 +359,11 @@ export async function checkWordAnswer(wordId, submittedMeaning) {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.data?.message || "정답 확인에 실패했습니다.";
+    const message = error.response?.status === 400
+      ? "잘못된 입력값입니다. 정보를 확인해주세요."
+      : error.response?.status === 404
+      ? "단어를 찾을 수 없습니다."
+      : error.response?.data?.message || "정답 확인에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -323,7 +373,7 @@ export async function checkWordAnswer(wordId, submittedMeaning) {
 
 // 현재 로그인한 사용자의 프로필 정보를 조회한다.
 export async function getMemberInfo() {
-  const url = `${getServerUrl()}/api/members/me`;
+  const url = `${getServerUrl()}/api/users/me`;
   const token = localStorage.getItem("token");
 
   try {
@@ -337,7 +387,11 @@ export async function getMemberInfo() {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.data?.message || "회원 정보 조회에 실패했습니다.";
+    const message = error.response?.status === 401
+      ? "인증이 필요합니다. 다시 로그인해주세요."
+      : error.response?.status === 404
+      ? "존재하지 않는 계정입니다."
+      : error.response?.data?.message || "회원 정보 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
