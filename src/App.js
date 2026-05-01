@@ -5,14 +5,10 @@ import { Sidebar } from "./components/Sidebar";
 function App() {
   return (
     <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#ffffff",
-      }}
+      style={{ minHeight: "100vh", background: "#ffffff", overflow: "hidden" }}
     >
       <Sidebar />
-      <div style={{ flex: 1 }}>
+      <div style={{ marginLeft: "260px", minHeight: "100vh", width: "calc(100% - 260px)", boxSizing: "border-box" }}>
         <Outlet />
       </div>
     </div>
