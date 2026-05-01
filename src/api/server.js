@@ -128,6 +128,35 @@ export async function deleteMyAccount() {
   }
 }
 
+// 현재 로그인한 사용자의 프로필 정보를 수정한다.
+export async function updateMyProfile({ username, birthDate, userType }) {
+  const url = `${getServerUrl()}/api/users/me/profile`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.put(
+      url,
+      { username, birthDate, userType },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.data?.message || "회원 정보 수정 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
 // 현재 비밀번호와 새 비밀번호를 서버에 전달해 변경한다.
 export async function changePassword(
   currentPassword,

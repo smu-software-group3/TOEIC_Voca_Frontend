@@ -1,13 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteMyAccount, getMemberInfo } from "../api/server";
+import { deleteMyAccount, getMemberInfo, updateMyProfile } from "../api/server";
+
+function mapProfileToEditForm(profile) {
+  return {
+    username: profile?.username || profile?.nickname || "",
+    birthDate: profile?.birthDate || profile?.birth || "",
+    job: profile?.userType || profile?.job || "",
+  };
+}
 
 function Profile() {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [editForm, setEditForm] = useState({
+    username: "",
+    birthDate: "",
+    job: "",
+  });
+
+  const fetchMemberInfo = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await getMemberInfo();
+
+      if (!response?.success) {
+        throw new Error(response?.message || "프로필 조회에 실패했습니다.");
+      }
+
+      setUserProfile(response.data);
+      setEditForm(mapProfileToEditForm(response.data));
+    } catch (requestError) {
+      if (requestError.code === "UNAUTHORIZED") {
+        setError("인증이 필요합니다. 다시 로그인해주세요.");
+      } else {
+        setError(requestError.message || "프로필 조회에 실패했습니다.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     const confirmed = window.confirm(
@@ -19,7 +59,7 @@ function Profile() {
     }
 
     setWithdrawing(true);
-    setError("");
+    setActionError("");
 
     try {
       const response = await deleteMyAccount();
@@ -37,38 +77,64 @@ function Profile() {
         alert("인증이 필요합니다. 다시 로그인해주세요.");
         navigate("/login");
       } else {
-        setError(requestError.message || "회원 탈퇴에 실패했습니다.");
+        setActionError(requestError.message || "회원 탈퇴에 실패했습니다.");
       }
     } finally {
       setWithdrawing(false);
     }
   };
 
-  // 서버에서 사용자 프로필 정보를 조회한다.
-  useEffect(() => {
-    const fetchMemberInfo = async () => {
-      setLoading(true);
-      setError("");
+  const handleSaveProfile = async () => {
+    const trimmedUsername = editForm.username.trim();
 
-      try {
-        const response = await getMemberInfo();
+    if (!trimmedUsername) {
+      setActionError("이름을 입력해주세요.");
+      return;
+    }
 
-        if (!response?.success) {
-          throw new Error(response?.message || "프로필 조회에 실패했습니다.");
-        }
+    if (!editForm.birthDate) {
+      setActionError("생년월일을 입력해주세요.");
+      return;
+    }
 
-        setUserProfile(response.data);
-      } catch (requestError) {
-        if (requestError.code === "UNAUTHORIZED") {
-          setError("인증이 필요합니다. 다시 로그인해주세요.");
-        } else {
-          setError(requestError.message || "프로필 조회에 실패했습니다.");
-        }
-      } finally {
-        setLoading(false);
+    setSavingProfile(true);
+    setActionError("");
+
+    try {
+      const response = await updateMyProfile({
+        username: trimmedUsername,
+        birthDate: editForm.birthDate,
+        userType: editForm.job,
+      });
+
+      if (!response?.success) {
+        throw new Error(response?.message || "회원 정보 수정에 실패했습니다.");
       }
-    };
 
+      setIsEditing(false);
+      await fetchMemberInfo();
+    } catch (requestError) {
+      if (requestError.code === "UNAUTHORIZED") {
+        localStorage.removeItem("token");
+        alert("인증이 필요합니다. 다시 로그인해주세요.");
+        navigate("/login");
+      } else {
+        setActionError(
+          requestError.message || "회원 정보 수정에 실패했습니다.",
+        );
+      }
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setActionError("");
+    setEditForm(mapProfileToEditForm(userProfile));
+  };
+
+  useEffect(() => {
     fetchMemberInfo();
   }, []);
 
@@ -126,8 +192,9 @@ function Profile() {
     );
   }
 
-  // 닉네임의 첫 글자를 가져온다.
-  const firstChar = userProfile.nickname?.charAt(0) || "사";
+  // 표시 이름과 아바타 첫 글자를 계산한다.
+  const displayName = userProfile.username || userProfile.nickname || "사용자";
+  const firstChar = displayName.charAt(0) || "사";
 
   return (
     <div
@@ -338,59 +405,108 @@ function Profile() {
               </div>
             </div>
             <div style={{ paddingTop: "10px" }}>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => navigate("/pwc")}
-                  style={{
-                    background: "linear-gradient(135deg, #4c1d95, #0f766e)",
-                    borderRadius: "9px",
-                    padding: "8px 14px",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 10px rgba(124, 58, 237, 0.2)",
-                    border: "none",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#fff",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 16px rgba(124, 58, 237, 0.35)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 10px rgba(124, 58, 237, 0.2)";
-                  }}
-                >
-                  비밀번호 변경
-                </button>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
+                {!isEditing ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setActionError("");
+                        setEditForm(mapProfileToEditForm(userProfile));
+                        setIsEditing(true);
+                      }}
+                      style={{
+                        background: "linear-gradient(135deg, #6d28d9, #4c1d95)",
+                        borderRadius: "9px",
+                        padding: "8px 14px",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 10px rgba(124, 58, 237, 0.2)",
+                        border: "none",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        color: "#fff",
+                      }}
+                    >
+                      프로필 수정
+                    </button>
+                    <button
+                      onClick={() => navigate("/pwc")}
+                      style={{
+                        background: "linear-gradient(135deg, #4c1d95, #0f766e)",
+                        borderRadius: "9px",
+                        padding: "8px 14px",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 10px rgba(124, 58, 237, 0.2)",
+                        border: "none",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        color: "#fff",
+                      }}
+                    >
+                      비밀번호 변경
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleCancelEdit}
+                      disabled={savingProfile}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.8)",
+                        borderRadius: "9px",
+                        padding: "8px 14px",
+                        cursor: savingProfile ? "default" : "pointer",
+                        border: "1px solid rgba(139, 92, 246, 0.3)",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        color: "#5b21b6",
+                        opacity: savingProfile ? 0.7 : 1,
+                      }}
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={savingProfile}
+                      style={{
+                        background: "linear-gradient(135deg, #0d9488, #0f766e)",
+                        borderRadius: "9px",
+                        padding: "8px 14px",
+                        cursor: savingProfile ? "default" : "pointer",
+                        boxShadow: "0 2px 10px rgba(13, 148, 136, 0.2)",
+                        border: "none",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        color: "#fff",
+                        opacity: savingProfile ? 0.7 : 1,
+                      }}
+                    >
+                      {savingProfile ? "저장 중..." : "저장"}
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={handleDeleteAccount}
-                  disabled={withdrawing}
+                  disabled={withdrawing || savingProfile}
                   style={{
                     background: "linear-gradient(135deg, #dc2626, #b91c1c)",
                     borderRadius: "9px",
                     padding: "8px 14px",
-                    cursor: withdrawing ? "default" : "pointer",
+                    cursor:
+                      withdrawing || savingProfile ? "default" : "pointer",
                     boxShadow: "0 2px 10px rgba(220, 38, 38, 0.2)",
                     border: "none",
                     fontSize: "12px",
                     fontWeight: "600",
                     color: "#fff",
                     transition: "all 0.2s ease",
-                    opacity: withdrawing ? 0.7 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (withdrawing) {
-                      return;
-                    }
-
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 16px rgba(220, 38, 38, 0.35)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 10px rgba(220, 38, 38, 0.2)";
+                    opacity: withdrawing || savingProfile ? 0.7 : 1,
                   }}
                 >
                   {withdrawing ? "탈퇴 처리 중..." : "회원 탈퇴"}
@@ -399,30 +515,79 @@ function Profile() {
             </div>
           </div>
 
-          {/* 닉네임 */}
+          {/* 이름 */}
           <div style={{ marginBottom: "3px" }}>
-            <p
-              style={{ fontSize: "19px", fontWeight: "700", color: "#1e1b4b" }}
-            >
-              {userProfile.nickname}
-            </p>
+            {isEditing ? (
+              <input
+                value={editForm.username}
+                onChange={(event) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    username: event.target.value,
+                  }))
+                }
+                placeholder="이름을 입력하세요"
+                style={{
+                  width: "100%",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  color: "#1e1b4b",
+                  border: "1px solid rgba(139, 92, 246, 0.3)",
+                  borderRadius: "8px",
+                  padding: "8px 10px",
+                  background: "rgba(255,255,255,0.85)",
+                }}
+              />
+            ) : (
+              <p
+                style={{
+                  fontSize: "19px",
+                  fontWeight: "700",
+                  color: "#1e1b4b",
+                }}
+              >
+                {displayName}
+              </p>
+            )}
           </div>
 
-          {/* 직업 배지 */}
+          {/* 직업 */}
           <div style={{ marginBottom: "16px" }}>
-            <span
-              style={{
-                display: "inline-block",
-                fontSize: "11px",
-                padding: "3px 10px",
-                borderRadius: "20px",
-                background:
-                  "linear-gradient(90deg, rgba(124, 58, 237, 0.15), rgba(13, 148, 136, 0.1))",
-                color: "#6b21a8",
-              }}
-            >
-              {userProfile.job}
-            </span>
+            {isEditing ? (
+              <input
+                value={editForm.job}
+                onChange={(event) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    job: event.target.value,
+                  }))
+                }
+                placeholder="직업을 입력하세요"
+                style={{
+                  width: "100%",
+                  fontSize: "13px",
+                  border: "1px solid rgba(139, 92, 246, 0.3)",
+                  borderRadius: "8px",
+                  padding: "8px 10px",
+                  background: "rgba(255,255,255,0.85)",
+                  color: "#1e1b4b",
+                }}
+              />
+            ) : (
+              <span
+                style={{
+                  display: "inline-block",
+                  fontSize: "11px",
+                  padding: "3px 10px",
+                  borderRadius: "20px",
+                  background:
+                    "linear-gradient(90deg, rgba(124, 58, 237, 0.15), rgba(13, 148, 136, 0.1))",
+                  color: "#6b21a8",
+                }}
+              >
+                {userProfile.job || "미설정"}
+              </span>
+            )}
           </div>
 
           {/* 사용자 정보 */}
@@ -432,7 +597,7 @@ function Profile() {
               paddingTop: "16px",
             }}
           >
-            {error && (
+            {actionError && (
               <div
                 role="alert"
                 style={{
@@ -442,7 +607,7 @@ function Profile() {
                   fontWeight: "600",
                 }}
               >
-                {error}
+                {actionError}
               </div>
             )}
             <div
@@ -452,20 +617,42 @@ function Profile() {
                 alignItems: "center",
                 paddingBottom: "11px",
                 borderBottom: "0.5px solid rgba(139, 92, 246, 0.1)",
+                gap: "10px",
               }}
             >
               <span style={{ fontSize: "13px", color: "#64748b" }}>
                 생년월일
               </span>
-              <span
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  color: "#1e1b4b",
-                }}
-              >
-                {userProfile.birth}
-              </span>
+              {isEditing ? (
+                <input
+                  type="date"
+                  value={editForm.birthDate}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      birthDate: event.target.value,
+                    }))
+                  }
+                  style={{
+                    fontSize: "13px",
+                    border: "1px solid rgba(139, 92, 246, 0.3)",
+                    borderRadius: "8px",
+                    padding: "6px 8px",
+                    color: "#1e1b4b",
+                    background: "rgba(255,255,255,0.85)",
+                  }}
+                />
+              ) : (
+                <span
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "#1e1b4b",
+                  }}
+                >
+                  {userProfile.birthDate || userProfile.birth || "미설정"}
+                </span>
+              )}
             </div>
             <div
               style={{
