@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { getWords } from "../api/server";
-import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 
 // map difficulty to a color for visual display
@@ -17,11 +16,6 @@ function difficultyColor(difficulty) {
   }
 }
 
-// 정렬 문자열을 서버 형식(spelling,asc)으로 조합한다.
-function makeSortValue(sortField, sortOrder) {
-  return `${sortField},${sortOrder}`;
-}
-
 // difficulty 값을 한국어로 변환해 반환한다.
 function translateDifficulty(difficulty) {
   const difficultyMap = {
@@ -34,12 +28,9 @@ function translateDifficulty(difficulty) {
 }
 
 function Word() {
-  const [keyword, setKeyword] = useState("");
+  const [spelling, setSpelling] = useState("");
   const [difficulty, setDifficulty] = useState("");
-  const [sortField, setSortField] = useState("spelling");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [page, setPage] = useState(1);
-  const [size] = useState(20);
+  const [sort, setSort] = useState("asc");
   const [words, setWords] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -47,56 +38,55 @@ function Word() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchWords = async () => {
-      setLoading(true);
-      setError("");
+    setLoading(true);
+    setWords([]);
+    const timer = setTimeout(() => {
+      const fetchWords = async () => {
+        setError("");
+        try {
+          const response = await getWords({
+            spelling: spelling.trim(),
+            difficulty,
+            sort,
+          });
 
-      try {
-        const response = await getWords({
-          keyword: keyword.trim(),
-          difficulty,
-          page,
-          size,
-          sort: makeSortValue(sortField, sortOrder),
-        });
+          console.log("단어장 조회 응답 데이터:", response);
 
-        if (!response?.success) {
-          throw new Error(
-            response?.message || "단어장 조회 요청에 실패했습니다.",
-          );
+          if (!response?.success) {
+            throw new Error(
+              response?.message || "단어장 조회 요청에 실패했습니다.",
+            );
+          }
+
+          const pageData = response.data || {};
+          setWords(pageData || []);
+          setTotalElements(pageData.totalElements || 0);
+          console.log("조회된 단어 목록:", pageData.content || []);
+        } catch (requestError) {
+          if (requestError.code === "UNAUTHORIZED") {
+            setError("인증이 필요합니다. 다시 로그인해주세요.");
+          } else {
+            setError(
+              requestError.message || "단어장 조회 요청에 실패했습니다.",
+            );
+          }
+
+          setWords([]);
+          setTotalPages(0);
+          setTotalElements(0);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        const pageData = response.data || {};
-        setWords(pageData.content || []);
-        setTotalPages(pageData.totalPages || 0);
-        setTotalElements(pageData.totalElements || 0);
-      } catch (requestError) {
-        if (requestError.code === "UNAUTHORIZED") {
-          setError("인증이 필요합니다. 다시 로그인해주세요.");
-        } else {
-          setError(requestError.message || "단어장 조회 요청에 실패했습니다.");
-        }
+      fetchWords();
+    }, 500); // 500ms 딜레이로 디바운스 처리
 
-        setWords([]);
-        setTotalPages(0);
-        setTotalElements(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWords();
-  }, [keyword, difficulty, sortField, sortOrder, page, size]);
-
-  const handlePrevPage = () => setPage((prev) => Math.max(1, prev - 1));
-  const handleNextPage = () =>
-    setPage((prev) =>
-      totalPages === 0 ? prev : Math.min(totalPages, prev + 1),
-    );
+    return () => clearTimeout(timer);
+  }, [spelling, difficulty, sort]);
 
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
-    setPage(1);
   };
 
   return (
@@ -125,8 +115,8 @@ function Word() {
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Input
               placeholder="검색어를 입력하세요 (예: app)"
-              value={keyword}
-              onChange={handleFilterChange(setKeyword)}
+              value={spelling}
+              onChange={handleFilterChange(setSpelling)}
               autoComplete="off"
               style={{ flex: 1 }}
             />
@@ -143,30 +133,13 @@ function Word() {
             </select>
 
             <select
-              value={sortField}
-              onChange={handleFilterChange(setSortField)}
-              style={{ padding: "10px", borderRadius: 8 }}
-            >
-              <option value="spelling">철자</option>
-              <option value="difficulty">난이도</option>
-            </select>
-
-            <select
-              value={sortOrder}
-              onChange={handleFilterChange(setSortOrder)}
+              value={sort}
+              onChange={handleFilterChange(setSort)}
               style={{ padding: "10px", borderRadius: 8 }}
             >
               <option value="asc">오름차순</option>
               <option value="desc">내림차순</option>
             </select>
-
-            <Button
-              type="button"
-              buttonText="검색"
-              onClick={() => setPage(1)}
-              disabled={loading}
-              style={{ width: 92 }}
-            />
           </div>
         </section>
 
@@ -175,7 +148,6 @@ function Word() {
             {error}
           </p>
         )}
-        {loading && <p>조회 중입니다...</p>}
 
         <section>
           <div
@@ -191,7 +163,7 @@ function Word() {
               총 {totalElements}개 · {totalPages}페이지
             </div>
           </div>
-
+          {loading && <p>조회 중입니다...</p>}
           <ul
             style={{ listStyle: "none", padding: 0, display: "grid", gap: 12 }}
           >
@@ -245,21 +217,6 @@ function Word() {
                   </li>
                 )}
           </ul>
-
-          <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-            <Button
-              type="button"
-              buttonText="이전"
-              onClick={handlePrevPage}
-              disabled={page <= 1 || loading}
-            />
-            <Button
-              type="button"
-              buttonText="다음"
-              onClick={handleNextPage}
-              disabled={loading || totalPages === 0 || page >= totalPages}
-            />
-          </div>
         </section>
       </div>
     </main>
