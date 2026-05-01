@@ -6,7 +6,7 @@ function mapProfileToEditForm(profile) {
   return {
     username: profile?.username || profile?.nickname || "",
     birthDate: profile?.birthDate || profile?.birth || "",
-    job: profile?.userType || profile?.job || "",
+    job: profile?.userType || "",
   };
 }
 
@@ -36,8 +36,9 @@ function Profile() {
         throw new Error(response?.message || "프로필 조회에 실패했습니다.");
       }
 
-      setUserProfile(response.data);
-      setEditForm(mapProfileToEditForm(response.data));
+      const profile = response.data;
+      setUserProfile(profile);
+      setEditForm(mapProfileToEditForm(profile));
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
         setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -97,6 +98,11 @@ function Profile() {
       return;
     }
 
+    if (!editForm.job.trim()) {
+      setActionError("직업을 입력해주세요.");
+      return;
+    }
+
     setSavingProfile(true);
     setActionError("");
 
@@ -144,11 +150,12 @@ function Profile() {
         style={{
           background:
             "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-          padding: "28px 32px",
-          minHeight: "100vh",
+          height: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          boxSizing: "border-box",
+          width: "100%",
         }}
       >
         <p>프로필을 불러오는 중입니다...</p>
@@ -162,11 +169,12 @@ function Profile() {
         style={{
           background:
             "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-          padding: "28px 32px",
-          minHeight: "100vh",
+          height: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          boxSizing: "border-box",
+          width: "100%",
         }}
       >
         <p role="alert">{error}</p>
@@ -180,11 +188,12 @@ function Profile() {
         style={{
           background:
             "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-          padding: "28px 32px",
-          minHeight: "100vh",
+          height: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          boxSizing: "border-box",
+          width: "100%",
         }}
       >
         <p>프로필 정보를 찾을 수 없습니다.</p>
@@ -201,14 +210,17 @@ function Profile() {
       style={{
         background:
           "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-        padding: "28px 32px",
-        minHeight: "100vh",
+        height: "100vh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        boxSizing: "border-box",
+        width: "100%",
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding: "28px 0",
         position: "relative",
-        overflow: "hidden",
       }}
     >
       {/* 성운 블롭 (밝은 버전) */}
@@ -254,7 +266,13 @@ function Profile() {
 
       {/* 별들 */}
       {[
-        { top: "8%", left: "18%", size: "2px", opacity: 0.4, color: "#6d28d9" },
+        {
+          top: "8%",
+          left: "18%",
+          size: "2px",
+          opacity: 0.4,
+          color: "#6d28d9",
+        },
         {
           top: "14%",
           left: "55%",
@@ -315,6 +333,26 @@ function Profile() {
           }}
         ></div>
       ))}
+
+      {/* 추가 정보 입력 메시지 */}
+      {(!userProfile?.userType || !userProfile?.birthDate) && (
+        <div
+          style={{
+            marginBottom: "24px",
+            padding: "16px 20px",
+            background: "rgba(139, 92, 246, 0.1)",
+            border: "1px solid rgba(139, 92, 246, 0.3)",
+            borderRadius: "12px",
+            color: "#6b21a8",
+            fontSize: "14px",
+            fontWeight: "600",
+            textAlign: "center",
+            maxWidth: "620px",
+          }}
+        >
+          프로필을 완성하기 위해 생년월일과 직업을 입력해주세요.
+        </div>
+      )}
 
       {/* 프로필 카드 */}
       <div
@@ -398,7 +436,11 @@ function Profile() {
                 }}
               >
                 <span
-                  style={{ fontSize: "21px", fontWeight: "700", color: "#fff" }}
+                  style={{
+                    fontSize: "21px",
+                    fontWeight: "700",
+                    color: "#fff",
+                  }}
                 >
                   {firstChar}
                 </span>
@@ -536,6 +578,7 @@ function Profile() {
                   borderRadius: "8px",
                   padding: "8px 10px",
                   background: "rgba(255,255,255,0.85)",
+                  boxSizing: "border-box",
                 }}
               />
             ) : (
@@ -571,6 +614,7 @@ function Profile() {
                   padding: "8px 10px",
                   background: "rgba(255,255,255,0.85)",
                   color: "#1e1b4b",
+                  boxSizing: "border-box",
                 }}
               />
             ) : (
@@ -585,7 +629,7 @@ function Profile() {
                   color: "#6b21a8",
                 }}
               >
-                {userProfile.job || "미설정"}
+                {userProfile.userType || "미설정"}
               </span>
             )}
           </div>
@@ -640,6 +684,7 @@ function Profile() {
                     padding: "6px 8px",
                     color: "#1e1b4b",
                     background: "rgba(255,255,255,0.85)",
+                    boxSizing: "border-box",
                   }}
                 />
               ) : (
@@ -673,31 +718,6 @@ function Profile() {
                 }}
               >
                 {userProfile.email}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingTop: "11px",
-              }}
-            >
-              <span style={{ fontSize: "13px", color: "#64748b" }}>
-                이메일 인증
-              </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  padding: "3px 10px",
-                  borderRadius: "20px",
-                  background: userProfile.emailVerified
-                    ? "rgba(16, 185, 129, 0.15)"
-                    : "rgba(239, 68, 68, 0.15)",
-                  color: userProfile.emailVerified ? "#047857" : "#b91c1c",
-                }}
-              >
-                {userProfile.emailVerified ? "완료" : "미완료"}
               </span>
             </div>
           </div>

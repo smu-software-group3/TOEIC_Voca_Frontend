@@ -61,7 +61,9 @@ function Word() {
         });
 
         if (!response?.success) {
-          throw new Error(response?.message || "단어장 조회 요청에 실패했습니다.");
+          throw new Error(
+            response?.message || "단어장 조회 요청에 실패했습니다.",
+          );
         }
 
         const pageData = response.data || {};
@@ -87,7 +89,10 @@ function Word() {
   }, [keyword, difficulty, sortField, sortOrder, page, size]);
 
   const handlePrevPage = () => setPage((prev) => Math.max(1, prev - 1));
-  const handleNextPage = () => setPage((prev) => (totalPages === 0 ? prev : Math.min(totalPages, prev + 1)));
+  const handleNextPage = () =>
+    setPage((prev) =>
+      totalPages === 0 ? prev : Math.min(totalPages, prev + 1),
+    );
 
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
@@ -95,12 +100,28 @@ function Word() {
   };
 
   return (
-    <main style={{ padding: 28, background: "linear-gradient(145deg, #f8fafc 0%, #eef2ff 50%)", minHeight: "100vh" }}>
+    <main
+      style={{
+        padding: 28,
+        background: "linear-gradient(145deg, #f8fafc 0%, #eef2ff 50%)",
+        minHeight: "100vh",
+      }}
+    >
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <h1 style={{ marginBottom: 6, color: "#4c1d95" }}>단어장 조회</h1>
-        <p style={{ marginBottom: 18, color: "#6d28d9" }}>키워드, 난이도, 정렬 방식으로 단어장을 조회할 수 있습니다.</p>
+        <h1 style={{ marginBottom: 6, color: "#000" }}>단어장 조회</h1>
+        <p style={{ marginBottom: 18, color: "#000" }}>
+          키워드, 난이도, 정렬 방식으로 단어장을 조회할 수 있습니다.
+        </p>
 
-        <section style={{ background: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 6px 20px rgba(15, 23, 42, 0.06)", marginBottom: 18 }}>
+        <section
+          style={{
+            background: "#fff",
+            padding: 16,
+            borderRadius: 12,
+            boxShadow: "0 6px 20px rgba(15, 23, 42, 0.06)",
+            marginBottom: 18,
+          }}
+        >
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Input
               placeholder="검색어를 입력하세요 (예: app)"
@@ -110,79 +131,134 @@ function Word() {
               style={{ flex: 1 }}
             />
 
-            <select value={difficulty} onChange={handleFilterChange(setDifficulty)} style={{ padding: "10px", borderRadius: 8 }}>
+            <select
+              value={difficulty}
+              onChange={handleFilterChange(setDifficulty)}
+              style={{ padding: "10px", borderRadius: 8 }}
+            >
               <option value="">전체</option>
               <option value="EASY">쉬움</option>
               <option value="MEDIUM">중간</option>
               <option value="HARD">어려움</option>
             </select>
 
-            <select value={sortField} onChange={handleFilterChange(setSortField)} style={{ padding: "10px", borderRadius: 8 }}>
+            <select
+              value={sortField}
+              onChange={handleFilterChange(setSortField)}
+              style={{ padding: "10px", borderRadius: 8 }}
+            >
               <option value="spelling">철자</option>
               <option value="difficulty">난이도</option>
             </select>
 
-            <select value={sortOrder} onChange={handleFilterChange(setSortOrder)} style={{ padding: "10px", borderRadius: 8 }}>
+            <select
+              value={sortOrder}
+              onChange={handleFilterChange(setSortOrder)}
+              style={{ padding: "10px", borderRadius: 8 }}
+            >
               <option value="asc">오름차순</option>
               <option value="desc">내림차순</option>
             </select>
 
-            <Button type="button" buttonText="검색" onClick={() => setPage(1)} disabled={loading} style={{ width: 92 }} />
+            <Button
+              type="button"
+              buttonText="검색"
+              onClick={() => setPage(1)}
+              disabled={loading}
+              style={{ width: 92 }}
+            />
           </div>
         </section>
 
-        {error && <p role="alert" style={{ color: "#b91c1c" }}>{error}</p>}
+        {error && (
+          <p role="alert" style={{ color: "#b91c1c" }}>
+            {error}
+          </p>
+        )}
         {loading && <p>조회 중입니다...</p>}
 
         <section>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h2 style={{ margin: 0, color: "#4c1d95" }}>조회 결과</h2>
-            <div style={{ color: "#6b21a8" }}>총 {totalElements}개 · {totalPages}페이지</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <h2 style={{ margin: 0, color: "#000" }}>조회 결과</h2>
+            <div style={{ color: "#000" }}>
+              총 {totalElements}개 · {totalPages}페이지
+            </div>
           </div>
 
-          <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 12 }}>
-            {words.length > 0 ? (
-              words.map((item) => (
-                <li
-                  key={item.wordId}
-                  style={{
-                    background: "#fff",
-                    padding: 14,
-                    borderRadius: 10,
-                    boxShadow: "0 4px 12px rgba(2,6,23,0.04)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#4c1d95" }}>{item.spelling}</div>
-                    <div style={{ color: "#6d28d9", marginTop: 6 }}>{item.meaning}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        padding: "6px 10px",
-                        borderRadius: 18,
-                        background: difficultyColor(item.difficulty),
-                        color: "#fff",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {translateDifficulty(item.difficulty)}
-                    </span>
-                  </div>
-                </li>
-              ))
-            ) : (
-              !loading && <li style={{ padding: 12, color: "#6b21a8" }}>조회 결과가 없습니다.</li>
-            )}
+          <ul
+            style={{ listStyle: "none", padding: 0, display: "grid", gap: 12 }}
+          >
+            {words.length > 0
+              ? words.map((item) => (
+                  <li
+                    key={item.wordId}
+                    style={{
+                      background: "#fff",
+                      padding: 14,
+                      borderRadius: 10,
+                      boxShadow: "0 4px 12px rgba(2,6,23,0.04)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 700,
+                          color: "#4c1d95",
+                        }}
+                      >
+                        {item.spelling}
+                      </div>
+                      <div style={{ color: "#000", marginTop: 6 }}>
+                        {item.meaning}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 10px",
+                          borderRadius: 18,
+                          background: difficultyColor(item.difficulty),
+                          color: "#fff",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {translateDifficulty(item.difficulty)}
+                      </span>
+                    </div>
+                  </li>
+                ))
+              : !loading && (
+                  <li style={{ padding: 12, color: "#6b21a8" }}>
+                    조회 결과가 없습니다.
+                  </li>
+                )}
           </ul>
 
           <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-            <Button type="button" buttonText="이전" onClick={handlePrevPage} disabled={page <= 1 || loading} />
-            <Button type="button" buttonText="다음" onClick={handleNextPage} disabled={loading || totalPages === 0 || page >= totalPages} />
+            <Button
+              type="button"
+              buttonText="이전"
+              onClick={handlePrevPage}
+              disabled={page <= 1 || loading}
+            />
+            <Button
+              type="button"
+              buttonText="다음"
+              onClick={handleNextPage}
+              disabled={loading || totalPages === 0 || page >= totalPages}
+            />
           </div>
         </section>
       </div>

@@ -51,7 +51,12 @@ export function Sidebar() {
         flexDirection: "column",
         gap: "2px",
         borderRight: "0.5px solid rgba(139, 92, 246, 0.15)",
-        minHeight: "100vh",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        height: "100vh",
+        overflowY: "auto",
+        zIndex: 1000,
       }}
     >
       {/* Logo */}
