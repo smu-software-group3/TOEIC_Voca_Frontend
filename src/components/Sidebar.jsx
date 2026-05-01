@@ -1,17 +1,43 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../api/server";
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const [hasToken, setHasToken] = useState(!!localStorage.getItem("token"));
 
-  const handleLogout = () => {
+  useEffect(() => {
+    const syncTokenState = () => {
+      setHasToken(!!localStorage.getItem("token"));
+    };
+
+    window.addEventListener("storage", syncTokenState);
+    return () => window.removeEventListener("storage", syncTokenState);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await logout();
+
+      if (!response?.success) {
+        throw new Error(response?.message || "로그아웃 요청에 실패했습니다.");
+      }
+    } catch (requestError) {
+      if (requestError.code !== "UNAUTHORIZED") {
+        alert(requestError.message || "로그아웃 요청에 실패했습니다.");
+        return;
+      }
+    }
+
     localStorage.removeItem("token");
+    setHasToken(false);
     navigate("/login");
   };
 
   const handleSetTemporaryToken = () => {
     const token = "your-temporary-token";
     localStorage.setItem("token", token);
+    setHasToken(true);
   };
 
   return (
@@ -258,30 +284,32 @@ export function Sidebar() {
           </svg>
           내 프로필
         </div>
-        <div
-          onClick={handleLogout}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 12px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            color: "#64748b",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
-            e.currentTarget.style.color = "#c4b5fd";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "#64748b";
-          }}
-        >
-          로그아웃
-        </div>
+        {hasToken && (
+          <div
+            onClick={handleLogout}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              color: "#64748b",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
+              e.currentTarget.style.color = "#c4b5fd";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#64748b";
+            }}
+          >
+            로그아웃
+          </div>
+        )}
         <div
           onClick={handleSetTemporaryToken}
           style={{
