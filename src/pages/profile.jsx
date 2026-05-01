@@ -1,12 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMemberInfo } from "../api/server";
+import { deleteMyAccount, getMemberInfo } from "../api/server";
 
 function Profile() {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "정말 회원 탈퇴하시겠습니까? 탈퇴 후에는 계정을 복구할 수 없습니다.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setWithdrawing(true);
+    setError("");
+
+    try {
+      const response = await deleteMyAccount();
+
+      if (!response?.success) {
+        throw new Error(response?.message || "회원 탈퇴에 실패했습니다.");
+      }
+
+      localStorage.removeItem("token");
+      alert("회원 탈퇴가 완료되었습니다.");
+      navigate("/login");
+    } catch (requestError) {
+      if (requestError.code === "UNAUTHORIZED") {
+        localStorage.removeItem("token");
+        alert("인증이 필요합니다. 다시 로그인해주세요.");
+        navigate("/login");
+      } else {
+        setError(requestError.message || "회원 탈퇴에 실패했습니다.");
+      }
+    } finally {
+      setWithdrawing(false);
+    }
+  };
 
   // 서버에서 사용자 프로필 정보를 조회한다.
   useEffect(() => {
@@ -302,31 +338,64 @@ function Profile() {
               </div>
             </div>
             <div style={{ paddingTop: "10px" }}>
-              <button
-                onClick={() => navigate("/pwc")}
-                style={{
-                  background: "linear-gradient(135deg, #4c1d95, #0f766e)",
-                  borderRadius: "9px",
-                  padding: "8px 14px",
-                  cursor: "pointer",
-                  boxShadow: "0 2px 10px rgba(124, 58, 237, 0.2)",
-                  border: "none",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  color: "#fff",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 16px rgba(124, 58, 237, 0.35)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 10px rgba(124, 58, 237, 0.2)";
-                }}
-              >
-                비밀번호 변경
-              </button>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => navigate("/pwc")}
+                  style={{
+                    background: "linear-gradient(135deg, #4c1d95, #0f766e)",
+                    borderRadius: "9px",
+                    padding: "8px 14px",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 10px rgba(124, 58, 237, 0.2)",
+                    border: "none",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#fff",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 16px rgba(124, 58, 237, 0.35)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 2px 10px rgba(124, 58, 237, 0.2)";
+                  }}
+                >
+                  비밀번호 변경
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={withdrawing}
+                  style={{
+                    background: "linear-gradient(135deg, #dc2626, #b91c1c)",
+                    borderRadius: "9px",
+                    padding: "8px 14px",
+                    cursor: withdrawing ? "default" : "pointer",
+                    boxShadow: "0 2px 10px rgba(220, 38, 38, 0.2)",
+                    border: "none",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#fff",
+                    transition: "all 0.2s ease",
+                    opacity: withdrawing ? 0.7 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (withdrawing) {
+                      return;
+                    }
+
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 16px rgba(220, 38, 38, 0.35)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 2px 10px rgba(220, 38, 38, 0.2)";
+                  }}
+                >
+                  {withdrawing ? "탈퇴 처리 중..." : "회원 탈퇴"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -363,6 +432,19 @@ function Profile() {
               paddingTop: "16px",
             }}
           >
+            {error && (
+              <div
+                role="alert"
+                style={{
+                  marginBottom: "12px",
+                  fontSize: "13px",
+                  color: "#b91c1c",
+                  fontWeight: "600",
+                }}
+              >
+                {error}
+              </div>
+            )}
             <div
               style={{
                 display: "flex",
