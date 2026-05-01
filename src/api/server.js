@@ -75,6 +75,34 @@ export async function verifyEmail(email, code) {
   }
 }
 
+// 로그아웃 요청을 서버에 전달한다.
+export async function logout() {
+  const url = `${getServerUrl()}/api/auth/logout`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message = error.response?.data?.message || "로그아웃 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
 // 현재 비밀번호와 새 비밀번호를 서버에 전달해 변경한다.
 export async function changePassword(
   currentPassword,
