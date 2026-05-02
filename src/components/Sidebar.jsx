@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../api/server";
 
-export function Sidebar() {
+export function Sidebar({
+  isMobile = false,
+  isMobileOpen = false,
+  onCloseMobile,
+  isCollapsed = false,
+  onToggleCollapse,
+}) {
   const navigate = useNavigate();
   const [hasToken, setHasToken] = useState(!!localStorage.getItem("token"));
 
@@ -31,7 +37,17 @@ export function Sidebar() {
 
     localStorage.removeItem("token");
     setHasToken(false);
+    if (isMobile) {
+      onCloseMobile?.();
+    }
     navigate("/login");
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    if (isMobile) {
+      onCloseMobile?.();
+    }
   };
 
   const handleSetTemporaryToken = () => {
@@ -57,63 +73,104 @@ export function Sidebar() {
         height: "100vh",
         overflowY: "auto",
         zIndex: 1000,
+        transition: "transform 0.25s ease, box-shadow 0.25s ease",
+        transform: isMobile
+          ? !isMobileOpen
+            ? "translateX(-100%)"
+            : "translateX(0)"
+          : isCollapsed
+            ? "translateX(-100%)"
+            : "translateX(0)",
+        boxShadow: isMobile ? "0 12px 30px rgba(15, 23, 42, 0.22)" : "none",
       }}
     >
       {/* Logo */}
       <div
-        onClick={() => navigate("/")}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "9px",
           marginBottom: "24px",
           padding: "0 4px",
-          cursor: "pointer",
-          transition: "opacity 0.2s ease",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
       >
         <div
+          onClick={() => handleNavigate("/")}
           style={{
-            width: "34px",
-            height: "34px",
-            borderRadius: "10px",
-            background: "linear-gradient(135deg, #7c3aed, #0d9488)",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 10px rgba(124, 58, 237, 0.4)",
+            gap: "9px",
+            cursor: "pointer",
+            transition: "opacity 0.2s ease",
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            strokeLinecap="round"
-          >
-            <path
-              d="M12 2L2 7l10 5 10-5-10-5z"
-              stroke="#e9d5ff"
-              strokeWidth="2"
-            />
-            <path d="M2 17l10 5 10-5" stroke="#5eead4" strokeWidth="2" />
-            <path d="M2 12l10 5 10-5" stroke="#c4b5fd" strokeWidth="2" />
-          </svg>
-        </div>
-        <div>
           <div
             style={{
-              fontSize: "15px",
-              fontWeight: "700",
-              letterSpacing: "-0.3px",
-              color: "#c4b5fd",
+              width: "34px",
+              height: "34px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #7c3aed, #0d9488)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 10px rgba(124, 58, 237, 0.4)",
             }}
           >
-            VocaStats
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeLinecap="round"
+            >
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5z"
+                stroke="#e9d5ff"
+                strokeWidth="2"
+              />
+              <path d="M2 17l10 5 10-5" stroke="#5eead4" strokeWidth="2" />
+              <path d="M2 12l10 5 10-5" stroke="#c4b5fd" strokeWidth="2" />
+            </svg>
+          </div>
+          <div style={{ marginLeft: 8 }}>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "700",
+                letterSpacing: "-0.3px",
+                color: "#c4b5fd",
+              }}
+            >
+              VocaStats
+            </div>
           </div>
         </div>
+
+        {/* Collapse/close button: shown to the right of the logo when sidebar is expanded.
+            On desktop it toggles collapsed state; on mobile it closes the mobile sidebar. */}
+        {!isCollapsed && (!isMobile || isMobileOpen) && (
+          <button
+            type="button"
+            aria-label={isMobile ? "사이드바 닫기" : "사이드바 접기"}
+            onClick={() => {
+              if (isMobile) onCloseMobile?.();
+              else onToggleCollapse?.();
+            }}
+            style={{
+              marginLeft: "auto",
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              border: "none",
+              background: "transparent",
+              color: "#c4b5fd",
+              cursor: "pointer",
+            }}
+          >
+            ‹
+          </button>
+        )}
       </div>
 
       {/* Navigation Section - VOCA */}
@@ -129,7 +186,7 @@ export function Sidebar() {
         VOCA
       </p>
       <div
-        onClick={() => navigate("/word")}
+        onClick={() => handleNavigate("/word")}
         style={{
           display: "flex",
           alignItems: "center",
@@ -165,7 +222,7 @@ export function Sidebar() {
         단어장
       </div>
       <div
-        onClick={() => navigate("/wtest")}
+        onClick={() => handleNavigate("/wtest")}
         style={{
           display: "flex",
           alignItems: "center",
@@ -213,9 +270,9 @@ export function Sidebar() {
         }}
       >
         <div
-          onClick={() => navigate("/login")}
+          onClick={() => handleNavigate("/login")}
           style={{
-            display: "flex",
+            display: hasToken ? "none" : "flex",
             alignItems: "center",
             gap: "8px",
             padding: "10px 12px",
@@ -224,7 +281,6 @@ export function Sidebar() {
             color: "#64748b",
             cursor: "pointer",
             transition: "all 0.2s ease",
-            display: hasToken ? "none" : "flex",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
@@ -238,9 +294,9 @@ export function Sidebar() {
           로그인
         </div>
         <div
-          onClick={() => navigate("/register")}
+          onClick={() => handleNavigate("/register")}
           style={{
-            display: "flex",
+            display: hasToken ? "none" : "flex",
             alignItems: "center",
             gap: "8px",
             padding: "10px 12px",
@@ -249,7 +305,6 @@ export function Sidebar() {
             color: "#64748b",
             cursor: "pointer",
             transition: "all 0.2s ease",
-            display: hasToken ? "none" : "flex",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
@@ -263,7 +318,7 @@ export function Sidebar() {
           회원가입
         </div>
         <div
-          onClick={() => navigate("/profile")}
+          onClick={() => handleNavigate("/profile")}
           style={{
             display: "flex",
             alignItems: "center",
