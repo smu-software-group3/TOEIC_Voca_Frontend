@@ -3,6 +3,31 @@ import { useNavigate } from "react-router-dom";
 import { signup, verifyEmail } from "../api/server";
 import "./Register.css";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+const getRegistrationFieldErrors = ({ email, username, password, confirmPassword }) => ({
+  email: !email.trim()
+    ? "이메일을 입력해주세요."
+    : !EMAIL_PATTERN.test(email.trim())
+    ? "이메일 형식이 올바르지 않습니다."
+    : "",
+  username: !username.trim() ? "이름을 입력해주세요." : "",
+  password: !password
+    ? "비밀번호를 입력해주세요."
+    : !PASSWORD_PATTERN.test(password)
+    ? "비밀번호는 8자 이상이어야 하며 대문자, 소문자, 숫자를 모두 포함해야 합니다."
+    : "",
+  confirmPassword: !confirmPassword
+    ? "비밀번호 확인을 입력해주세요."
+    : password !== confirmPassword
+    ? "비밀번호와 비밀번호 확인이 일치하지 않습니다."
+    : "",
+});
+
+const getVerificationFieldError = (verificationCode) =>
+  !verificationCode.trim() ? "인증 코드를 입력해주세요." : "";
+
 export default function Register() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -13,20 +38,57 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [registrationAttempted, setRegistrationAttempted] = useState(false);
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [verificationError, setVerificationError] = useState("");
   const navigate = useNavigate();
+
+  const validateRegistrationFields = () => {
+    const nextFieldErrors = getRegistrationFieldErrors({
+      email,
+      username,
+      password,
+      confirmPassword,
+    });
+
+    setFieldErrors(nextFieldErrors);
+
+    return !nextFieldErrors.email && !nextFieldErrors.username && !nextFieldErrors.password && !nextFieldErrors.confirmPassword;
+  };
+
+  const updateRegistrationFieldErrors = (nextValues) => {
+    if (!registrationAttempted) {
+      return;
+    }
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      ...getRegistrationFieldErrors({
+        email: nextValues.email ?? email,
+        username: nextValues.username ?? username,
+        password: nextValues.password ?? password,
+        confirmPassword: nextValues.confirmPassword ?? confirmPassword,
+      }),
+    }));
+  };
 
   // 기본 가입 정보를 서버에 보내고 다음 단계로 넘어간다.
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage("");
     setError("");
-    setLoading(true);
-
-    if (password !== confirmPassword) {
-      setError("비밀번호가 일치하지 않습니다.");
-      setLoading(false);
+    setRegistrationAttempted(true);
+    if (!validateRegistrationFields()) {
       return;
     }
+
+    setLoading(true);
 
     try {
       await signup(email.trim(), username.trim(), password, confirmPassword);
@@ -49,6 +111,15 @@ export default function Register() {
     event.preventDefault();
     setMessage("");
     setError("");
+    setVerificationAttempted(true);
+
+    const nextVerificationError = getVerificationFieldError(verificationCode);
+    setVerificationError(nextVerificationError);
+
+    if (nextVerificationError) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -147,13 +218,20 @@ export default function Register() {
                 <input
                   id="email"
                   className="register-input"
-                  type="email"
+                  type="text"
                   placeholder="example@email.com"
+                  inputMode="email"
                   autoComplete="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setEmail(nextValue);
+                    updateRegistrationFieldErrors({ email: nextValue });
+                  }}
                 />
+                {fieldErrors.email && (
+                  <p className="register-message error">{fieldErrors.email}</p>
+                )}
               </div>
 
               <div className="register-field">
@@ -167,9 +245,15 @@ export default function Register() {
                   placeholder="이름을 입력하세요"
                   autoComplete="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setUsername(nextValue);
+                    updateRegistrationFieldErrors({ username: nextValue });
+                  }}
                 />
+                {fieldErrors.username && (
+                  <p className="register-message error">{fieldErrors.username}</p>
+                )}
               </div>
 
               <div className="register-field">
@@ -183,9 +267,15 @@ export default function Register() {
                   placeholder="비밀번호를 입력하세요"
                   autoComplete="new-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setPassword(nextValue);
+                    updateRegistrationFieldErrors({ password: nextValue });
+                  }}
                 />
+                {fieldErrors.password && (
+                  <p className="register-message error">{fieldErrors.password}</p>
+                )}
               </div>
 
               <div className="register-field">
@@ -199,9 +289,17 @@ export default function Register() {
                   placeholder="비밀번호를 다시 입력하세요"
                   autoComplete="new-password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setConfirmPassword(nextValue);
+                    updateRegistrationFieldErrors({ confirmPassword: nextValue });
+                  }}
                 />
+                {fieldErrors.confirmPassword && (
+                  <p className="register-message error">
+                    {fieldErrors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               {message && <p className="register-message success">{message}</p>}
@@ -220,7 +318,7 @@ export default function Register() {
                 <input
                   id="verifyEmail"
                   className="register-input"
-                  type="email"
+                  type="text"
                   value={email}
                   disabled
                 />
@@ -236,9 +334,17 @@ export default function Register() {
                   type="text"
                   placeholder="이메일로 받은 인증 코드를 입력하세요"
                   value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setVerificationCode(nextValue);
+                    if (verificationAttempted) {
+                      setVerificationError(getVerificationFieldError(nextValue));
+                    }
+                  }}
                 />
+                {verificationError && (
+                  <p className="register-message error">{verificationError}</p>
+                )}
               </div>
 
               {message && <p className="register-message success">{message}</p>}

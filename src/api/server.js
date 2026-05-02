@@ -56,7 +56,7 @@ export async function signup(email, username, password, passwordConfirm) {
       error.response?.status === 400
         ? "잘못된 입력값입니다. 정보를 확인해주세요."
         : error.response?.status === 409
-        ? "이미 사용 중인 이메일 또는 이름입니다."
+        ? "이미 사용 중인 이메일입니다."
         : "회원가입 요청에 실패했습니다.";
     throw new Error(message);
   }
