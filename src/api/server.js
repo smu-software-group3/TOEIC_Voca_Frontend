@@ -2,6 +2,7 @@ import axios from "axios";
 
 const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const AUTO_LOGIN_ENABLED_KEY = "autoLoginEnabled";
 const SILENT_REFRESH_DELAY_MS = 12 * 60 * 1000;
 const SILENT_REFRESH_EXCLUDED_PATHS = [
   "/api/auth/login",
@@ -107,19 +108,31 @@ export function getStoredRefreshToken() {
   return localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
+export function isAutoLoginEnabled() {
+  return localStorage.getItem(AUTO_LOGIN_ENABLED_KEY) === "true";
+}
+
+export function setAutoLoginEnabled(enabled) {
+  localStorage.setItem(AUTO_LOGIN_ENABLED_KEY, enabled ? "true" : "false");
+}
+
 export function clearAuthTokens() {
   clearSilentRefreshTimer();
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
-export function storeAuthTokens({ accessToken, refreshToken } = {}) {
+export function storeAuthTokens(
+  { accessToken, refreshToken, persistRefreshToken = isAutoLoginEnabled() } = {},
+) {
   if (accessToken) {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   }
 
-  if (refreshToken) {
+  if (persistRefreshToken && refreshToken) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  } else if (!persistRefreshToken) {
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
 
   return {
@@ -131,12 +144,19 @@ export function storeAuthTokens({ accessToken, refreshToken } = {}) {
 export function storeAuthTokensFromResponse(
   responseData,
   responseHeaders = {},
+  options = {},
 ) {
   const accessToken = extractAccessToken(responseData, responseHeaders);
   const refreshToken =
     responseData?.data?.refreshToken || responseData?.refreshToken || "";
+  const persistRefreshToken =
+    options.persistRefreshToken ?? isAutoLoginEnabled();
 
-  const tokens = storeAuthTokens({ accessToken, refreshToken });
+  const tokens = storeAuthTokens({
+    accessToken,
+    refreshToken,
+    persistRefreshToken,
+  });
 
   scheduleSilentRefresh();
 

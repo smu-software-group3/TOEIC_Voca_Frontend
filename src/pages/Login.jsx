@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, storeAuthTokensFromResponse } from "../api/server";
+import {
+  isAutoLoginEnabled,
+  login,
+  setAutoLoginEnabled,
+  storeAuthTokensFromResponse,
+} from "../api/server";
 import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [autoLogin, setAutoLogin] = useState(isAutoLoginEnabled());
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -17,9 +23,13 @@ export default function Login() {
     setLoading(true);
 
     try {
+      setAutoLoginEnabled(autoLogin);
+
       const data = await login(email, password);
       console.log("로그인 응답 데이터:", data);
-      const authTokens = storeAuthTokensFromResponse(data);
+      const authTokens = storeAuthTokensFromResponse(data, {}, {
+        persistRefreshToken: autoLogin,
+      });
 
       if (!authTokens.accessToken) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
@@ -113,6 +123,17 @@ export default function Login() {
                 비밀번호를 잊으셨나요?
               </button>
             </div>
+
+            <label className="login-auto-row" htmlFor="autoLogin">
+              <input
+                id="autoLogin"
+                className="login-auto-checkbox"
+                type="checkbox"
+                checked={autoLogin}
+                onChange={(e) => setAutoLogin(e.target.checked)}
+              />
+              <span className="login-auto-label">자동 로그인</span>
+            </label>
 
             {error && <p className="login-error">{error}</p>}
 
