@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteMyAccount, getMemberInfo, updateMyProfile } from "../api/server";
+import {
+  clearAuthTokens,
+  deleteMyAccount,
+  getMemberInfo,
+  updateMyProfile,
+} from "../api/server";
 
 const USER_TYPE_OPTIONS = [
   { value: "HIGH_SCHOOL_STUDENT", label: "고등학생" },
@@ -83,12 +88,12 @@ function Profile() {
         throw new Error(response?.message || "회원 탈퇴에 실패했습니다.");
       }
 
-      localStorage.removeItem("token");
+      clearAuthTokens();
       alert("회원 탈퇴가 완료되었습니다.");
       navigate("/login");
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
-        localStorage.removeItem("token");
+        clearAuthTokens();
         alert("인증이 필요합니다. 다시 로그인해주세요.");
         navigate("/login");
       } else {
@@ -135,7 +140,7 @@ function Profile() {
       await fetchMemberInfo();
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
-        localStorage.removeItem("token");
+        clearAuthTokens();
         alert("인증이 필요합니다. 다시 로그인해주세요.");
         navigate("/login");
       } else {

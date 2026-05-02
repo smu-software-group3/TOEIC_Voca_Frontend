@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../api/server";
+import { login, storeAuthTokensFromResponse } from "../api/server";
 import "./Login.css";
 
 export default function Login() {
@@ -19,10 +19,11 @@ export default function Login() {
     try {
       const data = await login(email, password);
       console.log("로그인 응답 데이터:", data);
-      if (!data?.data) {
+      const authTokens = storeAuthTokensFromResponse(data);
+
+      if (!authTokens.accessToken) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
       }
-      localStorage.setItem("token", data.data.accessToken);
       console.log("로그인 성공:", data);
       navigate("/");
       // TODO: 로그인 성공 후 리다이렉트 또는 사용자 상태 저장

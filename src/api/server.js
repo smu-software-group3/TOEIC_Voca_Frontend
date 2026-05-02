@@ -1,5 +1,17 @@
 import axios from "axios";
 
+const ACCESS_TOKEN_KEY = "token";
+const REFRESH_TOKEN_KEY = "refreshToken";
+const SILENT_REFRESH_DELAY_MS = 12 * 60 * 1000;
+const SILENT_REFRESH_EXCLUDED_PATHS = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/verify",
+  "/api/auth/refresh",
+  "/api/auth/logout",
+  "/api/password/find",
+];
+
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
   const baseUrl = process.env.REACT_APP_SERVER_URL || "";
@@ -10,6 +22,268 @@ const getServerUrl = () => {
 
   return baseUrl.startsWith("http") ? baseUrl : `http://${baseUrl}`;
 };
+
+const getRequestPathname = (requestUrl = "") => {
+  try {
+    return new URL(requestUrl, getServerUrl()).pathname;
+  } catch {
+    return requestUrl;
+  }
+};
+
+const isSilentRefreshExcluded = (requestUrl = "") => {
+  const pathname = getRequestPathname(requestUrl);
+
+  return SILENT_REFRESH_EXCLUDED_PATHS.some(
+    (excludedPath) =>
+      pathname === excludedPath || pathname.startsWith(`${excludedPath}/`),
+  );
+};
+
+const normalizeBearerToken = (token) => {
+  if (!token || typeof token !== "string") {
+    return "";
+  }
+
+  return token.startsWith("Bearer ") ? token.slice(7) : token;
+};
+
+const extractAccessToken = (responseData, responseHeaders = {}) => {
+  if (typeof responseData === "string") {
+    return normalizeBearerToken(responseData);
+  }
+
+  if (responseData?.data && typeof responseData.data === "string") {
+    return normalizeBearerToken(responseData.data);
+  }
+
+  return normalizeBearerToken(
+    responseData?.data?.accessToken ||
+      responseData?.accessToken ||
+      responseHeaders?.authorization ||
+      responseHeaders?.Authorization,
+  );
+};
+
+let silentRefreshTimeoutId = null;
+
+const clearSilentRefreshTimer = () => {
+  if (silentRefreshTimeoutId) {
+    clearTimeout(silentRefreshTimeoutId);
+    silentRefreshTimeoutId = null;
+  }
+};
+
+const scheduleSilentRefresh = () => {
+  clearSilentRefreshTimer();
+
+  const accessToken = getStoredAccessToken();
+  const refreshToken = getStoredRefreshToken();
+
+  if (!accessToken || !refreshToken) {
+    console.log("[silent-refresh] schedule skipped: missing tokens", {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+    });
+    return;
+  }
+
+  console.log("[silent-refresh] scheduled", {
+    delayMs: SILENT_REFRESH_DELAY_MS,
+    accessTokenPreview: `${accessToken.slice(0, 12)}...`,
+  });
+
+  silentRefreshTimeoutId = setTimeout(() => {
+    console.log("[silent-refresh] timer fired");
+    triggerSilentRefresh();
+  }, SILENT_REFRESH_DELAY_MS);
+};
+
+export function getStoredAccessToken() {
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function getStoredRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function clearAuthTokens() {
+  clearSilentRefreshTimer();
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+export function storeAuthTokens({ accessToken, refreshToken } = {}) {
+  if (accessToken) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  }
+
+  if (refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+
+  return {
+    accessToken: accessToken || "",
+    refreshToken: refreshToken || "",
+  };
+}
+
+export function storeAuthTokensFromResponse(
+  responseData,
+  responseHeaders = {},
+) {
+  const accessToken = extractAccessToken(responseData, responseHeaders);
+  const refreshToken =
+    responseData?.data?.refreshToken || responseData?.refreshToken || "";
+
+  const tokens = storeAuthTokens({ accessToken, refreshToken });
+
+  scheduleSilentRefresh();
+
+  return tokens;
+}
+
+export async function refreshAccessToken() {
+  const refreshToken = getStoredRefreshToken();
+
+  if (!refreshToken) {
+    console.log("[refresh-token] skipped: no stored refresh token");
+    const requestError = new Error("저장된 토큰이 없습니다.");
+    requestError.code = "UNAUTHORIZED";
+    throw requestError;
+  }
+
+  const url = `${getServerUrl()}/api/auth/refresh`;
+
+  console.log("[refresh-token] request", {
+    url,
+    refreshTokenPreview: `${refreshToken.slice(0, 12)}...`,
+  });
+
+  try {
+    const response = await axios.post(
+      url,
+      { refreshToken },
+      { headers: { "Content-Type": "application/json" } },
+    );
+
+    console.log("[refresh-token] response", response.data);
+
+    const tokens = storeAuthTokensFromResponse(response.data, response.headers);
+
+    if (!tokens.accessToken) {
+      console.log("[refresh-token] response did not include access token");
+      return response.data;
+    }
+
+    console.log("[refresh-token] access token stored", {
+      accessTokenPreview: `${tokens.accessToken.slice(0, 12)}...`,
+    });
+
+    return response.data;
+  } catch (error) {
+    const status = error.response?.status;
+    const message =
+      status === 400
+        ? "잘못된 입력값입니다. refreshToken을 확인해주세요."
+        : status === 401
+          ? "유효하지 않은 refresh token입니다."
+          : status === 404
+            ? "저장된 토큰이 없습니다."
+            : error.response?.data?.message ||
+              "토큰 재발행 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = error.response?.data?.code || "UNAUTHORIZED";
+    throw requestError;
+  }
+}
+
+let refreshTokenPromise = null;
+
+const getRefreshTokenPromise = () => {
+  if (!refreshTokenPromise) {
+    refreshTokenPromise = refreshAccessToken().finally(() => {
+      refreshTokenPromise = null;
+    });
+  }
+
+  return refreshTokenPromise;
+};
+
+const triggerSilentRefresh = async () => {
+  try {
+    console.log("[silent-refresh] trigger start");
+    await getRefreshTokenPromise();
+    console.log("[silent-refresh] trigger success");
+  } catch {
+    console.log("[silent-refresh] trigger failed");
+    clearAuthTokens();
+  }
+};
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const status = error.response?.status;
+
+    if (
+      !originalRequest ||
+      status !== 401 ||
+      isSilentRefreshExcluded(originalRequest.url)
+    ) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest.__isRetryRequest) {
+      return Promise.reject(error);
+    }
+
+    if (!getStoredRefreshToken()) {
+      clearAuthTokens();
+
+      const requestError = new Error("인증이 필요합니다.");
+      requestError.code = "UNAUTHORIZED";
+      return Promise.reject(requestError);
+    }
+
+    try {
+      await getRefreshTokenPromise();
+
+      const refreshedAccessToken = getStoredAccessToken();
+
+      if (!refreshedAccessToken) {
+        throw new Error("인증이 필요합니다.");
+      }
+
+      originalRequest.__isRetryRequest = true;
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`;
+
+      return axios(originalRequest);
+    } catch (refreshError) {
+      clearAuthTokens();
+
+      const requestError = new Error(
+        refreshError.message || "인증이 필요합니다.",
+      );
+      requestError.code = refreshError.code || "UNAUTHORIZED";
+      return Promise.reject(requestError);
+    }
+  },
+);
+
+const bootstrapSilentRefresh = () => {
+  if (getStoredAccessToken() && getStoredRefreshToken()) {
+    console.log("[silent-refresh] bootstrap scheduling");
+    scheduleSilentRefresh();
+  } else {
+    console.log("[silent-refresh] bootstrap skipped: no stored auth tokens");
+  }
+};
+
+bootstrapSilentRefresh();
 
 // 로그인 요청을 보내고 응답 데이터를 반환한다.
 export async function login(email, password) {
@@ -28,10 +302,10 @@ export async function login(email, password) {
       error?.response?.status === 400
         ? "잘못된 입력값입니다. 이메일과 비밀번호를 확인해주세요."
         : error?.response?.status === 401
-        ? "이메일 또는 비밀번호가 일치하지 않습니다."
-        : error?.response?.status === 404
-        ? "존재하지 않는 계정입니다. 회원가입을 먼저 해주세요."
-        : "로그인 요청에 실패했습니다.";
+          ? "이메일 또는 비밀번호가 일치하지 않습니다."
+          : error?.response?.status === 404
+            ? "존재하지 않는 계정입니다. 회원가입을 먼저 해주세요."
+            : "로그인 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -56,8 +330,8 @@ export async function signup(email, username, password, passwordConfirm) {
       error.response?.status === 400
         ? "잘못된 입력값입니다. 정보를 확인해주세요."
         : error.response?.status === 409
-        ? "이미 사용 중인 이메일입니다."
-        : "회원가입 요청에 실패했습니다.";
+          ? "이미 사용 중인 이메일입니다."
+          : "회원가입 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -83,8 +357,8 @@ export async function verifyEmail(email, code) {
       error.response?.status === 400
         ? "잘못된 입력값입니다. 인증 코드를 확인해주세요."
         : error.response?.status === 404
-        ? "존재하지 않는 계정입니다. 회원가입을 먼저 해주세요."
-        : "이메일 인증 요청에 실패했습니다.";
+          ? "존재하지 않는 계정입니다. 회원가입을 먼저 해주세요."
+          : "이메일 인증 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -109,11 +383,12 @@ export async function logout() {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.status === 401
-      ? "인증이 필요합니다. 다시 로그인해주세요."
-      : error.response?.status === 404
-      ? "존재하지 않는 계정입니다."
-      : "로그아웃 요청에 실패했습니다.";
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+          ? "존재하지 않는 계정입니다."
+          : "로그아웃 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -141,8 +416,8 @@ export async function deleteMyAccount() {
       error.response?.status === 401
         ? "인증이 필요합니다. 다시 로그인해주세요."
         : error.response?.status === 404
-        ? "존재하지 않는 계정입니다."
-        : error.response?.data?.message || "회원 탈퇴 요청에 실패했습니다.";
+          ? "존재하지 않는 계정입니다."
+          : error.response?.data?.message || "회원 탈퇴 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -174,10 +449,11 @@ export async function updateMyProfile({ username, birthDate, userType }) {
       error.response?.status === 401
         ? "인증이 필요합니다. 다시 로그인해주세요."
         : error.response?.status === 404
-        ? "존재하지 않는 계정입니다."
-        : error.response?.status === 400
-        ? "잘못된 입력값입니다. 정보를 확인해주세요."
-        : error.response?.data?.message || "회원 정보 수정 요청에 실패했습니다.";
+          ? "존재하지 않는 계정입니다."
+          : error.response?.status === 400
+            ? "잘못된 입력값입니다. 정보를 확인해주세요."
+            : error.response?.data?.message ||
+              "회원 정보 수정 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -212,10 +488,10 @@ export async function changePassword(
       error.response?.status === 400
         ? "잘못된 입력값입니다. 비밀번호를 확인해주세요."
         : error.response?.status === 401
-        ? "현재 비밀번호가 올바르지 않습니다."
-        : error.response?.status === 404
-        ? "존재하지 않는 계정입니다."
-        : "비밀번호 변경 요청에 실패했습니다.";
+          ? "현재 비밀번호가 올바르지 않습니다."
+          : error.response?.status === 404
+            ? "존재하지 않는 계정입니다."
+            : "비밀번호 변경 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
@@ -241,14 +517,19 @@ export async function findPassword(email) {
       error.response?.status === 400
         ? "잘못된 입력값입니다. 이메일을 확인해주세요."
         : error.response?.status === 404
-        ? "존재하지 않는 계정입니다."
-        : error.response?.data?.message || "비밀번호 찾기 요청에 실패했습니다.";
+          ? "존재하지 않는 계정입니다."
+          : error.response?.data?.message ||
+            "비밀번호 찾기 요청에 실패했습니다.";
     throw new Error(message);
   }
 }
 
 // 단어장 조회 조건을 쿼리 파라미터로 전달해 단어 목록을 가져온다.
-export async function getWords({ spelling = "", difficulty = "", sort = "asc" }) {
+export async function getWords({
+  spelling = "",
+  difficulty = "",
+  sort = "asc",
+}) {
   const url = `${getServerUrl()}/api/words`;
   const token = localStorage.getItem("token");
 
@@ -268,9 +549,10 @@ export async function getWords({ spelling = "", difficulty = "", sort = "asc" })
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.status === 400
-      ? "잘못된 입력값입니다. 정보를 확인해주세요."
-      : error.response?.data?.message || "단어장 조회 요청에 실패했습니다.";
+    const message =
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 정보를 확인해주세요."
+        : error.response?.data?.message || "단어장 조회 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -295,9 +577,10 @@ export async function getRandomWords(count) {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.status === 400
-      ? "잘못된 입력값입니다. 정보를 확인해주세요."
-      : error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
+    const message =
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 정보를 확인해주세요."
+        : error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -325,13 +608,14 @@ export async function getWordTestQuestion(wordId) {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.status === 401
-      ? "인증이 필요합니다. 다시 로그인해주세요."
-      : error.response?.status === 404
-      ? "단어를 찾을 수 없습니다."
-      : error.response?.status === 422
-      ? "오답 보기를 구성하기 위한 단어가 부족합니다."
-      : error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+          ? "단어를 찾을 수 없습니다."
+          : error.response?.status === 422
+            ? "오답 보기를 구성하기 위한 단어가 부족합니다."
+            : error.response?.data?.message || "랜덤 단어 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -359,11 +643,12 @@ export async function checkWordAnswer(wordId, submittedMeaning) {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.status === 400
-      ? "잘못된 입력값입니다. 정보를 확인해주세요."
-      : error.response?.status === 404
-      ? "단어를 찾을 수 없습니다."
-      : error.response?.data?.message || "정답 확인에 실패했습니다.";
+    const message =
+      error.response?.status === 400
+        ? "잘못된 입력값입니다. 정보를 확인해주세요."
+        : error.response?.status === 404
+          ? "단어를 찾을 수 없습니다."
+          : error.response?.data?.message || "정답 확인에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -387,11 +672,12 @@ export async function getMemberInfo() {
     return response.data;
   } catch (error) {
     const code = error.response?.data?.code;
-    const message = error.response?.status === 401
-      ? "인증이 필요합니다. 다시 로그인해주세요."
-      : error.response?.status === 404
-      ? "존재하지 않는 계정입니다."
-      : error.response?.data?.message || "회원 정보 조회에 실패했습니다.";
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+          ? "존재하지 않는 계정입니다."
+          : error.response?.data?.message || "회원 정보 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
