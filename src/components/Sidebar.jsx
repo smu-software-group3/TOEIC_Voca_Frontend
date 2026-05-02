@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../api/server";
+import { clearAuthTokens, logout } from "../api/server";
 
 export function Sidebar({
   isMobile = false,
@@ -35,7 +35,7 @@ export function Sidebar({
       }
     }
 
-    localStorage.removeItem("token");
+    clearAuthTokens();
     setHasToken(false);
     if (isMobile) {
       onCloseMobile?.();

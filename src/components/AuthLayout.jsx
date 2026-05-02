@@ -31,7 +31,8 @@ export default function AuthLayout() {
             ? "0 12px 28px rgba(15, 23, 42, 0.22)"
             : "0 10px 24px rgba(15, 23, 42, 0.18)",
           cursor: "pointer",
-          transition: "background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+          transition:
+            "background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
           transform: isHoveringLogo ? "translateY(-1px)" : "translateY(0)",
         }}
       >
@@ -50,8 +51,18 @@ export default function AuthLayout() {
             flexShrink: 0,
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeLinecap="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#e9d5ff" strokeWidth="2" />
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            strokeLinecap="round"
+          >
+            <path
+              d="M12 2L2 7l10 5 10-5-10-5z"
+              stroke="#e9d5ff"
+              strokeWidth="2"
+            />
             <path d="M2 17l10 5 10-5" stroke="#5eead4" strokeWidth="2" />
             <path d="M2 12l10 5 10-5" stroke="#c4b5fd" strokeWidth="2" />
           </svg>
