@@ -11,6 +11,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Register from "./pages/Register";
 import PasswordChange from "./pages/PasswordChange";
 import PasswordFind from "./pages/PasswordFind";
+import AuthLayout from "./components/AuthLayout";
 
 const router = createBrowserRouter([
   {
@@ -32,21 +33,26 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/login",
-    element: <Login />,
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "register",
+        element: <Register />,
+      },
+      {
+        path: "pwc",
+        element: <PasswordChange />,
+      },
+      {
+        path: "pwf",
+        element: <PasswordFind />,
+      },
+    ],
   },
-  {
-    path: "/register",
-    element: <Register />,
-  },
-  {
-    path: "/pwc",
-    element: <PasswordChange />,
-  },
-  {
-    path: "/pwf",
-    element: <PasswordFind />,
-  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
