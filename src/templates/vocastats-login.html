@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocaStats · 로그인</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --purple:       #5c3fa4;
+  --purple-hover: #4a3190;
+  --purple-ring:  rgba(92,63,164,.18);
+  --green:        #3bbf82;
+  --dark-bg:      #0e0d1c;
+  --light-bg:     #f3f2f8;
+  --text:         #18172e;
+  --muted:        #7c7a90;
+  --border:       #d8d6e5;
+  --white:        #ffffff;
+}
+
+html, body {
+  height: 100%;
+  background: var(--light-bg);
+  font-family: 'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 780px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.14);
+  animation: rise .55s cubic-bezier(.22,.68,0,1.2) both;
+}
+
+@keyframes rise {
+  from { opacity:0; transform:translateY(28px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* ── LEFT ── */
+.left {
+  background: var(--dark-bg);
+  padding: 52px 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.left::before {
+  content:'';
+  position:absolute;
+  width:240px; height:240px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(80,50,160,.55) 0%,transparent 68%);
+  top:-70px; right:-55px;
+  pointer-events:none;
+}
+.left::after {
+  content:'';
+  position:absolute;
+  width:180px; height:180px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(50,160,120,.22) 0%,transparent 68%);
+  bottom:30px; right:10px;
+  pointer-events:none;
+}
+
+.logo { display:flex; gap:0; margin-bottom:10px; position:relative; z-index:1; animation:fadeUp .45s .05s ease both; }
+.logo-part { font-family:'DM Mono',monospace; font-weight:500; font-size:16px; letter-spacing:1.5px; padding:6px 16px; line-height:1; }
+.logo-voca  { background:var(--purple); color:#fff; border-radius:7px 0 0 7px; }
+.logo-stats { background:var(--green);  color:#fff; border-radius:0 7px 7px 0; }
+
+.logo-sub { font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:3.5px; color:#4e4d68; margin-bottom:34px; position:relative; z-index:1; animation:fadeUp .45s .09s ease both; }
+
+.headline { font-size:27px; font-weight:900; line-height:1.35; color:#fff; margin-bottom:10px; position:relative; z-index:1; word-break:keep-all; animation:fadeUp .45s .13s ease both; }
+.subtext  { font-size:13px; color:#5e5d7a; margin-bottom:36px; position:relative; z-index:1; animation:fadeUp .45s .17s ease both; }
+
+.features { list-style:none; display:flex; flex-direction:column; gap:14px; position:relative; z-index:1; animation:fadeUp .45s .21s ease both; }
+.feature  { display:flex; align-items:center; gap:12px; font-size:13px; color:#b0aeca; }
+.fi { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.fi-p { background:rgba(92,63,164,.35); }
+.fi-g { background:rgba(59,191,130,.22); }
+
+/* ── RIGHT ── */
+.right { background:var(--light-bg); padding:52px 46px; display:flex; flex-direction:column; justify-content:center; }
+
+.form-title    { font-size:27px; font-weight:900; color:var(--text); margin-bottom:6px; animation:fadeUp .45s .08s ease both; }
+.register-hint { font-size:13px; color:var(--muted); margin-bottom:30px; animation:fadeUp .45s .12s ease both; }
+.register-hint a { color:var(--purple); font-weight:700; text-decoration:none; }
+.register-hint a:hover { text-decoration:underline; }
+
+.field { margin-bottom:16px; animation:fadeUp .45s ease both; }
+.field:nth-of-type(1) { animation-delay:.16s; }
+.field:nth-of-type(2) { animation-delay:.20s; }
+
+.field label { display:block; font-size:13px; font-weight:500; color:var(--text); margin-bottom:6px; }
+.field input {
+  width:100%; padding:12px 15px;
+  border:1.8px solid var(--border); border-radius:10px;
+  font-size:14px; font-family:'Noto Sans KR',sans-serif;
+  color:var(--text); background:var(--white); outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.field input::placeholder { color:#c0becc; }
+.field input:focus { border-color:var(--purple); box-shadow:0 0 0 4px var(--purple-ring); }
+
+.forgot { display:block; text-align:right; font-size:12px; color:var(--purple); text-decoration:none; margin-top:8px; }
+.forgot:hover { text-decoration:underline; }
+
+.btn-login {
+  width:100%; margin-top:22px; padding:14px;
+  background:var(--purple); color:#fff;
+  font-size:15px; font-weight:700; font-family:'Noto Sans KR',sans-serif;
+  border:none; border-radius:10px; cursor:pointer; letter-spacing:.5px;
+  transition:background .2s, transform .1s, box-shadow .2s;
+  animation:fadeUp .45s .24s ease both;
+  position:relative; overflow:hidden;
+}
+.btn-login::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 60%); pointer-events:none; }
+.btn-login:hover  { background:var(--purple-hover); box-shadow:0 6px 20px rgba(92,63,164,.35); }
+.btn-login:active { transform:scale(.98); }
+.btn-login.loading { pointer-events:none; }
+.btn-login.loading .btn-text { opacity:0; }
+.btn-login .spinner {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:20px; height:20px;
+  border:2.5px solid rgba(255,255,255,.3); border-top-color:#fff;
+  border-radius:50%; opacity:0; transition:opacity .15s;
+}
+.btn-login.loading .spinner { opacity:1; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+.divider { display:flex; align-items:center; gap:10px; margin:16px 0; font-size:12px; color:#bbb; animation:fadeUp .45s .28s ease both; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.btn-google {
+  width:100%; padding:12px;
+  background:var(--white); border:1.8px solid var(--border); border-radius:10px;
+  font-size:14px; font-weight:500; font-family:'Noto Sans KR',sans-serif;
+  color:var(--text); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  transition:background .2s, border-color .2s, box-shadow .2s;
+  animation:fadeUp .45s .32s ease both;
+}
+.btn-google:hover { background:#fafafa; border-color:#bbb; box-shadow:0 3px 10px rgba(0,0,0,.07); }
+.g-icon { width:18px; height:18px; flex-shrink:0; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(4px)} }
+
+@media (max-width:600px) {
+  .card { grid-template-columns:1fr; }
+  .left { display:none; }
+  .right { padding:44px 28px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+
+    <!-- LEFT -->
+    <div class="left">
+      <div class="logo">
+        <span class="logo-part logo-voca">VOCA</span>
+        <span class="logo-part logo-stats">STATS</span>
+      </div>
+      <p class="logo-sub">VOCABULARY · STATISTICS</p>
+      <h1 class="headline">어휘와 통계로<br>완성하는 영어 학습</h1>
+      <p class="subtext">단어를 외우고, 데이터로 확인하세요.</p>
+      <ul class="features">
+        <li class="feature"><div class="fi fi-p">📖</div> 단어장 · 테스트 · 계정 관리</li>
+        <li class="feature"><div class="fi fi-g">📊</div> 학습 통계 · 진도 확인</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <h2 class="form-title">로그인</h2>
+      <p class="register-hint">처음이신가요? <a href="#">회원가입</a></p>
+
+      <div class="field">
+        <label for="email">이메일</label>
+        <input id="email" type="email" placeholder="example@email.com" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label for="pw">비밀번호</label>
+        <input id="pw" type="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+        <a href="#" class="forgot">비밀번호를 잊으셨나요?</a>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">
+        <span class="btn-text">로그인</span>
+        <span class="spinner"></span>
+      </button>
+
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pw    = document.getElementById('pw').value;
+  const btn   = document.getElementById('loginBtn');
+  if (!email) { shake(document.getElementById('email')); return; }
+  if (!pw)    { shake(document.getElementById('pw'));    return; }
+  btn.classList.add('loading');
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    showToast('로그인 성공! 🎉');
+  }, 1400);
+}
+function shake(el) {
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'shake .35s ease';
+  el.focus();
+}
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'28px', left:'50%',
+    transform:'translateX(-50%) translateY(12px)',
+    background:'#18172e', color:'#fff', padding:'11px 22px',
+    borderRadius:'10px', fontSize:'14px',
+    fontFamily:"'Noto Sans KR',sans-serif", fontWeight:'500',
+    opacity:'0', transition:'opacity .25s, transform .25s',
+    zIndex:'9999', boxShadow:'0 8px 24px rgba(0,0,0,.22)'
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => {
+    t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(8px)';
+    setTimeout(() => t.remove(), 300);
+  }, 2200);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

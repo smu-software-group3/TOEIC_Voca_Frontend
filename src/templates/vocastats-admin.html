@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocaStats — 단어 관리 (관리자)</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  background: linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 65%, #e4e0ff 100%);
+  min-height: 100vh; display: flex;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(167,139,250,0.32) 0%, transparent 35%),
+    radial-gradient(circle at 10% 85%, rgba(45,212,191,0.22) 0%, transparent 35%),
+    radial-gradient(circle at 60% 50%,  rgba(196,181,253,0.10) 0%, transparent 40%);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(2px 2px at 15%  8%, rgba(124,58,237,.5), transparent),
+    radial-gradient(2px 2px at 70% 15%, rgba(13,148,136,.45), transparent),
+    radial-gradient(3px 3px at 85% 25%, rgba(109,40,217,.5),  transparent),
+    radial-gradient(2px 2px at 25% 70%, rgba(13,148,136,.4),  transparent),
+    radial-gradient(3px 3px at 80% 80%, rgba(124,58,237,.45), transparent),
+    radial-gradient(2px 2px at 50% 92%, rgba(109,40,217,.35), transparent);
+}
+
+/* ══════ SIDEBAR ══════ */
+.sidebar {
+  width: 158px; flex-shrink: 0;
+  background: linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%);
+  padding: 20px 12px; display: flex; flex-direction: column; gap: 2px;
+  min-height: 100vh; position: fixed; top: 0; left: 0; bottom: 0;
+  border-right: 0.5px solid rgba(139,92,246,.15); z-index: 10;
+}
+.sb-logo { display: flex; align-items: center; gap: 9px; margin-bottom: 24px; padding: 0 4px; }
+.sb-logo-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed, #0d9488);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px rgba(124,58,237,.4); flex-shrink: 0;
+}
+.sb-sec { font-size: 9px; font-weight: 700; letter-spacing: .1em; padding: 10px 8px 3px; }
+.sb-sec.voca  { color: #a78bfa; }
+.sb-sec.admin { color: #f97316; }
+.sb-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; border-radius: 8px; font-size: 12px; color: #64748b;
+  text-decoration: none; cursor: pointer; transition: all .15s;
+}
+.sb-item:hover  { background: rgba(139,92,246,.12); color: #a78bfa; }
+.sb-item.active { background: rgba(249,115,22,.18); color: #fb923c; font-weight: 600; }
+.sb-item.active svg { stroke: #fb923c; }
+.sb-bottom { margin-top: auto; padding-top: 16px; border-top: .5px solid rgba(139,92,246,.12); }
+.sb-avatar { display: flex; align-items: center; gap: 8px; padding: 4px 6px; text-decoration: none; }
+.sb-avatar-img {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #0d9488);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+/* admin badge on sidebar */
+.admin-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(249,115,22,.18); border: .5px solid rgba(249,115,22,.35);
+  border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+  color: #fb923c; margin: 4px 6px 0;
+}
+
+/* ══════ MAIN ══════ */
+.main { margin-left: 158px; flex: 1; padding: 30px 32px; position: relative; z-index: 1; }
+
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
+.page-header-left {}
+.page-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #f97316; margin-bottom: 3px; }
+.page-title   { font-size: 20px; font-weight: 700; color: #1e1b4b; }
+.page-sub     { font-size: 13px; color: #7c6fad; margin-top: 2px; }
+
+.header-btns { display: flex; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: none; border-radius: 10px; padding: 10px 16px;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s;
+}
+.btn:active { transform: scale(.97); }
+.btn:hover  { opacity: .88; }
+.btn-add    { background: linear-gradient(135deg, #7c3aed, #4c1d95); color: #fff; box-shadow: 0 2px 12px rgba(109,40,217,.25); }
+.btn-import { background: rgba(255,255,255,.7); color: #4c1d95; border: .5px solid rgba(139,92,246,.25); }
+
+/* ── stat strip ── */
+.stat-strip { display: grid; grid-template-columns: 200px; gap: 12px; margin-bottom: 22px; }
+.stat-card {
+  background: rgba(255,255,255,.68);
+  border-radius: 14px; border: .5px solid rgba(139,92,246,.12);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;
+}
+.stat-label { font-size: 11px; font-weight: 600; color: #7c6fad; letter-spacing: .04em; }
+.stat-value { font-size: 24px; font-weight: 800; color: #1e1b4b; line-height: 1; }
+.stat-sub   { font-size: 11px; }
+.stat-sub.up   { color: #0d9488; }
+.stat-sub.down { color: #e0415a; }
+.stat-sub.neu  { color: #94a3b8; }
+
+/* ── toolbar ── */
+.toolbar { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #a78bfa; }
+.search-input {
+  width: 100%; padding: 9px 12px 9px 36px;
+  border: .5px solid rgba(139,92,246,.2); border-radius: 10px;
+  font-size: 13px; color: #1e1b4b; background: rgba(255,255,255,.75);
+  outline: none; transition: border .15s, box-shadow .15s;
+}
+.search-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+.search-input::placeholder { color: #a78bfa; }
+
+.filter-sel {
+  padding: 9px 30px 9px 13px; border-radius: 10px;
+  border: .5px solid rgba(139,92,246,.2); font-size: 13px; color: #4c1d95;
+  background: rgba(255,255,255,.75);
+  appearance: none; -webkit-appearance: none; outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%237c6fad' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  cursor: pointer; transition: border .15s;
+}
+.filter-sel:focus { border-color: #7c3aed; }
+
+.toolbar-right { display: flex; gap: 6px; margin-left: auto; }
+.view-btn {
+  width: 34px; height: 34px; border-radius: 8px; border: .5px solid rgba(139,92,246,.2);
+  background: rgba(255,255,255,.7); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #94a3b8; transition: all .15s;
+}
+.view-btn.active { background: rgba(139,92,246,.18); color: #6d28d9; border-color: rgba(139,92,246,.3); }
+.view-btn:hover:not(.active) { background: rgba(255,255,255,.9); color: #6d28d9; }
+
+/* ── bulk bar ── */
+.bulk-bar {
+  display: none; align-items: center; gap: 12px;
+  background: rgba(249,115,22,.1); border: .5px solid rgba(249,115,22,.3);
+  border-radius: 10px; padding: 9px 16px; margin-bottom: 10px;
+  animation: slideDown .2s ease;
+}
+.bulk-bar.visible { display: flex; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.bulk-count { font-size: 13px; font-weight: 600; color: #c2410c; }
+.bulk-sep { width: 1px; height: 16px; background: rgba(249,115,22,.3); }
+.bulk-action {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 7px;
+  border: none; cursor: pointer; transition: all .15s;
+}
+.bulk-del  { background: rgba(224,65,90,.1);  color: #e0415a; }
+.bulk-del:hover  { background: rgba(224,65,90,.18); }
+.bulk-export { background: rgba(13,148,136,.1); color: #0f766e; }
+.bulk-export:hover { background: rgba(13,148,136,.18); }
+.bulk-clear { background: none; border: none; color: #94a3b8; font-size: 12px; cursor: pointer; margin-left: auto; }
+.bulk-clear:hover { color: #64748b; }
+
+/* ══════ TABLE ══════ */
+.table-wrap {
+  background: rgba(255,255,255,.72);
+  border-radius: 16px; border: .5px solid rgba(139,92,246,.12);
+  overflow: hidden;
+}
+.table-head {
+  display: grid;
+  grid-template-columns: 28px 2fr 2fr 90px 90px 80px 100px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, rgba(237,233,254,.9), rgba(204,251,241,.65));
+  border-bottom: .5px solid rgba(139,92,246,.1);
+  gap: 8px; align-items: center;
+}
+.th { font-size: 11px; font-weight: 700; color: #7c6fad; }
+.th.sortable { cursor: pointer; display: flex; align-items: center; gap: 3px; user-select: none; }
+.th.sortable:hover { color: #5b21b6; }
+.th:last-child { text-align: center; color: #0d9488; }
+.th:first-child { color: transparent; }
+
+.table-row {
+  display: grid;
+  grid-template-columns: 28px 2fr 2fr 90px 90px 80px 100px;
+  padding: 11px 16px; align-items: center; gap: 8px;
+  border-bottom: .5px solid rgba(139,92,246,.07);
+  transition: background .12s;
+}
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: rgba(237,233,254,.3); }
+.table-row.selected { background: rgba(249,115,22,.06); }
+.table-row.deleting { animation: fadeOut .3s ease forwards; }
+@keyframes fadeOut { to { opacity:0; transform:translateX(8px); height:0; padding:0; } }
+
+.td-check { display: flex; align-items: center; justify-content: center; }
+input[type=checkbox] {
+  width: 15px; height: 15px; accent-color: #7c3aed; cursor: pointer;
+}
+.word-en { font-size: 13px; font-weight: 700; color: #3730a3; }
+.word-ko { font-size: 12px; color: #7c6fad; }
+.badge {
+  display: inline-block; font-size: 11px;
+  padding: 2px 9px; border-radius: 20px;
+}
+.badge-v  { background: rgba(139,92,246,.14); color: #4c1d95; border: .5px solid rgba(139,92,246,.22); }
+.badge-b  { background: rgba(14,165,233,.12);  color: #0c4a6e; border: .5px solid rgba(14,165,233,.22); }
+.badge-g  { background: rgba(45,212,191,.15);  color: #134e4a; border: .5px solid rgba(13,148,136,.2); }
+.badge-o  { background: rgba(249,115,22,.12);  color: #7c2d12; border: .5px solid rgba(249,115,22,.22); }
+.badge-done   { background: linear-gradient(90deg,rgba(45,212,191,.22),rgba(13,148,136,.12)); color: #134e4a; border: .5px solid rgba(13,148,136,.22); }
+.badge-review { background: linear-gradient(90deg,rgba(251,191,36,.22),rgba(217,119,6,.1));  color: #78350f; border: .5px solid rgba(217,119,6,.22); }
+.badge-new    { background: rgba(255,255,255,.55); color: #94a3b8; border: .5px solid rgba(148,163,184,.2); }
+.rate { font-size: 13px; font-weight: 700; text-align: right; }
+.rate-high { color: #0d9488; }
+.rate-mid  { color: #d97706; }
+.rate-none { color: #cbd5e1; }
+.td-added { font-size: 11px; color: #94a3b8; }
+
+/* row actions */
+.row-actions { display: flex; align-items: center; justify-content: center; gap: 4px; }
+.ra-btn {
+  width: 28px; height: 28px; border-radius: 7px; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .15s; background: transparent;
+}
+.ra-edit { color: #7c3aed; }
+.ra-edit:hover  { background: rgba(139,92,246,.15); }
+.ra-del  { color: #e0415a; }
+.ra-del:hover   { background: rgba(224,65,90,.12); }
+
+/* empty state */
+.empty { text-align: center; padding: 48px 0; color: #a78bfa; }
+.empty svg { margin: 0 auto 12px; display: block; opacity: .4; }
+.empty p { font-size: 14px; }
+
+
+/* ══════ MODAL ══════ */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,10,46,.55); z-index: 200;
+  align-items: center; justify-content: center; backdrop-filter: blur(4px);
+}
+.modal-bg.open { display: flex; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+.modal {
+  background: rgba(255,255,255,.95);
+  border-radius: 20px; border: .5px solid rgba(139,92,246,.22);
+  padding: 32px; width: 480px; max-width: 92vw;
+  box-shadow: 0 16px 60px rgba(109,40,217,.22);
+  animation: modalIn .25s cubic-bezier(.22,.68,0,1.2);
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(16px) scale(.97); } to { opacity:1; transform:none; } }
+
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.modal-title { font-size: 17px; font-weight: 700; color: #1e1b4b; }
+.modal-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px;
+}
+.modal-badge.add  { background: rgba(139,92,246,.14); color: #5b21b6; }
+.modal-badge.edit { background: rgba(13,148,136,.14);  color: #0f766e; }
+.modal-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none;
+  background: rgba(139,92,246,.1); color: #7c3aed;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: background .15s;
+}
+.modal-close:hover { background: rgba(139,92,246,.2); }
+
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.modal-field { display: flex; flex-direction: column; gap: 5px; }
+.modal-field.full { grid-column: 1 / -1; }
+.modal-field label { font-size: 12px; font-weight: 600; color: #7c6fad; }
+.modal-field input, .modal-field select, .modal-field textarea {
+  border: .5px solid rgba(139,92,246,.25); border-radius: 10px;
+  padding: 10px 13px; font-size: 13px; color: #1e1b4b; outline: none;
+  background: rgba(255,255,255,.85);
+  transition: border .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+  border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+}
+.modal-field textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+.modal-field .field-row { display: flex; gap: 8px; }
+.modal-field .field-row input { flex: 1; }
+.modal-field .field-row .score-badge {
+  display: flex; align-items: center; padding: 0 12px;
+  border: .5px solid rgba(139,92,246,.18); border-radius: 10px;
+  font-size: 13px; font-weight: 700; color: #0d9488; background: rgba(204,251,241,.3);
+  white-space: nowrap;
+}
+
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+.modal-cancel {
+  background: none; border: .5px solid rgba(139,92,246,.2);
+  border-radius: 10px; padding: 10px 18px; font-size: 13px;
+  color: #7c6fad; cursor: pointer; font-family: inherit;
+  transition: background .15s;
+}
+.modal-cancel:hover { background: rgba(139,92,246,.07); }
+.modal-save {
+  background: linear-gradient(135deg,#4c1d95,#1e1b4b);
+  border: none; border-radius: 10px; padding: 10px 22px;
+  font-size: 13px; font-weight: 700; color: #fff; cursor: pointer;
+  font-family: inherit; display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 2px 12px rgba(109,40,217,.22);
+  transition: opacity .15s;
+}
+.modal-save:hover { opacity: .88; }
+
+/* delete confirm modal */
+.del-modal { width: 360px; text-align: center; }
+.del-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(224,65,90,.1); border: .5px solid rgba(224,65,90,.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.del-title { font-size: 17px; font-weight: 700; color: #1e1b4b; margin-bottom: 8px; }
+.del-desc  { font-size: 13px; color: #7c6fad; line-height: 1.55; margin-bottom: 24px; }
+.del-word  { font-weight: 700; color: #3730a3; }
+.del-footer { display: flex; gap: 10px; }
+.btn-del-confirm {
+  flex: 1; background: linear-gradient(135deg,#e0415a,#be123c);
+  border: none; border-radius: 10px; padding: 11px;
+  font-size: 13px; font-weight: 700; color: #fff; cursor: pointer;
+  font-family: inherit; transition: opacity .15s;
+}
+.btn-del-confirm:hover { opacity: .88; }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #1e1b4b; color: #fff;
+  padding: 11px 22px; border-radius: 10px; font-size: 13px; font-weight: 500;
+  opacity: 0; transition: opacity .25s, transform .25s;
+  z-index: 9999; white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-linecap="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#e9d5ff" stroke-width="2"/>
+        <path d="M2 17l10 5 10-5" stroke="#5eead4" stroke-width="2"/>
+        <path d="M2 12l10 5 10-5" stroke="#c4b5fd" stroke-width="2"/>
+      </svg>
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:700;letter-spacing:-0.3px;">
+        <span style="color:#c4b5fd;">Vo</span><span style="color:#5eead4;">ca</span><span style="color:#a78bfa;">S</span>
+      </div>
+      <div style="font-size:9px;color:#334155;letter-spacing:.05em;">VOCAB STATS</div>
+    </div>
+  </div>
+
+  <p class="sb-sec voca">VOCA</p>
+  <a href="#" class="sb-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    단어장
+  </a>
+  <a href="#" class="sb-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    테스트
+  </a>
+
+  <p class="sb-sec admin">ADMIN</p>
+  <a href="#" class="sb-item active">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    단어 관리
+  </a>
+  <a href="#" class="sb-item">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    유저 관리
+  </a>
+
+  <div class="sb-bottom">
+    <div class="admin-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      관리자
+    </div>
+    <a href="#" class="sb-avatar" style="margin-top:8px;">
+      <div class="sb-avatar-img">관</div>
+      <span style="font-size:12px;color:#475569;">admin</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <p class="page-eyebrow">Admin · 단어 관리</p>
+      <h1 class="page-title">단어 추가 · 수정 · 삭제</h1>
+      <p class="page-sub">전체 단어 데이터를 관리합니다</p>
+    </div>
+    <div class="header-btns">
+      <button class="btn btn-import" onclick="showToast('CSV 가져오기 준비 중입니다.')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        CSV 가져오기
+      </button>
+      <button class="btn btn-add" onclick="openAddModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        단어 추가
+      </button>
+    </div>
+  </div>
+
+  <!-- stat strip -->
+  <div class="stat-strip">
+    <div class="stat-card">
+      <span class="stat-label">전체 단어</span>
+      <span class="stat-value" id="statTotal">248</span>
+      <span class="stat-sub neu">데이터베이스 전체</span>
+    </div>
+  </div>
+
+  <!-- toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="search-input" type="search" placeholder="단어 또는 뜻 검색..." id="searchInput" oninput="filterTable()">
+    </div>
+    <select class="filter-sel" id="posFilter" onchange="filterTable()">
+      <option value="">품사 전체</option>
+      <option>형용사</option>
+      <option>동사</option>
+      <option>명사</option>
+      <option>부사</option>
+      <option>동/형</option>
+    </select>
+    <select class="filter-sel" id="statusFilter" onchange="filterTable()">
+      <option value="">상태 전체</option>
+      <option>완료</option>
+      <option>복습</option>
+      <option>미학습</option>
+    </select>
+    <div class="toolbar-right">
+      <button class="view-btn active" id="viewList" onclick="setView('list')" title="목록">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+      <button class="view-btn" id="viewGrid" onclick="setView('grid')" title="카드">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- bulk action bar -->
+  <div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount">0개 선택됨</span>
+    <div class="bulk-sep"></div>
+    <button class="bulk-action bulk-del" onclick="bulkDelete()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      선택 삭제
+    </button>
+    <button class="bulk-action bulk-export" onclick="showToast('내보내기 완료!')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV 내보내기
+    </button>
+    <button class="bulk-clear" onclick="clearSelection()">✕ 선택 해제</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap" id="tableWrap">
+    <div class="table-head">
+      <div class="th">
+        <input type="checkbox" id="checkAll" onchange="toggleAll(this)">
+      </div>
+      <div class="th sortable" onclick="sortTable('word')">단어 (Voca) <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="th">뜻</div>
+      <div class="th sortable" onclick="sortTable('pos')">품사</div>
+      <div class="th sortable" onclick="sortTable('status')">상태</div>
+      <div class="th sortable" onclick="sortTable('rate')" style="text-align:right">정답률</div>
+      <div class="th" style="text-align:center">관리</div>
+    </div>
+    <div id="tableBody"></div>
+  </div>
+
+</main>
+
+<!-- ── ADD / EDIT MODAL ── -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="modal-title" id="modalTitle">단어 추가</span>
+        <span class="modal-badge add" id="modalBadge">NEW</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <label>영어 단어 *</label>
+        <input type="text" id="fWord" placeholder="e.g. ambiguous">
+      </div>
+      <div class="modal-field">
+        <label>뜻 (한국어) *</label>
+        <input type="text" id="fMeaning" placeholder="e.g. 불분명한, 모호한">
+      </div>
+      <div class="modal-field">
+        <label>품사 *</label>
+        <select id="fPos">
+          <option value="">선택하세요</option>
+          <option>형용사</option>
+          <option>명사</option>
+          <option>동사</option>
+          <option>부사</option>
+          <option>동/형</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>상태</label>
+        <select id="fStatus">
+          <option>미학습</option>
+          <option>복습</option>
+          <option>완료</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>예문 (선택)</label>
+        <input type="text" id="fExample" placeholder="e.g. The instructions were ambiguous.">
+      </div>
+      <div class="modal-field">
+        <label>초기 정답률</label>
+        <div class="field-row">
+          <input type="number" id="fRate" placeholder="0" min="0" max="100" value="0" oninput="updateScoreBadge()">
+          <span class="score-badge" id="scoreBadge">0%</span>
+        </div>
+      </div>
+      <div class="modal-field full">
+        <label>메모 (선택)</label>
+        <textarea id="fNote" placeholder="기억법, 연상법 등을 입력하세요..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal('editModal')">취소</button>
+      <button class="modal-save" onclick="saveWord()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="saveLabel">단어 추가</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div class="modal-bg" id="delModal">
+  <div class="modal del-modal">
+    <div class="del-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e0415a" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <p class="del-title">정말 삭제할까요?</p>
+    <p class="del-desc" id="delDesc">
+      <span class="del-word" id="delWordName"></span> 단어를 삭제하면<br>학습 기록도 함께 사라집니다.
+    </p>
+    <div class="del-footer">
+      <button class="modal-cancel" style="flex:1" onclick="closeModal('delModal')">취소</button>
+      <button class="btn-del-confirm" id="delConfirmBtn">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─── DATA ─── */
+let words = [
+  { id:1, word:'ambiguous',  meaning:'불분명한, 모호한',         pos:'형용사', status:'복습', rate:48,  added:'2025.03.14', note:'' },
+  { id:2, word:'elaborate',  meaning:'정교한, 자세히 설명하다',   pos:'동/형',  status:'복습', rate:55,  added:'2025.03.14', note:'' },
+  { id:3, word:'persevere',  meaning:'인내하다, 꾸준히 하다',     pos:'동사',   status:'완료', rate:91,  added:'2025.03.15', note:'' },
+  { id:4, word:'meticulous', meaning:'꼼꼼한, 세심한',           pos:'형용사', status:'완료', rate:84,  added:'2025.03.16', note:'' },
+  { id:5, word:'resilient',  meaning:'회복력 있는, 탄력적인',     pos:'형용사', status:'완료', rate:78,  added:'2025.03.17', note:'' },
+  { id:6, word:'inaugural',  meaning:'처음의, 취임의',           pos:'형용사', status:'미학습',rate:0,  added:'2025.03.18', note:'' },
+  { id:7, word:'ephemeral',  meaning:'덧없는, 단명하는',         pos:'형용사', status:'복습', rate:62,  added:'2025.03.19', note:'' },
+  { id:8, word:'benevolent', meaning:'자비로운, 선량한',         pos:'형용사', status:'완료', rate:88,  added:'2025.03.20', note:'' },
+  { id:9, word:'scrutinize', meaning:'면밀히 검토하다',          pos:'동사',   status:'복습', rate:44,  added:'2025.03.21', note:'' },
+  { id:10,word:'pragmatic',  meaning:'실용적인, 실질적인',       pos:'형용사', status:'완료', rate:73,  added:'2025.03.22', note:'' },
+  { id:11,word:'eloquent',   meaning:'달변의, 웅변적인',         pos:'형용사', status:'미학습',rate:0,  added:'2025.03.23', note:'' },
+  { id:12,word:'tenacious',  meaning:'끈질긴, 완강한',           pos:'형용사', status:'복습', rate:57,  added:'2025.03.24', note:'' },
+];
+let nextId = 13;
+let filtered = [...words];
+let selected = new Set();
+let editingId = null;
+let currentPage = 1;
+const PER_PAGE = 8;
+
+/* pos → badge class */
+const posClass = { '형용사':'badge-v','명사':'badge-b','동사':'badge-g','부사':'badge-o','동/형':'badge-b' };
+const statusClass = { '완료':'badge-done','복습':'badge-review','미학습':'badge-new' };
+
+/* ─── RENDER ─── */
+function render() {
+  const body = document.getElementById('tableBody');
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PER_PAGE;
+  const page  = filtered.slice(start, start + PER_PAGE);
+
+  if (!page.length) {
+    body.innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg><p>검색 결과가 없습니다</p></div>`;
+    renderPagination(0, 0);
+    return;
+  }
+
+  body.innerHTML = page.map(w => {
+    const rateClass = w.rate >= 70 ? 'rate-high' : w.rate > 0 ? 'rate-mid' : 'rate-none';
+    const rateText  = w.rate > 0 ? w.rate + '%' : '—';
+    const isSel = selected.has(w.id);
+    return `
+    <div class="table-row${isSel ? ' selected' : ''}" id="row-${w.id}" data-id="${w.id}">
+      <div class="td-check"><input type="checkbox" ${isSel?'checked':''} onchange="toggleSelect(${w.id},this)"></div>
+      <div>
+        <div class="word-en">${w.word}</div>
+        <div class="td-added">${w.added}</div>
+      </div>
+      <div class="word-ko">${w.meaning}</div>
+      <div><span class="badge ${posClass[w.pos]||'badge-new'}">${w.pos}</span></div>
+      <div><span class="badge ${statusClass[w.status]}">${w.status}</span></div>
+      <div class="rate ${rateClass}">${rateText}</div>
+      <div class="row-actions">
+        <button class="ra-btn ra-edit" title="수정" onclick="openEditModal(${w.id})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="ra-btn ra-del" title="삭제" onclick="openDelModal(${w.id})">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderPagination(total, totalPages);
+  document.getElementById('checkAll').checked = page.every(w => selected.has(w.id)) && page.length > 0;
+  document.getElementById('statTotal').textContent = words.length;
+}
+
+function renderPagination(total, totalPages) {
+  const pg = document.getElementById('pagination');
+  const start = (currentPage-1)*PER_PAGE+1, end = Math.min(currentPage*PER_PAGE, total);
+  let html = `<span class="page-info">${total > 0 ? `${start}–${end} / 총 ${total}개` : '결과 없음'}</span><div class="page-btns">`;
+  html += `<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for (let i=1;i<=totalPages;i++) {
+    if (i===1||i===totalPages||Math.abs(i-currentPage)<=1)
+      html += `<button class="pg-btn${i===currentPage?' active':''}" onclick="goPage(${i})">${i}</button>`;
+    else if (Math.abs(i-currentPage)===2)
+      html += `<span class="pg-btn" style="pointer-events:none;opacity:.4">…</span>`;
+  }
+  html += `<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button></div>`;
+  pg.innerHTML = html;
+}
+
+function goPage(n) { currentPage = n; render(); }
+
+/* ─── FILTER ─── */
+function filterTable() {
+  const q   = document.getElementById('searchInput').value.toLowerCase();
+  const pos = document.getElementById('posFilter').value;
+  const st  = document.getElementById('statusFilter').value;
+  filtered = words.filter(w =>
+    (!q   || w.word.toLowerCase().includes(q) || w.meaning.includes(q)) &&
+    (!pos || w.pos === pos) &&
+    (!st  || w.status === st)
+  );
+  currentPage = 1;
+  render();
+}
+
+/* ─── SORT ─── */
+let sortDir = {};
+function sortTable(key) {
+  sortDir[key] = !sortDir[key];
+  const dir = sortDir[key] ? 1 : -1;
+  filtered.sort((a,b) => {
+    const va = key==='rate'?a.rate:a[key]||'';
+    const vb = key==='rate'?b.rate:b[key]||'';
+    return va<vb?-dir:va>vb?dir:0;
+  });
+  render();
+}
+
+/* ─── SELECT ─── */
+function toggleSelect(id, cb) {
+  if (cb.checked) selected.add(id); else selected.delete(id);
+  const row = document.getElementById('row-'+id);
+  if (row) row.classList.toggle('selected', cb.checked);
+  updateBulkBar();
+}
+function toggleAll(cb) {
+  const start = (currentPage-1)*PER_PAGE;
+  filtered.slice(start, start+PER_PAGE).forEach(w => {
+    if (cb.checked) selected.add(w.id); else selected.delete(w.id);
+    const row = document.getElementById('row-'+w.id);
+    if (row) { row.classList.toggle('selected', cb.checked); row.querySelector('input[type=checkbox]').checked = cb.checked; }
+  });
+  updateBulkBar();
+}
+function clearSelection() { selected.clear(); render(); updateBulkBar(); }
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  if (selected.size > 0) { bar.classList.add('visible'); document.getElementById('bulkCount').textContent = `${selected.size}개 선택됨`; }
+  else bar.classList.remove('visible');
+}
+
+/* ─── BULK DELETE ─── */
+function bulkDelete() {
+  if (!selected.size) return;
+  if (!confirm(`선택한 ${selected.size}개 단어를 삭제할까요?`)) return;
+  words = words.filter(w => !selected.has(w.id));
+  selected.clear();
+  filterTable();
+  updateBulkBar();
+  showToast(`${words.length}개 삭제됐습니다.`);
+}
+
+/* ─── ADD MODAL ─── */
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '단어 추가';
+  document.getElementById('modalBadge').textContent = 'NEW';
+  document.getElementById('modalBadge').className = 'modal-badge add';
+  document.getElementById('saveLabel').textContent = '단어 추가';
+  ['fWord','fMeaning','fExample','fNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fPos').value    = '';
+  document.getElementById('fStatus').value = '미학습';
+  document.getElementById('fRate').value   = 0;
+  updateScoreBadge();
+  document.getElementById('editModal').classList.add('open');
+  setTimeout(() => document.getElementById('fWord').focus(), 200);
+}
+
+/* ─── EDIT MODAL ─── */
+function openEditModal(id) {
+  const w = words.find(x => x.id === id); if (!w) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = '단어 수정';
+  document.getElementById('modalBadge').textContent = 'EDIT';
+  document.getElementById('modalBadge').className = 'modal-badge edit';
+  document.getElementById('saveLabel').textContent = '수정 저장';
+  document.getElementById('fWord').value    = w.word;
+  document.getElementById('fMeaning').value = w.meaning;
+  document.getElementById('fPos').value     = w.pos;
+  document.getElementById('fStatus').value  = w.status;
+  document.getElementById('fRate').value    = w.rate;
+  document.getElementById('fExample').value = w.example || '';
+  document.getElementById('fNote').value    = w.note    || '';
+  updateScoreBadge();
+  document.getElementById('editModal').classList.add('open');
+}
+
+/* ─── SAVE ─── */
+function saveWord() {
+  const word    = document.getElementById('fWord').value.trim();
+  const meaning = document.getElementById('fMeaning').value.trim();
+  const pos     = document.getElementById('fPos').value;
+  const status  = document.getElementById('fStatus').value;
+  const rate    = parseInt(document.getElementById('fRate').value) || 0;
+  const example = document.getElementById('fExample').value.trim();
+  const note    = document.getElementById('fNote').value.trim();
+
+  if (!word || !meaning || !pos) { showToast('단어, 뜻, 품사는 필수입니다.'); return; }
+
+  if (editingId) {
+    const w = words.find(x => x.id === editingId);
+    if (w) Object.assign(w, { word, meaning, pos, status, rate, example, note });
+    showToast(`"${word}" 수정됐습니다.`);
+  } else {
+    const today = new Date();
+    const added = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+    words.push({ id: nextId++, word, meaning, pos, status, rate, added, example, note });
+    showToast(`"${word}" 추가됐습니다! 🎉`);
+  }
+  closeModal('editModal');
+  filterTable();
+}
+
+/* ─── DELETE ─── */
+let pendingDelId = null;
+function openDelModal(id) {
+  const w = words.find(x => x.id === id); if (!w) return;
+  pendingDelId = id;
+  document.getElementById('delWordName').textContent = `"${w.word}"`;
+  document.getElementById('delConfirmBtn').onclick = () => {
+    words = words.filter(x => x.id !== pendingDelId);
+    selected.delete(pendingDelId);
+    closeModal('delModal');
+    filterTable();
+    updateBulkBar();
+    showToast(`단어가 삭제됐습니다.`);
+  };
+  document.getElementById('delModal').classList.add('open');
+}
+
+/* ─── UTILS ─── */
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function updateScoreBadge() {
+  const v = parseInt(document.getElementById('fRate').value) || 0;
+  const b = document.getElementById('scoreBadge');
+  b.textContent = v + '%';
+  b.style.color = v >= 70 ? '#0d9488' : v > 0 ? '#d97706' : '#94a3b8';
+}
+function setView(v) {
+  document.getElementById('viewList').classList.toggle('active', v==='list');
+  document.getElementById('viewGrid').classList.toggle('active', v==='grid');
+  showToast(v==='grid' ? '카드 뷰 (준비 중)' : '목록 뷰로 전환됐습니다.');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* close modal on bg click */
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+/* Enter to save */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+  if (e.key === 'Enter' && document.getElementById('editModal').classList.contains('open')) saveWord();
+});
+
+/* init */
+filterTable();
+</script>
+</body>
+</html>

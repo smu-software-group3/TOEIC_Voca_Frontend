@@ -1,17 +1,97 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import Login from "./pages/Login/Login";
+import Word from "./pages/Word/Word";
+import WordTest from "./pages/WordTest/WordTest";
+import Profile from "./pages/Profile/Profile";
+import Admin from "./pages/Admin/Admin";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Register from "./pages/Register/Register";
+import PasswordChange from "./pages/PasswordChange/PasswordChange";
+import PasswordFind from "./pages/PasswordFind/PasswordFind";
+import AuthLayout from "./components/AuthLayout";
+import Home from "./pages/Home/Home";
+import { AuthProvider, RequireAuth } from "./contexts/AuthContext";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: "admin",
+        element: (
+          <RequireAuth>
+            <Admin />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "word",
+        element: (
+          <RequireAuth>
+            <Word />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "wtest",
+        element: (
+          <RequireAuth>
+            <WordTest />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <RequireAuth>
+            <Profile />
+          </RequireAuth>
+        ),
+      },
+    ],
+  },
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "register",
+        element: <Register />,
+      },
+      {
+        path: "pwc",
+        element: <PasswordChange />,
+      },
+      {
+        path: "pwf",
+        element: <PasswordFind />,
+      },
+    ],
+  },
+]);
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+// 라우터를 루트 DOM에 연결해 앱 렌더링을 시작한다.
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  // <React.StrictMode>
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>,
+  // </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// to reportWebVitals or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// reportWebVitals();
