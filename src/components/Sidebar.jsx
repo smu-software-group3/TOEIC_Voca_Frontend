@@ -222,6 +222,47 @@ export function Sidebar({
         단어장
       </div>
       <div
+        onClick={() => handleNavigate("/admin")}
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "8px",
+          padding: "10px 12px",
+          borderRadius: "8px",
+          fontSize: "14px",
+          color: "#64748b",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          whiteSpace: "normal",
+          lineHeight: 1.35,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
+          e.currentTarget.style.color = "#c4b5fd";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.color = "#64748b";
+        }}
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <path d="M3 7h18" />
+          <path d="M6 7V5h12v2" />
+          <path d="M5 7l1 12h12l1-12" />
+        </svg>
+        <span style={{ display: "block", wordBreak: "keep-all" }}>
+          관리자 단어장 관리
+        </span>
+      </div>
+      <div
         onClick={() => handleNavigate("/wtest")}
         style={{
           display: "flex",
