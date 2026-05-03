@@ -8,6 +8,8 @@ export function Sidebar({
   onCloseMobile,
   isCollapsed = false,
   onToggleCollapse,
+  topOffset = 0,
+  style,
 }) {
   const navigate = useNavigate();
   const [hasToken, setHasToken] = useState(!!localStorage.getItem("token"));
@@ -59,21 +61,22 @@ export function Sidebar({
   return (
     <div
       style={{
-        width: "260px",
+        width: isMobile ? "260px" : "320px",
         flexShrink: 0,
         background: "linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%)",
         padding: "28px 20px",
+        boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
         gap: "2px",
-        borderRight: "0.5px solid rgba(139, 92, 246, 0.15)",
+        borderRight: isCollapsed ? "none" : "0.5px solid rgba(139, 92, 246, 0.15)",
         position: "fixed",
-        top: 0,
+        top: topOffset,
         left: 0,
-        height: "100vh",
-        overflowY: "auto",
+        height: `calc(100vh - ${topOffset}px)`,
+        overflowY: "hidden",
         zIndex: 1000,
-        transition: "transform 0.25s ease, box-shadow 0.25s ease",
+        transition: "transform 0.25s ease, box-shadow 0.25s ease, width 0.25s ease",
         transform: isMobile
           ? !isMobileOpen
             ? "translateX(-100%)"
@@ -82,6 +85,7 @@ export function Sidebar({
             ? "translateX(-100%)"
             : "translateX(0)",
         boxShadow: isMobile ? "0 12px 30px rgba(15, 23, 42, 0.22)" : "none",
+        ...style,
       }}
     >
       {/* Logo */}
@@ -91,6 +95,7 @@ export function Sidebar({
           alignItems: "center",
           marginBottom: "24px",
           padding: "0 4px",
+          flexShrink: 0,
         }}
       >
         <div
@@ -101,6 +106,8 @@ export function Sidebar({
             gap: "9px",
             cursor: "pointer",
             transition: "opacity 0.2s ease",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
@@ -115,6 +122,7 @@ export function Sidebar({
               alignItems: "center",
               justifyContent: "center",
               boxShadow: "0 0 10px rgba(124, 58, 237, 0.4)",
+              flexShrink: 0,
             }}
           >
             <svg
@@ -133,13 +141,14 @@ export function Sidebar({
               <path d="M2 12l10 5 10-5" stroke="#c4b5fd" strokeWidth="2" />
             </svg>
           </div>
-          <div style={{ marginLeft: 8 }}>
+          <div style={{ marginLeft: 8, overflow: "hidden" }}>
             <div
               style={{
                 fontSize: "15px",
                 fontWeight: "700",
                 letterSpacing: "-0.3px",
                 color: "#c4b5fd",
+                whiteSpace: "nowrap",
               }}
             >
               VocaStats
@@ -149,7 +158,7 @@ export function Sidebar({
 
         {/* Collapse/close button: shown to the right of the logo when sidebar is expanded.
             On desktop it toggles collapsed state; on mobile it closes the mobile sidebar. */}
-        {!isCollapsed && (!isMobile || isMobileOpen) && (
+        {(isMobile ? isMobileOpen : !isCollapsed) && (
           <button
             type="button"
             aria-label={isMobile ? "사이드바 닫기" : "사이드바 접기"}
@@ -174,17 +183,27 @@ export function Sidebar({
       </div>
 
       {/* Navigation Section - VOCA */}
-      <p
+      <div
         style={{
-          fontSize: "11px",
-          fontWeight: "700",
-          letterSpacing: "0.1em",
-          padding: "12px 10px 4px",
-          color: "#a78bfa",
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          marginRight: "-20px",
+          paddingRight: "20px",
+          paddingBottom: "12px",
         }}
       >
-        VOCA
-      </p>
+        <p
+          style={{
+            fontSize: "11px",
+            fontWeight: "700",
+            letterSpacing: "0.1em",
+            padding: "12px 10px 4px",
+            color: "#a78bfa",
+          }}
+        >
+          VOCA
+        </p>
       <div
         onClick={() => handleNavigate("/word")}
         style={{
@@ -298,16 +317,21 @@ export function Sidebar({
         </svg>
         테스트
       </div>
+      </div>
 
       {/* Bottom Profile Section */}
       <div
         style={{
           marginTop: "auto",
-          paddingTop: "16px",
+          paddingTop: "12px",
+          paddingLeft: "12px",
+          paddingRight: "12px",
+          paddingBottom: "12px",
           borderTop: "0.5px solid rgba(139, 92, 246, 0.12)",
           display: "flex",
           flexDirection: "column",
           gap: "2px",
+          flexShrink: 0,
         }}
       >
         <div

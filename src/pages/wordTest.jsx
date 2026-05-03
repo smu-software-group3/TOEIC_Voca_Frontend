@@ -468,13 +468,13 @@ function WordTest() {
                     String(selectedChoiceId) === String(choice.choiceId);
 
                   return (
-                    <button
+                    <div
                       key={choice.choiceId}
-                      type="button"
-                      onClick={() =>
-                        setSelectedChoiceId(String(choice.choiceId))
-                      }
-                      disabled={!!feedback}
+                      onClick={(event) => {
+                        setSelectedChoiceId(String(choice.choiceId));
+                      }}
+                      role="button"
+                      aria-pressed={active}
                       style={{
                         ...styles.optionBtn,
                         ...(active ? styles.optionBtnActive : {}),
@@ -491,7 +491,7 @@ function WordTest() {
                         {String.fromCharCode(65 + index)}
                       </span>
                       {choice.meaning}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -898,6 +898,7 @@ const styles = {
     gap: 10,
   },
   optionBtn: {
+    all: "unset",
     display: "flex",
     alignItems: "center",
     gap: 10,
@@ -910,11 +911,14 @@ const styles = {
     fontWeight: 500,
     color: "#3730a3",
     textAlign: "left",
+    outline: "none",
+    boxShadow: "none",
+    appearance: "none",
+    WebkitTapHighlightColor: "transparent",
+    userSelect: "none",
   },
   optionBtnActive: {
-    borderColor: "rgba(109,40,217,0.7)",
     background: "rgba(237,233,254,0.62)",
-    boxShadow: "0 4px 14px rgba(109,40,217,0.15)",
   },
   optionBtnDisabled: {
     opacity: 0.7,
