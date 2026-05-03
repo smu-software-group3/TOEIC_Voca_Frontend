@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Word from "./pages/word";
 import WordTest from "./pages/wordTest";
 import Profile from "./pages/profile";
+import Admin from "./pages/Admin";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Register from "./pages/Register";
 import PasswordChange from "./pages/PasswordChange";
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "admin",
+        element: <Admin />,
       },
       {
         path: "word",
