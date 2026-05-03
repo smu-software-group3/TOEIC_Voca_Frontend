@@ -13,6 +13,8 @@ import Register from "./pages/Register";
 import PasswordChange from "./pages/PasswordChange";
 import PasswordFind from "./pages/PasswordFind";
 import AuthLayout from "./components/AuthLayout";
+import Home from "./pages/Home";
+import { AuthProvider, RequireAuth } from "./contexts/AuthContext";
 
 const router = createBrowserRouter([
   {
@@ -20,20 +22,36 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
+        index: true,
+        element: <Home />,
+      },
+      {
         path: "admin",
         element: <Admin />,
       },
       {
         path: "word",
-        element: <Word />,
+        element: (
+          <RequireAuth>
+            <Word />
+          </RequireAuth>
+        ),
       },
       {
         path: "wtest",
-        element: <WordTest />,
+        element: (
+          <RequireAuth>
+            <WordTest />
+          </RequireAuth>
+        ),
       },
       {
         path: "profile",
-        element: <Profile />,
+        element: (
+          <RequireAuth>
+            <Profile />
+          </RequireAuth>
+        ),
       },
     ],
   },
@@ -65,7 +83,9 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 // 라우터를 루트 DOM에 연결해 앱 렌더링을 시작한다.
 root.render(
   // <React.StrictMode>
-  <RouterProvider router={router} />,
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>,
   // </React.StrictMode>
 );
 
