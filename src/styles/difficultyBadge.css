@@ -1,0 +1,28 @@
+/* 공통 난이도 배지 — Admin / 단어장 등에서 공유 */
+
+.diff-badge {
+  display: inline-block;
+  font-size: 14px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.diff-badge--easy {
+  background: rgba(45, 212, 191, 0.15);
+  color: #134e4a;
+  border: 0.5px solid rgba(13, 148, 136, 0.22);
+}
+
+.diff-badge--medium {
+  background: rgba(251, 191, 36, 0.2);
+  color: #78350f;
+  border: 0.5px solid rgba(217, 119, 6, 0.24);
+}
+
+.diff-badge--hard {
+  background: rgba(139, 92, 246, 0.14);
+  color: #4c1d95;
+  border: 0.5px solid rgba(139, 92, 246, 0.22);
+}
