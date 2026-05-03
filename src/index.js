@@ -27,7 +27,11 @@ const router = createBrowserRouter([
       },
       {
         path: "admin",
-        element: <Admin />,
+        element: (
+          <RequireAuth>
+            <Admin />
+          </RequireAuth>
+        ),
       },
       {
         path: "word",

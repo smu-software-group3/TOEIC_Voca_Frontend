@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearAuthTokens, logout } from "../api/server";
+import { clearAuthTokens, getMemberInfo, logout } from "../api/server";
 
 export function Sidebar({
   isMobile = false,
@@ -13,6 +13,7 @@ export function Sidebar({
 }) {
   const navigate = useNavigate();
   const [hasToken, setHasToken] = useState(!!localStorage.getItem("token"));
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const syncTokenState = () => {
@@ -22,6 +23,34 @@ export function Sidebar({
     window.addEventListener("storage", syncTokenState);
     return () => window.removeEventListener("storage", syncTokenState);
   }, []);
+
+  useEffect(() => {
+    const loadRole = async () => {
+      if (!hasToken) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const memberInfo = await getMemberInfo();
+        const payload = memberInfo?.data || memberInfo || {};
+        const role =
+          payload.role ||
+          payload.userRole ||
+          (Array.isArray(payload.roles)
+            ? typeof payload.roles[0] === "string"
+              ? payload.roles[0]
+              : payload.roles[0]?.role
+            : "");
+
+        setIsAdmin(role === "ROLE_ADMIN");
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+
+    loadRole();
+  }, [hasToken]);
 
   const handleLogout = async () => {
     try {
@@ -69,14 +98,17 @@ export function Sidebar({
         display: "flex",
         flexDirection: "column",
         gap: "2px",
-        borderRight: isCollapsed ? "none" : "0.5px solid rgba(139, 92, 246, 0.15)",
+        borderRight: isCollapsed
+          ? "none"
+          : "0.5px solid rgba(139, 92, 246, 0.15)",
         position: "fixed",
         top: topOffset,
         left: 0,
         height: `calc(100vh - ${topOffset}px)`,
         overflowY: "hidden",
         zIndex: 1000,
-        transition: "transform 0.25s ease, box-shadow 0.25s ease, width 0.25s ease",
+        transition:
+          "transform 0.25s ease, box-shadow 0.25s ease, width 0.25s ease",
         transform: isMobile
           ? !isMobileOpen
             ? "translateX(-100%)"
@@ -204,119 +236,118 @@ export function Sidebar({
         >
           VOCA
         </p>
-      <div
-        onClick={() => handleNavigate("/word")}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          padding: "10px 12px",
-          borderRadius: "8px",
-          fontSize: "14px",
-          color: "#64748b",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
-          e.currentTarget.style.color = "#c4b5fd";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "#64748b";
-        }}
-      >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
+        <div
+          onClick={() => handleNavigate("/word")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            color: "#64748b",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
+            e.currentTarget.style.color = "#c4b5fd";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "#64748b";
+          }}
         >
-          <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-        </svg>
-        단어장
-      </div>
-      <div
-        onClick={() => handleNavigate("/admin")}
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: "8px",
-          padding: "10px 12px",
-          borderRadius: "8px",
-          fontSize: "14px",
-          color: "#64748b",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          whiteSpace: "normal",
-          lineHeight: 1.35,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
-          e.currentTarget.style.color = "#c4b5fd";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "#64748b";
-        }}
-      >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+          </svg>
+          단어장
+        </div>
+        {isAdmin && (
+          <div
+            onClick={() => handleNavigate("/admin")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              color: "#64748b",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
+              e.currentTarget.style.color = "#c4b5fd";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#64748b";
+            }}
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M3 7h18" />
+              <path d="M6 7V5h12v2" />
+              <path d="M5 7l1 12h12l1-12" />
+            </svg>
+            <span>관리자 단어장 관리</span>
+          </div>
+        )}
+        <div
+          onClick={() => handleNavigate("/wtest")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            color: "#64748b",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
+            e.currentTarget.style.color = "#c4b5fd";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "#64748b";
+          }}
         >
-          <path d="M3 7h18" />
-          <path d="M6 7V5h12v2" />
-          <path d="M5 7l1 12h12l1-12" />
-        </svg>
-        <span style={{ display: "block", wordBreak: "keep-all" }}>
-          관리자 단어장 관리
-        </span>
-      </div>
-      <div
-        onClick={() => handleNavigate("/wtest")}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          padding: "10px 12px",
-          borderRadius: "8px",
-          fontSize: "14px",
-          color: "#64748b",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
-          e.currentTarget.style.color = "#c4b5fd";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "#64748b";
-        }}
-      >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-        테스트
-      </div>
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          테스트
+        </div>
       </div>
 
       {/* Bottom Profile Section */}
