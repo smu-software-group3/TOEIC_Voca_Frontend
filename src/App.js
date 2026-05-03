@@ -7,6 +7,8 @@ function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const sidebarWidth = 260;
+  const sidebarOffset = isMobileView || isSidebarCollapsed ? 0 : sidebarWidth;
 
   useEffect(() => {
     const updateViewport = () => {
@@ -28,7 +30,8 @@ function App() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#ffffff",
+        background:
+          "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
         overflowX: "hidden",
       }}
     >
@@ -84,15 +87,18 @@ function App() {
 
       <div
         style={{
-          marginLeft: isMobileView ? 0 : isSidebarCollapsed ? 0 : "260px",
+          marginLeft: isMobileView ? 0 : sidebarOffset,
           minHeight: "100vh",
           width: isMobileView
             ? "100%"
-            : isSidebarCollapsed
-              ? "100%"
-              : "calc(100% - 260px)",
+            : `calc(100% - ${sidebarOffset}px)`,
           boxSizing: "border-box",
           paddingTop: isMobileView ? "72px" : 0,
+          background:
+            "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
+          transition: isMobileView
+            ? "none"
+            : "margin-left 0.25s ease, width 0.25s ease",
         }}
       >
         <Outlet />

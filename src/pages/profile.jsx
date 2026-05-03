@@ -47,7 +47,6 @@ function Profile() {
   const fetchMemberInfo = async () => {
     setLoading(true);
     setError("");
-
     try {
       const response = await getMemberInfo();
 

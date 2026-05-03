@@ -120,11 +120,15 @@ export function clearAuthTokens() {
   clearSilentRefreshTimer();
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+
+  window.dispatchEvent(new Event("authchange"));
 }
 
-export function storeAuthTokens(
-  { accessToken, refreshToken, persistRefreshToken = isAutoLoginEnabled() } = {},
-) {
+export function storeAuthTokens({
+  accessToken,
+  refreshToken,
+  persistRefreshToken = isAutoLoginEnabled(),
+} = {}) {
   if (accessToken) {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   }
@@ -134,6 +138,8 @@ export function storeAuthTokens(
   } else if (!persistRefreshToken) {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
+
+  window.dispatchEvent(new Event("authchange"));
 
   return {
     accessToken: accessToken || "",
