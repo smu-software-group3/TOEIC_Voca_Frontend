@@ -710,3 +710,112 @@ export async function getMemberInfo() {
     throw requestError;
   }
 }
+
+// 관리자 단어 추가 요청을 보낸다.
+export async function createAdminWord({ spelling, meaning, difficulty }) {
+  const url = `${getServerUrl()}/api/admin/words`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post(
+      url,
+      { spelling, meaning, difficulty },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다."
+        : error.response?.status === 403
+          ? "관리자 권한이 필요합니다."
+          : error.response?.status === 400
+            ? "유효하지 않은 난이도입니다. EASY, MEDIUM, HARD 중 하나여야 합니다."
+            : error.response?.status === 409
+              ? "같은 단어가 이미 존재합니다."
+              : error.response?.data?.message ||
+                "단어 추가 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 관리자 단어 수정 요청을 보낸다.
+export async function updateAdminWord(
+  wordId,
+  { spelling, meaning, difficulty },
+) {
+  const url = `${getServerUrl()}/api/admin/words/${wordId}`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.patch(
+      url,
+      { spelling, meaning, difficulty },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다."
+        : error.response?.status === 403
+          ? "관리자 권한이 필요합니다."
+          : error.response?.status === 400
+          ? "유효하지 않은 난이도입니다. EASY, MEDIUM, HARD 중 하나여야 합니다."
+          : error.response?.status === 404
+            ? "수정할 단어를 찾을 수 없습니다."
+            : error.response?.data?.message || "단어 수정 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 관리자 단어 삭제 요청을 보낸다.
+export async function deleteAdminWord(wordId) {
+  const url = `${getServerUrl()}/api/admin/words/${wordId}`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.delete(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다."
+        : error.response?.status === 403
+          ? "관리자 권한이 필요합니다."
+          : error.response?.status === 404
+            ? "삭제할 단어를 찾을 수 없습니다."
+            : error.response?.data?.message || "단어 삭제 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
