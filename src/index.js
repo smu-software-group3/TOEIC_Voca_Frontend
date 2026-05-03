@@ -2,18 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import reportWebVitals from "./reportWebVitals";
-import Login from "./pages/Login";
-import Word from "./pages/word";
-import WordTest from "./pages/wordTest";
-import Profile from "./pages/profile";
-import Admin from "./pages/Admin";
+import Login from "./pages/Login/Login";
+import Word from "./pages/Word/Word";
+import WordTest from "./pages/WordTest/WordTest";
+import Profile from "./pages/Profile/Profile";
+import Admin from "./pages/Admin/Admin";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Register from "./pages/Register";
-import PasswordChange from "./pages/PasswordChange";
-import PasswordFind from "./pages/PasswordFind";
+import Register from "./pages/Register/Register";
+import PasswordChange from "./pages/PasswordChange/PasswordChange";
+import PasswordFind from "./pages/PasswordFind/PasswordFind";
 import AuthLayout from "./components/AuthLayout";
-import Home from "./pages/Home";
+import Home from "./pages/Home/Home";
 import { AuthProvider, RequireAuth } from "./contexts/AuthContext";
 
 const router = createBrowserRouter([
@@ -95,4 +94,4 @@ root.render(
 
 // If you want to start measuring performance in your app, pass a function
 // to reportWebVitals or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// reportWebVitals();

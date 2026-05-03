@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "../components/Button";
-import { Form } from "../components/Form";
-import { Input } from "../components/Input";
+import { Button } from "../../components/Button";
+import { Form } from "../../components/Form";
+import { Input } from "../../components/Input";
 import {
   createAdminWord,
   deleteAdminWord,
   getMemberInfo,
   getWords,
   updateAdminWord,
-} from "../api/server";
-import { difficultyBadgeClass, translateDifficulty } from "../utils/difficulty";
+} from "../../api/server";
+import { difficultyBadgeClass, translateDifficulty } from "../../utils/difficulty";
 import "./Admin.css";
 
 const adminInputStyle = {

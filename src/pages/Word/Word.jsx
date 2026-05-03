@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { getWords } from "../api/server";
-import { Input } from "../components/Input";
+import { getWords } from "../../api/server";
+import { Input } from "../../components/Input";
 import {
   difficultyBadgeClass,
   difficultyColor,
   translateDifficulty,
-} from "../utils/difficulty";
-import "../styles/difficultyBadge.css";
+} from "../../utils/difficulty";
+import "../../styles/difficultyBadge.css";
+import "./Word.css";
 
 function Word() {
   const [spelling, setSpelling] = useState("");
@@ -69,41 +70,27 @@ function Word() {
   };
 
   return (
-    <main
-      style={{
-        padding: 28,
-        background: "linear-gradient(145deg, #f8fafc 0%, #eef2ff 50%)",
-        minHeight: "100vh",
-      }}
-    >
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <h1 style={{ marginBottom: 6, color: "#000" }}>단어장 조회</h1>
-        <p style={{ marginBottom: 18, color: "#000" }}>
+    <main className="word-page">
+      <div className="word-page-inner">
+        <h1 className="word-page-title">단어장 조회</h1>
+        <p className="word-page-lead">
           키워드, 난이도, 정렬 방식으로 단어장을 조회할 수 있습니다.
         </p>
 
-        <section
-          style={{
-            background: "#fff",
-            padding: 16,
-            borderRadius: 12,
-            boxShadow: "0 6px 20px rgba(15, 23, 42, 0.06)",
-            marginBottom: 18,
-          }}
-        >
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <section className="word-page-filter-card">
+          <div className="word-page-filter-row">
             <Input
               placeholder="검색어를 입력하세요 (예: app)"
               value={spelling}
               onChange={handleFilterChange(setSpelling)}
               autoComplete="off"
-              style={{ flex: 1 }}
+              className="word-page-search-input"
             />
 
             <select
               value={difficulty}
               onChange={handleFilterChange(setDifficulty)}
-              style={{ padding: "10px", borderRadius: 8 }}
+              className="word-page-select"
             >
               <option value="">전체</option>
               <option value="EASY">쉬움</option>
@@ -114,7 +101,7 @@ function Word() {
             <select
               value={sort}
               onChange={handleFilterChange(setSort)}
-              style={{ padding: "10px", borderRadius: 8 }}
+              className="word-page-select"
             >
               <option value="asc">오름차순</option>
               <option value="desc">내림차순</option>
@@ -123,59 +110,34 @@ function Word() {
         </section>
 
         {error && (
-          <p role="alert" style={{ color: "#b91c1c" }}>
+          <p role="alert" className="word-page-error">
             {error}
           </p>
         )}
 
         <section>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
-            <h2 style={{ margin: 0, color: "#000" }}>조회 결과</h2>
-            <div style={{ color: "#000" }}>
+          <div className="word-page-results-head">
+            <h2 className="word-page-results-title">조회 결과</h2>
+            <div className="word-page-results-meta">
               총 {totalElements}개 · {totalPages}페이지
             </div>
           </div>
           {loading && <p>조회 중입니다...</p>}
-          <ul
-            style={{ listStyle: "none", padding: 0, display: "grid", gap: 12 }}
-          >
+          <ul className="word-page-list">
             {words.length > 0
               ? words.map((item) => (
                   <li
                     key={item.wordId}
+                    className="word-page-card"
                     style={{
-                      background: "#fff",
-                      padding: 14,
-                      borderRadius: 10,
-                      boxShadow: "0 4px 12px rgba(2,6,23,0.04)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      borderLeft: `3px solid ${difficultyColor(item.difficulty)}`,
+                      "--word-accent": difficultyColor(item.difficulty),
                     }}
                   >
                     <div>
-                      <div
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: "#4c1d95",
-                        }}
-                      >
-                        {item.spelling}
-                      </div>
-                      <div style={{ color: "#000", marginTop: 6 }}>
-                        {item.meaning}
-                      </div>
+                      <div className="word-page-spelling">{item.spelling}</div>
+                      <div className="word-page-meaning">{item.meaning}</div>
                     </div>
-                    <div style={{ textAlign: "right" }}>
+                    <div className="word-page-badge-wrap">
                       <span className={difficultyBadgeClass(item.difficulty)}>
                         {translateDifficulty(item.difficulty)}
                       </span>
@@ -183,9 +145,7 @@ function Word() {
                   </li>
                 ))
               : !loading && (
-                  <li style={{ padding: 12, color: "#6b21a8" }}>
-                    조회 결과가 없습니다.
-                  </li>
+                  <li className="word-page-empty">조회 결과가 없습니다.</li>
                 )}
           </ul>
         </section>

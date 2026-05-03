@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { findPassword } from "../api/server";
+import { findPassword } from "../../api/server";
 import "./PasswordFind.css";
 
 export default function PasswordFind() {
