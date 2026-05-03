@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMemberInfo } from "../api/server";
-import { useAuth } from "../contexts/AuthContext";
+import { getMemberInfo } from "../../api/server";
+import { useAuth } from "../../contexts/AuthContext";
 import "./Home.css";
 
 export default function Home() {

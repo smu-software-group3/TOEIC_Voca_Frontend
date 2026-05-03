@@ -1,6 +1,6 @@
 /* vocastats-admin.html 메인 영역 톤만 참고 — 페이지 루트 범위 */
 
-@import "../styles/difficultyBadge.css";
+@import "../../styles/difficultyBadge.css";
 
 .admin-page {
   position: relative;

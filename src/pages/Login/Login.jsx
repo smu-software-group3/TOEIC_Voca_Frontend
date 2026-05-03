@@ -5,7 +5,7 @@ import {
   login,
   setAutoLoginEnabled,
   storeAuthTokensFromResponse,
-} from "../api/server";
+} from "../../api/server";
 import "./Login.css";
 
 export default function Login() {
