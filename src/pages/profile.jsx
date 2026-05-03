@@ -168,7 +168,7 @@ function Profile() {
         style={{
           background:
             "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-          height: "100vh",
+          minHeight: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -187,7 +187,7 @@ function Profile() {
         style={{
           background:
             "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-          height: "100vh",
+          minHeight: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -206,7 +206,7 @@ function Profile() {
         style={{
           background:
             "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-          height: "100vh",
+          minHeight: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -228,14 +228,13 @@ function Profile() {
       style={{
         background:
           "linear-gradient(145deg, #e8e4ff 0%, #d4e8ff 30%, #c8f5f0 60%, #e8e4ff 100%)",
-        height: "100vh",
+        minHeight: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         boxSizing: "border-box",
         width: "100%",
-        overflowY: "auto",
         overflowX: "hidden",
         padding: "28px 0",
         position: "relative",
