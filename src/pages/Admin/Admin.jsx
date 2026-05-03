@@ -1,7 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "../../components/Button";
-import { Form } from "../../components/Form";
-import { Input } from "../../components/Input";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   createAdminWord,
   deleteAdminWord,
@@ -9,20 +6,11 @@ import {
   getWords,
   updateAdminWord,
 } from "../../api/server";
-import { difficultyBadgeClass, translateDifficulty } from "../../utils/difficulty";
+import {
+  difficultyBadgeClass,
+  translateDifficulty,
+} from "../../utils/difficulty";
 import "./Admin.css";
-
-const adminInputStyle = {
-  width: "100%",
-  padding: "12px 16px",
-  border: "1px solid rgba(139,92,246,0.28)",
-  borderRadius: "10px",
-  fontSize: "15px",
-  color: "#1e1b4b",
-  outline: "none",
-  boxSizing: "border-box",
-  background: "rgba(255,255,255,0.88)",
-};
 
 function adminButtonStyle(variant, loading) {
   const base = {
@@ -64,15 +52,26 @@ function adminButtonStyle(variant, loading) {
 
 export default function Admin() {
   const [words, setWords] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [spelling, setSpelling] = useState("");
-  const [meaning, setMeaning] = useState("");
-  const [difficulty, setDifficulty] = useState("EASY");
+  const [filteredWords, setFilteredWords] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [difficulty, setDifficulty] = useState("");
+  const [sort, setSort] = useState("asc");
   const [isAdmin, setIsAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  // Modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editingWord, setEditingWord] = useState(null);
+  const [deletingWord, setDeletingWord] = useState(null);
+
+  // Form states
+  const [spelling, setSpelling] = useState("");
+  const [meaning, setMeaning] = useState("");
+  const [formDifficulty, setFormDifficulty] = useState("EASY");
 
   const extractRole = (memberInfo) => {
     const payload = memberInfo?.data || memberInfo || {};
@@ -93,7 +92,7 @@ export default function Admin() {
     return "";
   };
 
-  const loadWords = useCallback(async (preferredWordId = null) => {
+  const loadWords = useCallback(async () => {
     const wordsResponse = await getWords({
       spelling: "",
       difficulty: "",
@@ -107,26 +106,38 @@ export default function Admin() {
         : [];
 
     setWords(list);
-
-    setSelectedId((prevId) => {
-      if (list.length === 0) {
-        setSpelling("");
-        setMeaning("");
-        setDifficulty("EASY");
-        return null;
-      }
-
-      const target =
-        list.find((word) => word.wordId === preferredWordId) ||
-        list.find((word) => word.wordId === prevId) ||
-        list[0];
-
-      setSpelling(target?.spelling || "");
-      setMeaning(target?.meaning || "");
-      setDifficulty(target?.difficulty || "EASY");
-      return target?.wordId || null;
-    });
+    setFilteredWords(list);
   }, []);
+
+  // Filter words based on search term, difficulty, and sort
+  useEffect(() => {
+    let filtered = [...words];
+
+    // Apply difficulty filter
+    if (difficulty) {
+      filtered = filtered.filter((word) => word.difficulty === difficulty);
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (word) =>
+          word.spelling.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          word.meaning.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Apply sort
+    filtered.sort((a, b) => {
+      if (sort === "asc") {
+        return a.spelling.localeCompare(b.spelling);
+      } else {
+        return b.spelling.localeCompare(a.spelling);
+      }
+    });
+
+    setFilteredWords(filtered);
+  }, [searchTerm, difficulty, sort, words]);
 
   useEffect(() => {
     const bootstrapAdmin = async () => {
@@ -159,40 +170,55 @@ export default function Admin() {
     bootstrapAdmin();
   }, [loadWords]);
 
-  const selectedWord = useMemo(
-    () => words.find((word) => word.wordId === selectedId) || null,
-    [words, selectedId],
-  );
-
-  const syncForm = (word) => {
-    if (!word) {
-      setSelectedId(null);
-      setSpelling("");
-      setMeaning("");
-      setDifficulty("EASY");
-      return;
-    }
-
-    setSelectedId(word.wordId);
-    setSpelling(word.spelling);
-    setMeaning(word.meaning);
-    setDifficulty(word.difficulty);
+  // Modal management functions
+  const openAddModal = () => {
+    setEditingWord(null);
+    setSpelling("");
+    setMeaning("");
+    setFormDifficulty("EASY");
+    setError("");
+    setShowEditModal(true);
   };
 
-  const handleSelectWord = (word) => {
-    syncForm(word);
+  const openEditModal = (word) => {
+    setEditingWord(word);
+    setSpelling(word.spelling);
+    setMeaning(word.meaning);
+    setFormDifficulty(word.difficulty);
+    setError("");
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingWord(null);
+    setSpelling("");
+    setMeaning("");
+    setFormDifficulty("EASY");
+    setError("");
+  };
+
+  const openDeleteModal = (word) => {
+    setDeletingWord(word);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingWord(null);
   };
 
   const buildRequestBody = () => ({
     spelling: spelling.trim(),
     meaning: meaning.trim(),
-    difficulty,
+    difficulty: formDifficulty,
   });
 
-  const handleAdd = async () => {
+  const handleSaveWord = async () => {
     const requestBody = buildRequestBody();
 
     if (!requestBody.spelling || !requestBody.meaning) {
+      setError("단어와 뜻은 필수 항목입니다.");
       return;
     }
 
@@ -201,25 +227,24 @@ export default function Admin() {
     setMessage("");
 
     try {
-      const created = await createAdminWord(requestBody);
-      setMessage("단어가 추가되었습니다.");
-      const payload = created?.data || created;
-      await loadWords(payload?.wordId || null);
+      if (editingWord) {
+        await updateAdminWord(editingWord.wordId, requestBody);
+        setMessage("단어가 수정되었습니다.");
+      } else {
+        await createAdminWord(requestBody);
+        setMessage("단어가 추가되었습니다.");
+      }
+      await loadWords();
+      closeEditModal();
     } catch (requestError) {
-      setError(requestError.message || "단어 추가 요청에 실패했습니다.");
+      setError(requestError.message || "단어 저장 요청에 실패했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdate = async () => {
-    if (!selectedWord) {
-      return;
-    }
-
-    const requestBody = buildRequestBody();
-
-    if (!requestBody.spelling || !requestBody.meaning) {
+  const handleDeleteWord = async () => {
+    if (!deletingWord) {
       return;
     }
 
@@ -228,38 +253,10 @@ export default function Admin() {
     setMessage("");
 
     try {
-      await updateAdminWord(selectedWord.wordId, requestBody);
-      setMessage("단어가 수정되었습니다.");
-      await loadWords(selectedWord.wordId);
-    } catch (requestError) {
-      setError(requestError.message || "단어 수정 요청에 실패했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!selectedWord) {
-      return;
-    }
-
-    handleUpdate();
-  };
-
-  const handleDelete = async () => {
-    if (!selectedWord) {
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setMessage("");
-
-    try {
-      await deleteAdminWord(selectedWord.wordId);
+      await deleteAdminWord(deletingWord.wordId);
       setMessage("단어가 삭제되었습니다.");
       await loadWords();
+      closeDeleteModal();
     } catch (requestError) {
       setError(requestError.message || "단어 삭제 요청에 실패했습니다.");
     } finally {
@@ -300,11 +297,77 @@ export default function Admin() {
     <div className="admin-page">
       <div className="admin-page-inner">
         <header className="admin-page-header">
-          <h1 className="admin-page-title">단어 관리</h1>
-          <p className="admin-page-sub">
-            단어를 추가, 수정, 삭제할 수 있는 관리자 폼입니다.
-          </p>
+          <div className="admin-page-header-left">
+            <h1 className="admin-page-title">단어 관리</h1>
+            <p className="admin-page-sub">전체 단어 데이터를 관리합니다</p>
+          </div>
+          <div className="admin-header-btns">
+            <button
+              className="admin-btn admin-btn--add"
+              onClick={openAddModal}
+              disabled={loading}
+              style={adminButtonStyle("add", loading)}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              단어 추가
+            </button>
+          </div>
         </header>
+
+        {/* Search Bar */}
+        <div className="admin-toolbar">
+          <div className="admin-search-wrap">
+            <svg
+              className="admin-search-icon"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              className="admin-search-input"
+              type="search"
+              placeholder="단어 또는 뜻 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            className="admin-filter-select"
+          >
+            <option value="">전체</option>
+            <option value="EASY">쉬움</option>
+            <option value="MEDIUM">중간</option>
+            <option value="HARD">어려움</option>
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="admin-filter-select"
+          >
+            <option value="asc">오름차순</option>
+            <option value="desc">내림차순</option>
+          </select>
+        </div>
 
         {message && (
           <p className="admin-banner admin-banner--success" role="status">
@@ -312,114 +375,213 @@ export default function Admin() {
           </p>
         )}
 
-        <Form
-          onSubmit={handleSubmit}
-          className="admin-form-card"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "18px",
-            width: "100%",
-            maxWidth: "min(100%, 920px)",
-            marginInline: "auto",
-            padding: "28px 30px",
-            backgroundColor: "rgba(255,255,255,0.72)",
-            borderRadius: "16px",
-            boxShadow: "0 12px 40px rgba(109,40,217,0.08)",
-            border: "0.5px solid rgba(139,92,246,0.12)",
-          }}
+        <section
+          className="admin-word-section"
+          aria-labelledby="admin-word-list-heading"
         >
-          <div className="admin-form-fields-row">
-            <Input
-              placeholder="영단어"
-              value={spelling}
-              onChange={handleChangeSpelling}
-              style={adminInputStyle}
-            />
-            <Input
-              placeholder="뜻"
-              value={meaning}
-              onChange={(event) => setMeaning(event.target.value)}
-              style={adminInputStyle}
-            />
-            <select
-              className="admin-select admin-select--difficulty"
-              value={difficulty}
-              onChange={(event) => setDifficulty(event.target.value)}
-              aria-label="난이도"
-            >
-              <option value="EASY">쉬움</option>
-              <option value="MEDIUM">중간</option>
-              <option value="HARD">어려움</option>
-            </select>
-          </div>
-
-          <div className="admin-actions">
-            {error ? (
-              <p className="admin-inline-error" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <Button
-              buttonText={loading ? "처리 중..." : "추가"}
-              type="button"
-              onClick={handleAdd}
-              disabled={loading}
-              className="admin-btn admin-btn--add"
-              style={adminButtonStyle("add", loading)}
-            />
-            <Button
-              buttonText={loading ? "처리 중..." : "수정"}
-              type="submit"
-              disabled={!selectedWord || loading}
-              className="admin-btn admin-btn--save"
-              style={adminButtonStyle("save", loading)}
-            />
-            <Button
-              buttonText={loading ? "처리 중..." : "삭제"}
-              type="button"
-              onClick={handleDelete}
-              disabled={!selectedWord || loading}
-              className="admin-btn admin-btn--delete"
-              style={adminButtonStyle("delete", loading)}
-            />
-          </div>
-        </Form>
-
-        <section className="admin-word-section" aria-labelledby="admin-word-list-heading">
           <h2 id="admin-word-list-heading" className="admin-section-title">
-            단어 목록
+            단어 목록 ({filteredWords.length}개)
           </h2>
           <div className="admin-table-wrap">
             <div className="admin-table-head" aria-hidden="true">
               <span>영단어</span>
               <span>뜻</span>
               <span>난이도</span>
+              <span>관리</span>
             </div>
             <ul className="admin-table-body">
-              {words.map((word) => {
-                const selected = word.wordId === selectedId;
-                return (
-                  <li key={word.wordId}>
-                    <button
-                      type="button"
-                      className={`admin-table-row${selected ? " admin-table-row--selected" : ""}`}
-                      onClick={() => handleSelectWord(word)}
-                    >
-                      <span className="admin-word-en">{word.spelling}</span>
-                      <span className="admin-word-ko">{word.meaning}</span>
-                      <span className="admin-diff-wrap">
-                        <span className={difficultyBadgeClass(word.difficulty)}>
-                          {translateDifficulty(word.difficulty)}
-                        </span>
+              {filteredWords.map((word) => (
+                <li key={word.wordId}>
+                  <div className="admin-table-row">
+                    <span className="admin-word-en">{word.spelling}</span>
+                    <span className="admin-word-ko">{word.meaning}</span>
+                    <span className="admin-diff-wrap">
+                      <span className={difficultyBadgeClass(word.difficulty)}>
+                        {translateDifficulty(word.difficulty)}
                       </span>
-                    </button>
-                  </li>
-                );
-              })}
+                    </span>
+                    <div className="admin-row-actions">
+                      <button
+                        className="admin-ra-btn admin-ra-edit"
+                        title="수정"
+                        onClick={() => openEditModal(word)}
+                        disabled={loading}
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        >
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button
+                        className="admin-ra-btn admin-ra-delete"
+                        title="삭제"
+                        onClick={() => openDeleteModal(word)}
+                        disabled={loading}
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v6M14 11v6" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </section>
+
+        {/* Add/Edit Modal */}
+        {showEditModal && (
+          <div
+            className="admin-modal-bg"
+            onClick={(e) => e.target === e.currentTarget && closeEditModal()}
+          >
+            <div className="admin-modal">
+              <div className="admin-modal-header">
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                >
+                  <span className="admin-modal-title">
+                    {editingWord ? "단어 수정" : "단어 추가"}
+                  </span>
+                  <span
+                    className={`admin-modal-badge ${editingWord ? "edit" : "add"}`}
+                  >
+                    {editingWord ? "EDIT" : "NEW"}
+                  </span>
+                </div>
+                <button className="admin-modal-close" onClick={closeEditModal}>
+                  ✕
+                </button>
+              </div>
+              <div className="admin-modal-content">
+                {error && (
+                  <p className="admin-inline-error" role="alert">
+                    {error}
+                  </p>
+                )}
+                <div className="admin-modal-field">
+                  <label>영어 단어 *</label>
+                  <input
+                    type="text"
+                    value={spelling}
+                    onChange={handleChangeSpelling}
+                    placeholder="e.g. ambiguous"
+                    className="admin-modal-input"
+                  />
+                </div>
+                <div className="admin-modal-field">
+                  <label>뜻 (한국어) *</label>
+                  <input
+                    type="text"
+                    value={meaning}
+                    onChange={(event) => setMeaning(event.target.value)}
+                    placeholder="e.g. 불분명한, 모호한"
+                    className="admin-modal-input"
+                  />
+                </div>
+                <div className="admin-modal-field">
+                  <label>난이도 *</label>
+                  <select
+                    value={formDifficulty}
+                    onChange={(event) => setFormDifficulty(event.target.value)}
+                    className="admin-modal-select"
+                  >
+                    <option value="EASY">쉬움</option>
+                    <option value="MEDIUM">중간</option>
+                    <option value="HARD">어려움</option>
+                  </select>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button className="admin-modal-cancel" onClick={closeEditModal}>
+                  취소
+                </button>
+                <button
+                  className="admin-modal-save"
+                  onClick={handleSaveWord}
+                  disabled={loading}
+                >
+                  {loading
+                    ? "처리 중..."
+                    : editingWord
+                      ? "수정 저장"
+                      : "단어 추가"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && deletingWord && (
+          <div
+            className="admin-modal-bg"
+            onClick={(e) => e.target === e.currentTarget && closeDeleteModal()}
+          >
+            <div className="admin-modal admin-modal--delete">
+              <div className="admin-delete-icon">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#e0415a"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14H6L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                  <path d="M9 6V4h6v2" />
+                </svg>
+              </div>
+              <p className="admin-delete-title">정말 삭제할까요?</p>
+              <p className="admin-delete-desc">
+                <span className="admin-delete-word">
+                  "{deletingWord.spelling}"
+                </span>{" "}
+                단어를 삭제하면
+                <br />
+                학습 기록도 함께 사라집니다.
+              </p>
+              <div className="admin-delete-footer">
+                <button
+                  className="admin-modal-cancel"
+                  style={{ flex: 1 }}
+                  onClick={closeDeleteModal}
+                >
+                  취소
+                </button>
+                <button
+                  className="admin-delete-confirm"
+                  onClick={handleDeleteWord}
+                  disabled={loading}
+                >
+                  {loading ? "처리 중..." : "삭제"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
