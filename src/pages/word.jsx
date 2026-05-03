@@ -1,31 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { getWords } from "../api/server";
 import { Input } from "../components/Input";
-
-// map difficulty to a color for visual display
-function difficultyColor(difficulty) {
-  switch (difficulty) {
-    case "HARD":
-      return "#ef4444"; // red
-    case "MEDIUM":
-      return "#f59e0b"; // yellow
-    case "EASY":
-      return "#10b981"; // green
-    default:
-      return "#94a3b8"; // gray
-  }
-}
-
-// difficulty 값을 한국어로 변환해 반환한다.
-function translateDifficulty(difficulty) {
-  const difficultyMap = {
-    EASY: "쉬움",
-    MEDIUM: "중간",
-    HARD: "어려움",
-  };
-
-  return difficultyMap[difficulty] || difficulty;
-}
+import {
+  difficultyBadgeClass,
+  difficultyColor,
+  translateDifficulty,
+} from "../utils/difficulty";
+import "../styles/difficultyBadge.css";
 
 function Word() {
   const [spelling, setSpelling] = useState("");
@@ -180,6 +161,7 @@ function Word() {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      borderLeft: `3px solid ${difficultyColor(item.difficulty)}`,
                     }}
                   >
                     <div>
@@ -197,16 +179,7 @@ function Word() {
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <span
-                        style={{
-                          display: "inline-block",
-                          padding: "6px 10px",
-                          borderRadius: 18,
-                          background: difficultyColor(item.difficulty),
-                          color: "#fff",
-                          fontWeight: 700,
-                        }}
-                      >
+                      <span className={difficultyBadgeClass(item.difficulty)}>
                         {translateDifficulty(item.difficulty)}
                       </span>
                     </div>
