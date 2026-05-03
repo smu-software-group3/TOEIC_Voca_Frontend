@@ -182,7 +182,7 @@ function WordTest() {
         setScore((prevScore) => prevScore + 1);
         setFeedback("정답입니다!");
       } else {
-        setFeedback(`틀렸습니다. 정답은 \"${answerData.answer}\"입니다.`);
+        setFeedback(`틀렸습니다. 정답은 "${answerData.answer}"입니다.`);
       }
 
       setTimeout(() => {
@@ -264,10 +264,15 @@ function WordTest() {
           <p style={styles.finishEyebrow}>테스트 완료</p>
           <h1 style={styles.finishTitle}>수고하셨습니다!</h1>
           <p style={styles.finishDesc}>
-            총 {questions.length}문제 중 <strong>{score}문제</strong>를 맞혔습니다.
+            총 {questions.length}문제 중 <strong>{score}문제</strong>를
+            맞혔습니다.
           </p>
           <p style={styles.finishRate}>
-            정답률: {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}%
+            정답률:{" "}
+            {questions.length > 0
+              ? Math.round((score / questions.length) * 100)
+              : 0}
+            %
           </p>
           <div style={styles.finishActions}>
             <Button
@@ -330,7 +335,9 @@ function WordTest() {
             >
               <div style={styles.cardIconTeal}>T</div>
               <p style={styles.cardTitle}>주관식</p>
-              <p style={styles.cardDesc}>단어의 뜻을 직접 타이핑해서 입력하세요</p>
+              <p style={styles.cardDesc}>
+                단어의 뜻을 직접 타이핑해서 입력하세요
+              </p>
               <div style={styles.previewWrap}>
                 <div style={styles.previewActiveTeal}>직접 입력...</div>
                 <div style={styles.previewInactive}>정답 확인</div>
@@ -409,7 +416,9 @@ function WordTest() {
                 : styles.progressTrackSubjective
             }
           >
-            <div style={{ ...styles.progressFill, width: `${progressPercent}%` }} />
+            <div
+              style={{ ...styles.progressFill, width: `${progressPercent}%` }}
+            />
           </div>
 
           <Form onSubmit={handleSubmit} style={styles.formOverride}>
@@ -442,7 +451,9 @@ function WordTest() {
                 </>
               ) : (
                 <>
-                  <p style={styles.wordMainSubjective}>{currentQuestion.spelling}</p>
+                  <p style={styles.wordMainSubjective}>
+                    {currentQuestion.spelling}
+                  </p>
                   <p style={styles.wordHintSubjective}>
                     난이도: {translateDifficulty(currentQuestion.difficulty)}
                   </p>
@@ -460,7 +471,9 @@ function WordTest() {
                     <button
                       key={choice.choiceId}
                       type="button"
-                      onClick={() => setSelectedChoiceId(String(choice.choiceId))}
+                      onClick={() =>
+                        setSelectedChoiceId(String(choice.choiceId))
+                      }
                       disabled={!!feedback}
                       style={{
                         ...styles.optionBtn,
@@ -468,7 +481,13 @@ function WordTest() {
                         ...(feedback ? styles.optionBtnDisabled : {}),
                       }}
                     >
-                      <span style={active ? styles.optionLetterActive : styles.optionLetter}>
+                      <span
+                        style={
+                          active
+                            ? styles.optionLetterActive
+                            : styles.optionLetter
+                        }
+                      >
                         {String.fromCharCode(65 + index)}
                       </span>
                       {choice.meaning}

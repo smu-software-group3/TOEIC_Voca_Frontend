@@ -40,6 +40,7 @@ function Word() {
   useEffect(() => {
     setLoading(true);
     setWords([]);
+
     const timer = setTimeout(() => {
       const fetchWords = async () => {
         setError("");

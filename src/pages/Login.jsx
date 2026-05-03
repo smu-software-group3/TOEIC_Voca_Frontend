@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   isAutoLoginEnabled,
   login,
@@ -10,11 +10,13 @@ import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [autoLogin, setAutoLogin] = useState(isAutoLoginEnabled());
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const loginNotice = location.state?.message;
 
   // 로그인 요청을 보내고 토큰을 저장한 뒤 메인 화면으로 이동한다.
   const handleSubmit = async (event) => {
@@ -27,9 +29,13 @@ export default function Login() {
 
       const data = await login(email, password);
       console.log("로그인 응답 데이터:", data);
-      const authTokens = storeAuthTokensFromResponse(data, {}, {
-        persistRefreshToken: autoLogin,
-      });
+      const authTokens = storeAuthTokensFromResponse(
+        data,
+        {},
+        {
+          persistRefreshToken: autoLogin,
+        },
+      );
 
       if (!authTokens.accessToken) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
@@ -73,6 +79,15 @@ export default function Login() {
 
         <div className="login-right">
           <h2 className="login-form-title">로그인</h2>
+          {loginNotice && (
+            <p
+              className="login-error"
+              role="alert"
+              style={{ marginBottom: 12 }}
+            >
+              {loginNotice}
+            </p>
+          )}
           <p className="login-register-hint">
             처음이신가요?{" "}
             <button
