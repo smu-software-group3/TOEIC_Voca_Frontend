@@ -32,8 +32,6 @@ function Word() {
             sort,
           });
 
-          console.log("단어장 조회 응답 데이터:", response);
-
           if (!response?.success) {
             throw new Error(
               response?.message || "단어장 조회 요청에 실패했습니다.",
@@ -43,7 +41,6 @@ function Word() {
           const pageData = response.data || {};
           setWords(pageData || []);
           setTotalElements(pageData.totalElements || 0);
-          console.log("조회된 단어 목록:", pageData.content || []);
         } catch (requestError) {
           if (requestError.code === "UNAUTHORIZED") {
             setError("인증이 필요합니다. 다시 로그인해주세요.");

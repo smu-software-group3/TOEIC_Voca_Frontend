@@ -32,7 +32,6 @@ export default function PasswordChange() {
         newPassword,
         newPasswordConfirm,
       );
-      console.log("비밀번호 변경 성공:", response);
 
       if (response.success === true) {
         setMessage(

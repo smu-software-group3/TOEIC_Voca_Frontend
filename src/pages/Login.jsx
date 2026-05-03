@@ -28,7 +28,6 @@ export default function Login() {
       setAutoLoginEnabled(autoLogin);
 
       const data = await login(email, password);
-      console.log("로그인 응답 데이터:", data);
       const authTokens = storeAuthTokensFromResponse(
         data,
         {},
@@ -40,7 +39,6 @@ export default function Login() {
       if (!authTokens.accessToken) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
       }
-      console.log("로그인 성공:", data);
       navigate("/");
       // TODO: 로그인 성공 후 리다이렉트 또는 사용자 상태 저장
     } catch (err) {
