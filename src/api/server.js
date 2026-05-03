@@ -82,20 +82,10 @@ const scheduleSilentRefresh = () => {
   const refreshToken = getStoredRefreshToken();
 
   if (!accessToken || !refreshToken) {
-    console.log("[silent-refresh] schedule skipped: missing tokens", {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-    });
     return;
   }
 
-  console.log("[silent-refresh] scheduled", {
-    delayMs: SILENT_REFRESH_DELAY_MS,
-    accessTokenPreview: `${accessToken.slice(0, 12)}...`,
-  });
-
   silentRefreshTimeoutId = setTimeout(() => {
-    console.log("[silent-refresh] timer fired");
     triggerSilentRefresh();
   }, SILENT_REFRESH_DELAY_MS);
 };
@@ -173,18 +163,12 @@ export async function refreshAccessToken() {
   const refreshToken = getStoredRefreshToken();
 
   if (!refreshToken) {
-    console.log("[refresh-token] skipped: no stored refresh token");
     const requestError = new Error("저장된 토큰이 없습니다.");
     requestError.code = "UNAUTHORIZED";
     throw requestError;
   }
 
   const url = `${getServerUrl()}/api/auth/refresh`;
-
-  console.log("[refresh-token] request", {
-    url,
-    refreshTokenPreview: `${refreshToken.slice(0, 12)}...`,
-  });
 
   try {
     const response = await axios.post(
@@ -193,19 +177,7 @@ export async function refreshAccessToken() {
       { headers: { "Content-Type": "application/json" } },
     );
 
-    console.log("[refresh-token] response", response.data);
-
-    const tokens = storeAuthTokensFromResponse(response.data, response.headers);
-
-    if (!tokens.accessToken) {
-      console.log("[refresh-token] response did not include access token");
-      return response.data;
-    }
-
-    console.log("[refresh-token] access token stored", {
-      accessTokenPreview: `${tokens.accessToken.slice(0, 12)}...`,
-    });
-
+    storeAuthTokensFromResponse(response.data, response.headers);
     return response.data;
   } catch (error) {
     const status = error.response?.status;
@@ -239,11 +211,8 @@ const getRefreshTokenPromise = () => {
 
 const triggerSilentRefresh = async () => {
   try {
-    console.log("[silent-refresh] trigger start");
     await getRefreshTokenPromise();
-    console.log("[silent-refresh] trigger success");
   } catch {
-    console.log("[silent-refresh] trigger failed");
     clearAuthTokens();
   }
 };
@@ -302,10 +271,7 @@ axios.interceptors.response.use(
 
 const bootstrapSilentRefresh = () => {
   if (getStoredAccessToken() && getStoredRefreshToken()) {
-    console.log("[silent-refresh] bootstrap scheduling");
     scheduleSilentRefresh();
-  } else {
-    console.log("[silent-refresh] bootstrap skipped: no stored auth tokens");
   }
 };
 
@@ -339,9 +305,6 @@ export async function login(email, password) {
 // 회원가입 정보를 서버에 전달한다.
 export async function signup(email, username, password, passwordConfirm) {
   const url = `${getServerUrl()}/api/auth/register`;
-
-  console.log("Signup URL:", url);
-  console.log("Signup Data:", { email, username, password, passwordConfirm });
 
   try {
     const response = await axios.post(

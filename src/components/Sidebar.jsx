@@ -81,12 +81,6 @@ export function Sidebar({
     }
   };
 
-  const handleSetTemporaryToken = () => {
-    const token = "your-temporary-token";
-    localStorage.setItem("token", token);
-    setHasToken(true);
-  };
-
   return (
     <div
       style={{
@@ -468,30 +462,6 @@ export function Sidebar({
             로그아웃
           </div>
         )}
-        <div
-          onClick={handleSetTemporaryToken}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 12px",
-            borderRadius: "8px",
-            fontSize: "13px",
-            color: "#64748b",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
-            e.currentTarget.style.color = "#c4b5fd";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "#64748b";
-          }}
-        >
-          임시 토큰
-        </div>
       </div>
     </div>
   );
