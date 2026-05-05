@@ -14,7 +14,6 @@ function Word() {
   const [difficulty, setDifficulty] = useState("");
   const [sort, setSort] = useState("asc");
   const [words, setWords] = useState([]);
-  const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +40,7 @@ function Word() {
 
           const pageData = response.data || {};
           setWords(pageData || []);
-          setTotalElements(pageData.totalElements || 0);
+          setTotalElements(pageData.length || 0);
         } catch (requestError) {
           if (requestError.code === "UNAUTHORIZED") {
             setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -52,7 +51,6 @@ function Word() {
           }
 
           setWords([]);
-          setTotalPages(0);
           setTotalElements(0);
         } finally {
           setLoading(false);
@@ -119,7 +117,7 @@ function Word() {
           <div className="word-page-results-head">
             <h2 className="word-page-results-title">조회 결과</h2>
             <div className="word-page-results-meta">
-              총 {totalElements}개 · {totalPages}페이지
+              총 {totalElements}개의 단어
             </div>
           </div>
           {loading && <p>조회 중입니다...</p>}

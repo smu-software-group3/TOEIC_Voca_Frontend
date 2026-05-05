@@ -152,14 +152,14 @@ function WordTest() {
       return;
     }
 
-    const submittedMeaning =
+    const submittedSpelling =
       currentQuestion.type === "objective"
         ? currentQuestion.choices.find(
             (choice) => String(choice.choiceId) === String(selectedChoiceId),
-          )?.meaning || ""
+          )?.spelling || ""
         : userAnswer.trim();
 
-    if (!submittedMeaning) {
+    if (!submittedSpelling) {
       setFeedback("답안을 입력해주세요.");
       return;
     }
@@ -170,7 +170,7 @@ function WordTest() {
     try {
       const response = await checkWordAnswer(
         currentQuestion.wordId,
-        submittedMeaning,
+        submittedSpelling,
       );
 
       if (!response?.success) {
@@ -443,15 +443,15 @@ function WordTest() {
                 }
               >
                 {selectedTestType === "objective"
-                  ? "다음 단어의 올바른 뜻을 선택하세요"
-                  : "다음 단어의 뜻을 직접 입력하세요"}
+                  ? "다음 뜻과 관련이 깊은 영단어를 선택하세요"
+                  : "다음 뜻과 관련된 영단어를 직접 입력하세요"}
               </p>
 
               {selectedTestType === "objective" ? (
                 <>
-                  <p className="wordtest-word-label">영단어</p>
+                  <p className="wordtest-word-label"></p>
                   <p className="wordtest-word-main">
-                    {currentQuestion.spelling}
+                    {currentQuestion.meaning}
                   </p>
                   <p className="wordtest-difficulty-badge">
                     난이도: {translateDifficulty(currentQuestion.difficulty)}
@@ -460,7 +460,7 @@ function WordTest() {
               ) : (
                 <>
                   <p className="wordtest-word-main-subjective">
-                    {currentQuestion.spelling}
+                    {currentQuestion.meaning}
                   </p>
                   <p className="wordtest-word-hint-subjective">
                     난이도: {translateDifficulty(currentQuestion.difficulty)}
@@ -507,7 +507,7 @@ function WordTest() {
                       >
                         {String.fromCharCode(65 + index)}
                       </span>
-                      {choice.meaning}
+                      {choice.spelling}
                     </div>
                   );
                 })}
@@ -516,7 +516,7 @@ function WordTest() {
               <div className="wordtest-input-wrap">
                 <Input
                   id="test-answer-input"
-                  placeholder="한국어 뜻을 입력하세요..."
+                  placeholder="영단어를 입력하세요..."
                   value={userAnswer}
                   onChange={handleAnswerChange}
                   disabled={!!feedback}

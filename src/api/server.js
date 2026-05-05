@@ -613,14 +613,14 @@ export async function getWordTestQuestion(wordId) {
 }
 
 // 사용자가 제출한 답안을 서버로 보내 정답 여부를 확인한다.
-export async function checkWordAnswer(wordId, submittedMeaning) {
+export async function checkWordAnswer(wordId, submittedSpelling) {
   const url = `${getServerUrl()}/api/words/check-answer`;
   const token = localStorage.getItem("token");
 
   try {
     const response = await axios.post(
       url,
-      { wordId, submittedMeaning },
+      { wordId, submittedSpelling },
       {
         headers: {
           "Content-Type": "application/json",
