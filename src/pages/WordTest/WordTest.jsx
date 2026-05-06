@@ -36,7 +36,6 @@ function buildQuestionList(randomWords, testType, objectiveQuestions) {
       return {
         wordId: word.wordId,
         type: "objective",
-        spelling: word.spelling,
         meaning: word.meaning,
         difficulty: word.difficulty,
         choices: objectiveQuestion?.choices || [],
