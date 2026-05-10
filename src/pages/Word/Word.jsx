@@ -8,13 +8,17 @@ import {
 } from "../../utils/difficulty";
 import "../../styles/difficultyBadge.css";
 import "./Word.css";
+import {
+  partOfSpeechBadgeClass,
+  partOfSpeechColor,
+  partOfSpeechToKorean,
+} from "../../utils/partOfSpeech";
 
 function Word() {
   const [spelling, setSpelling] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [sort, setSort] = useState("asc");
   const [words, setWords] = useState([]);
-  const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +45,7 @@ function Word() {
 
           const pageData = response.data || {};
           setWords(pageData || []);
-          setTotalElements(pageData.totalElements || 0);
+          setTotalElements(pageData.length || 0);
         } catch (requestError) {
           if (requestError.code === "UNAUTHORIZED") {
             setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -52,7 +56,6 @@ function Word() {
           }
 
           setWords([]);
-          setTotalPages(0);
           setTotalElements(0);
         } finally {
           setLoading(false);
@@ -119,7 +122,7 @@ function Word() {
           <div className="word-page-results-head">
             <h2 className="word-page-results-title">조회 결과</h2>
             <div className="word-page-results-meta">
-              총 {totalElements}개 · {totalPages}페이지
+              총 {totalElements}개의 단어
             </div>
           </div>
           {loading && <p>조회 중입니다...</p>}
@@ -135,7 +138,29 @@ function Word() {
                   >
                     <div>
                       <div className="word-page-spelling">{item.spelling}</div>
-                      <div className="word-page-meaning">{item.meaning}</div>
+                      {item.meanings && (
+                        <div className="word-page-meanings">
+                          {item.meanings.map((m, index) => (
+                            <div key={index} className="word-page-meaning-wrap">
+                              <div key={index} className="word-page-meaning">
+                                {m.meaning}
+                              </div>
+                              <span
+                                className={partOfSpeechBadgeClass(
+                                  m.partOfSpeech,
+                                )}
+                                style={{
+                                  "--pos-accent": partOfSpeechColor(
+                                    m.partOfSpeech,
+                                  ),
+                                }}
+                              >
+                                {partOfSpeechToKorean(m.partOfSpeech)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="word-page-badge-wrap">
                       <span className={difficultyBadgeClass(item.difficulty)}>
