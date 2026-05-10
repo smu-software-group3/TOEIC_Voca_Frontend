@@ -10,6 +10,11 @@ import {
   difficultyBadgeClass,
   translateDifficulty,
 } from "../../utils/difficulty";
+import {
+  partOfSpeechBadgeClass,
+  partOfSpeechColor,
+  partOfSpeechToKorean,
+} from "../../utils/partOfSpeech";
 import "./Admin.css";
 
 function adminButtonStyle(variant, loading) {
@@ -70,7 +75,9 @@ export default function Admin() {
 
   // Form states
   const [spelling, setSpelling] = useState("");
-  const [meaning, setMeaning] = useState("");
+  const [meanings, setMeanings] = useState([
+    { meaning: "", partOfSpeech: "NOUN" },
+  ]);
   const [formDifficulty, setFormDifficulty] = useState("EASY");
 
   const extractRole = (memberInfo) => {
@@ -90,6 +97,17 @@ export default function Admin() {
     }
 
     return "";
+  };
+
+  const getMeaningSearchText = (word) => {
+    if (Array.isArray(word.meanings) && word.meanings.length > 0) {
+      return word.meanings
+        .map((item) => item?.meaning || "")
+        .join(" ")
+        .toLowerCase();
+    }
+
+    return String(word.meaning || "").toLowerCase();
   };
 
   const loadWords = useCallback(async () => {
@@ -123,7 +141,7 @@ export default function Admin() {
       filtered = filtered.filter(
         (word) =>
           word.spelling.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          word.meaning.toLowerCase().includes(searchTerm.toLowerCase()),
+          getMeaningSearchText(word).includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -174,7 +192,7 @@ export default function Admin() {
   const openAddModal = () => {
     setEditingWord(null);
     setSpelling("");
-    setMeaning("");
+    setMeanings([{ meaning: "", partOfSpeech: "NOUN" }]);
     setFormDifficulty("EASY");
     setError("");
     setShowEditModal(true);
@@ -183,7 +201,21 @@ export default function Admin() {
   const openEditModal = (word) => {
     setEditingWord(word);
     setSpelling(word.spelling);
-    setMeaning(word.meaning);
+    if (Array.isArray(word.meanings) && word.meanings.length > 0) {
+      setMeanings(
+        word.meanings.map((item) => ({
+          meaning: item.meaning || "",
+          partOfSpeech: item.partOfSpeech || "NOUN",
+        })),
+      );
+    } else {
+      setMeanings([
+        {
+          meaning: word.meaning || "",
+          partOfSpeech: word.partOfSpeech || "NOUN",
+        },
+      ]);
+    }
     setFormDifficulty(word.difficulty);
     setError("");
     setShowEditModal(true);
@@ -193,7 +225,7 @@ export default function Admin() {
     setShowEditModal(false);
     setEditingWord(null);
     setSpelling("");
-    setMeaning("");
+    setMeanings([{ meaning: "", partOfSpeech: "NOUN" }]);
     setFormDifficulty("EASY");
     setError("");
   };
@@ -208,17 +240,53 @@ export default function Admin() {
     setDeletingWord(null);
   };
 
-  const buildRequestBody = () => ({
-    spelling: spelling.trim(),
-    meaning: meaning.trim(),
-    difficulty: formDifficulty,
-  });
+  const updateMeaningEntry = (index, field, value) => {
+    setMeanings((currentMeanings) =>
+      currentMeanings.map((item, currentIndex) =>
+        currentIndex === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  };
+
+  const addMeaningEntry = () => {
+    setMeanings((currentMeanings) => [
+      ...currentMeanings,
+      { meaning: "", partOfSpeech: "NOUN" },
+    ]);
+  };
+
+  const removeMeaningEntry = (index) => {
+    setMeanings((currentMeanings) => {
+      if (currentMeanings.length === 1) {
+        return currentMeanings;
+      }
+
+      return currentMeanings.filter(
+        (_, currentIndex) => currentIndex !== index,
+      );
+    });
+  };
+
+  const buildRequestBody = () => {
+    const normalizedMeanings = meanings
+      .map((item) => ({
+        meaning: item.meaning.trim(),
+        partOfSpeech: item.partOfSpeech,
+      }))
+      .filter((item) => item.meaning);
+
+    return {
+      spelling: spelling.trim(),
+      meanings: normalizedMeanings,
+      difficulty: formDifficulty,
+    };
+  };
 
   const handleSaveWord = async () => {
     const requestBody = buildRequestBody();
 
-    if (!requestBody.spelling || !requestBody.meaning) {
-      setError("단어와 뜻은 필수 항목입니다.");
+    if (!requestBody.spelling || requestBody.meanings.length === 0) {
+      setError("단어와 뜻은 최소 1개 이상 입력해야 합니다.");
       return;
     }
 
@@ -394,7 +462,37 @@ export default function Admin() {
                 <li key={word.wordId}>
                   <div className="admin-table-row">
                     <span className="admin-word-en">{word.spelling}</span>
-                    <span className="admin-word-ko">{word.meaning}</span>
+                    <div className="admin-word-ko-wrap">
+                      {Array.isArray(word.meanings) &&
+                      word.meanings.length > 0 ? (
+                        <div className="admin-word-meanings">
+                          {word.meanings.map((meaningItem, index) => (
+                            <div
+                              key={`${word.wordId}-${index}`}
+                              className="admin-word-meaning-item"
+                            >
+                              <span className="admin-word-ko">
+                                {meaningItem.meaning}
+                              </span>
+                              <span
+                                className={partOfSpeechBadgeClass(
+                                  meaningItem.partOfSpeech,
+                                )}
+                                style={{
+                                  "--pos-accent": partOfSpeechColor(
+                                    meaningItem.partOfSpeech,
+                                  ),
+                                }}
+                              >
+                                {partOfSpeechToKorean(meaningItem.partOfSpeech)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="admin-word-ko">{word.meaning}</span>
+                      )}
+                    </div>
                     <span className="admin-diff-wrap">
                       <span className={difficultyBadgeClass(word.difficulty)}>
                         {translateDifficulty(word.difficulty)}
@@ -489,14 +587,66 @@ export default function Admin() {
                   />
                 </div>
                 <div className="admin-modal-field">
-                  <label>뜻 (한국어) *</label>
-                  <input
-                    type="text"
-                    value={meaning}
-                    onChange={(event) => setMeaning(event.target.value)}
-                    placeholder="e.g. 불분명한, 모호한"
-                    className="admin-modal-input"
-                  />
+                  <label>뜻 / 품사 *</label>
+                  <div className="admin-meaning-list">
+                    {meanings.map((item, index) => (
+                      <div
+                        key={`meaning-${index}`}
+                        className="admin-meaning-row"
+                      >
+                        <input
+                          type="text"
+                          value={item.meaning}
+                          onChange={(event) =>
+                            updateMeaningEntry(
+                              index,
+                              "meaning",
+                              event.target.value,
+                            )
+                          }
+                          placeholder="예: 불분명한, 모호한"
+                          className="admin-modal-input admin-modal-input--meaning"
+                        />
+                        <select
+                          value={item.partOfSpeech}
+                          onChange={(event) =>
+                            updateMeaningEntry(
+                              index,
+                              "partOfSpeech",
+                              event.target.value,
+                            )
+                          }
+                          className="admin-modal-select admin-modal-select--pos"
+                        >
+                          <option value="NOUN">명사</option>
+                          <option value="VERB">동사</option>
+                          <option value="ADJECTIVE">형용사</option>
+                          <option value="ADVERB">부사</option>
+                          <option value="PRONOUN">대명사</option>
+                          <option value="PREPOSITION">전치사</option>
+                          <option value="CONJUNCTION">접속사</option>
+                          <option value="INTERJECTION">감탄사</option>
+                          <option value="ARTICLE">관사</option>
+                        </select>
+                        <button
+                          type="button"
+                          className="admin-meaning-remove"
+                          onClick={() => removeMeaningEntry(index)}
+                          disabled={meanings.length === 1}
+                          title="뜻 삭제"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-meaning-add"
+                    onClick={addMeaningEntry}
+                  >
+                    + 뜻 추가
+                  </button>
                 </div>
                 <div className="admin-modal-field">
                   <label>난이도 *</label>

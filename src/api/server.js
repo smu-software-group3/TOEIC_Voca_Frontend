@@ -13,9 +13,13 @@ const SILENT_REFRESH_EXCLUDED_PATHS = [
   "/api/password/find",
 ];
 
+const isLocal = true;
+
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
-  const baseUrl = process.env.REACT_APP_SERVER_URL || "";
+  const baseUrl = isLocal
+    ? process.env.REACT_APP_LOCAL_SERVER_URL
+    : process.env.REACT_APP_SERVER_URL;
 
   if (!baseUrl) {
     throw new Error("REACT_APP_SERVER_URL is not defined");
@@ -550,13 +554,13 @@ export async function getWords({
 }
 
 // 랜덤 단어를 요청해 단어 테스트의 출제 후보를 가져온다.
-export async function getRandomWords(count) {
+export async function getRandomWords(count, partOfSpeech = "") {
   const url = `${getServerUrl()}/api/words/random`;
   const token = localStorage.getItem("token");
 
   try {
     const response = await axios.get(url, {
-      params: { count },
+      params: { count, partOfSpeech },
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -674,22 +678,56 @@ export async function getMemberInfo() {
   }
 }
 
+function normalizeAdminWordMeanings({ meaning, partOfSpeech, meanings }) {
+  if (Array.isArray(meanings) && meanings.length > 0) {
+    return meanings
+      .map((item) => ({
+        meaning: String(item?.meaning || "").trim(),
+        partOfSpeech: String(item?.partOfSpeech || "NOUN").trim(),
+      }))
+      .filter((item) => item.meaning);
+  }
+
+  const normalizedMeaning = String(meaning || "").trim();
+
+  if (!normalizedMeaning) {
+    return [];
+  }
+
+  return [
+    {
+      meaning: normalizedMeaning,
+      partOfSpeech: String(partOfSpeech || "NOUN").trim(),
+    },
+  ];
+}
+
+function buildAdminWordRequestBody(payload) {
+  const spelling = String(payload?.spelling || "").trim();
+  const meanings = normalizeAdminWordMeanings(payload);
+
+  return {
+    spelling,
+    meanings,
+    difficulty: payload?.difficulty,
+  };
+}
+
 // 관리자 단어 추가 요청을 보낸다.
-export async function createAdminWord({ spelling, meaning, difficulty }) {
+export async function createAdminWord(payload) {
+  
   const url = `${getServerUrl()}/api/admin/words`;
   const token = localStorage.getItem("token");
 
+  const requestBody = buildAdminWordRequestBody(payload);
+
   try {
-    const response = await axios.post(
-      url,
-      { spelling, meaning, difficulty },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+    const response = await axios.post(url, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
@@ -713,24 +751,19 @@ export async function createAdminWord({ spelling, meaning, difficulty }) {
 }
 
 // 관리자 단어 수정 요청을 보낸다.
-export async function updateAdminWord(
-  wordId,
-  { spelling, meaning, difficulty },
-) {
+export async function updateAdminWord(wordId, payload) {
   const url = `${getServerUrl()}/api/admin/words/${wordId}`;
   const token = localStorage.getItem("token");
 
+  const requestBody = buildAdminWordRequestBody(payload);
+
   try {
-    const response = await axios.patch(
-      url,
-      { spelling, meaning, difficulty },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+    const response = await axios.patch(url, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
@@ -741,10 +774,11 @@ export async function updateAdminWord(
         : error.response?.status === 403
           ? "관리자 권한이 필요합니다."
           : error.response?.status === 400
-          ? "유효하지 않은 난이도입니다. EASY, MEDIUM, HARD 중 하나여야 합니다."
-          : error.response?.status === 404
-            ? "수정할 단어를 찾을 수 없습니다."
-            : error.response?.data?.message || "단어 수정 요청에 실패했습니다.";
+            ? "유효하지 않은 난이도입니다. EASY, MEDIUM, HARD 중 하나여야 합니다."
+            : error.response?.status === 404
+              ? "수정할 단어를 찾을 수 없습니다."
+              : error.response?.data?.message ||
+                "단어 수정 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;

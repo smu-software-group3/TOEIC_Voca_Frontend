@@ -49,6 +49,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "wtest/:testType",
+        element: (
+          <RequireAuth>
+            <WordTest />
+          </RequireAuth>
+        ),
+      },
+      {
         path: "profile",
         element: (
           <RequireAuth>

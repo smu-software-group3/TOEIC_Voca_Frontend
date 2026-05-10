@@ -8,6 +8,11 @@ import {
 } from "../../utils/difficulty";
 import "../../styles/difficultyBadge.css";
 import "./Word.css";
+import {
+  partOfSpeechBadgeClass,
+  partOfSpeechColor,
+  partOfSpeechToKorean,
+} from "../../utils/partOfSpeech";
 
 function Word() {
   const [spelling, setSpelling] = useState("");
@@ -133,7 +138,29 @@ function Word() {
                   >
                     <div>
                       <div className="word-page-spelling">{item.spelling}</div>
-                      <div className="word-page-meaning">{item.meaning}</div>
+                      {item.meanings && (
+                        <div className="word-page-meanings">
+                          {item.meanings.map((m, index) => (
+                            <div key={index} className="word-page-meaning-wrap">
+                              <div key={index} className="word-page-meaning">
+                                {m.meaning}
+                              </div>
+                              <span
+                                className={partOfSpeechBadgeClass(
+                                  m.partOfSpeech,
+                                )}
+                                style={{
+                                  "--pos-accent": partOfSpeechColor(
+                                    m.partOfSpeech,
+                                  ),
+                                }}
+                              >
+                                {partOfSpeechToKorean(m.partOfSpeech)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="word-page-badge-wrap">
                       <span className={difficultyBadgeClass(item.difficulty)}>

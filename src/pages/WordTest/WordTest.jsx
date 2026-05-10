@@ -7,7 +7,7 @@ import {
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { Form } from "../../components/Form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./WordTest.css";
 
 function translateQuestionType(type) {
@@ -24,19 +24,45 @@ function translateDifficulty(difficulty) {
   return difficultyMap[difficulty] || difficulty;
 }
 
+function getPrimaryMeaning(word) {
+  return word?.meanings?.[0]?.meaning || word?.meaning || "";
+}
+
+function getPrimaryPartOfSpeech(word) {
+  return word?.meanings?.[0]?.partOfSpeech || word?.partOfSpeech || "";
+}
+
+function translatePartOfSpeech(partOfSpeech) {
+  const partOfSpeechMap = {
+    NOUN: "명사",
+    VERB: "동사",
+    ADJECTIVE: "형용사",
+    ADVERB: "부사",
+    PRONOUN: "대명사",
+    PREPOSITION: "전치사",
+    CONJUNCTION: "접속사",
+    INTERJECTION: "감탄사",
+    ARTICLE: "관사",
+  };
+
+  return partOfSpeechMap[partOfSpeech] || partOfSpeech;
+}
+
 function buildQuestionList(randomWords, testType, objectiveQuestions) {
   return randomWords.map((word) => {
     const isObjective = testType === "objective";
+    const partOfSpeech = getPrimaryPartOfSpeech(word);
+    const meaning = getPrimaryMeaning(word);
 
     if (isObjective) {
       const objectiveQuestion = objectiveQuestions.find(
         (question) => question.wordId === word.wordId,
       );
-
       return {
         wordId: word.wordId,
         type: "objective",
-        meaning: word.meaning,
+        meaning: objectiveQuestion?.meaning || meaning,
+        partOfSpeech,
         difficulty: word.difficulty,
         choices: objectiveQuestion?.choices || [],
       };
@@ -46,14 +72,14 @@ function buildQuestionList(randomWords, testType, objectiveQuestions) {
       wordId: word.wordId,
       type: "subjective",
       spelling: word.spelling,
-      meaning: word.meaning,
+      meaning,
+      partOfSpeech,
       difficulty: word.difficulty,
     };
   });
 }
 
 function WordTest() {
-  const [selectedTestType, setSelectedTestType] = useState("");
   const [questionCount, setQuestionCount] = useState(6);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,18 +92,15 @@ function WordTest() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { testType } = useParams();
+  const selectedTestType =
+    testType === "objective" || testType === "subjective" ? testType : "";
   const currentQuestion = questions[currentIndex];
   const progressPercent =
     questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
 
   useEffect(() => {
     if (!selectedTestType) {
-      return;
-    }
-
-    const loadQuestions = async () => {
-      setLoading(true);
-      setError("");
       setQuestions([]);
       setCurrentIndex(0);
       setSelectedChoiceId("");
@@ -85,9 +108,25 @@ function WordTest() {
       setScore(0);
       setIsFinished(false);
       setFeedback("");
+      setError("");
+      return;
+    }
+
+    setQuestions([]);
+    setCurrentIndex(0);
+    setSelectedChoiceId("");
+    setUserAnswer("");
+    setScore(0);
+    setIsFinished(false);
+    setFeedback("");
+    setError("");
+
+    const loadQuestions = async () => {
+      setLoading(true);
+      setError("");
 
       try {
-        const randomWordsResponse = await getRandomWords(questionCount);
+        const randomWordsResponse = await getRandomWords(questionCount, "");
 
         if (!randomWordsResponse?.success) {
           throw new Error(
@@ -214,11 +253,11 @@ function WordTest() {
     setIsFinished(false);
     setFeedback("");
     setError("");
-    setSelectedTestType("");
+    navigate("/wtest");
   };
 
   const handleSelectTestType = (testType) => {
-    setSelectedTestType(testType);
+    navigate(`/wtest/${testType}`);
   };
 
   const handleAnswerChange = (event) => {
@@ -448,29 +487,44 @@ function WordTest() {
 
               {selectedTestType === "objective" ? (
                 <>
-                  <p className="wordtest-word-label"></p>
+                  <p className="wordtest-word-label">
+                    {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                  </p>
                   <p className="wordtest-word-main">
                     {currentQuestion.meaning}
                   </p>
-                  <p className="wordtest-difficulty-badge">
-                    난이도: {translateDifficulty(currentQuestion.difficulty)}
-                  </p>
+                  <div className="wordtest-meta-stack">
+                    <p className="wordtest-difficulty-badge wordtest-part-of-speech-badge">
+                      품사: {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                    </p>
+                    <p className="wordtest-difficulty-badge">
+                      난이도: {translateDifficulty(currentQuestion.difficulty)}
+                    </p>
+                  </div>
                 </>
               ) : (
                 <>
+                  <p className="wordtest-word-label">
+                    {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                  </p>
                   <p className="wordtest-word-main-subjective">
                     {currentQuestion.meaning}
                   </p>
-                  <p className="wordtest-word-hint-subjective">
-                    난이도: {translateDifficulty(currentQuestion.difficulty)}
-                  </p>
+                  <div className="wordtest-meta-stack">
+                    <p className="wordtest-difficulty-badge wordtest-part-of-speech-badge">
+                      품사: {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                    </p>
+                    <p className="wordtest-difficulty-badge">
+                      난이도: {translateDifficulty(currentQuestion.difficulty)}
+                    </p>
+                  </div>
                 </>
               )}
             </div>
 
             {selectedTestType === "objective" ? (
               <div className="wordtest-option-grid">
-                {currentQuestion.choices.map((choice, index) => {
+                {(currentQuestion.choices || []).map((choice, index) => {
                   const active =
                     String(selectedChoiceId) === String(choice.choiceId);
 
@@ -547,7 +601,7 @@ function WordTest() {
               <Button
                 buttonText="← 나가기"
                 type="button"
-                onClick={() => setSelectedTestType("")}
+                onClick={() => navigate("/wtest")}
                 className="wordtest-btn-exit"
               />
               <Button

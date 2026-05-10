@@ -427,6 +427,44 @@
   line-height: 1.45;
 }
 
+.admin-word-ko-wrap {
+  min-width: 0;
+}
+
+.admin-word-meanings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-word-meaning-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--pos-accent, #64748b);
+  background: color-mix(in srgb, var(--pos-accent, #64748b) 14%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--pos-accent, #64748b) 28%, #ffffff);
+}
+
+.pos-badge--default {
+  color: #64748b;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
 .admin-diff-wrap {
   display: flex;
   justify-content: center;
@@ -616,6 +654,73 @@
 
 .admin-modal-content .admin-modal-field:first-of-type {
   margin-top: 0;
+}
+
+.admin-meaning-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-meaning-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 36px;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-modal-input--meaning {
+  min-width: 0;
+}
+
+.admin-modal-select--pos {
+  min-width: 0;
+  padding-right: 34px;
+}
+
+.admin-meaning-add {
+  margin-top: 10px;
+  align-self: flex-start;
+  border: 1px dashed rgba(124, 58, 237, 0.28);
+  background: rgba(237, 233, 254, 0.55);
+  color: #5b21b6;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-meaning-add:hover {
+  background: rgba(237, 233, 254, 0.8);
+}
+
+.admin-meaning-remove {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(224, 65, 90, 0.18);
+  background: rgba(224, 65, 90, 0.08);
+  color: #be123c;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.admin-meaning-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .admin-meaning-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-meaning-remove {
+    width: 100%;
+  }
 }
 
 .admin-modal-field {
