@@ -58,7 +58,9 @@ function Word() {
           }
 
           if (difficulty) {
-            filtered = filtered.filter((word) => word.difficulty === difficulty);
+            filtered = filtered.filter(
+              (word) => word.difficulty === difficulty,
+            );
           }
 
           filtered.sort((a, b) => {
@@ -106,15 +108,14 @@ function Word() {
         </p>
 
         <section className="word-page-filter-card">
+          <Input
+            placeholder="검색어를 입력하세요 (예: app)"
+            value={spelling}
+            onChange={handleFilterChange(setSpelling)}
+            autoComplete="off"
+            className="word-page-search-input"
+          />
           <div className="word-page-filter-row">
-            <Input
-              placeholder="검색어를 입력하세요 (예: app)"
-              value={spelling}
-              onChange={handleFilterChange(setSpelling)}
-              autoComplete="off"
-              className="word-page-search-input"
-            />
-
             <select
               value={difficulty}
               onChange={handleFilterChange(setDifficulty)}

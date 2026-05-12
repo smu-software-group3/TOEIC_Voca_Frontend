@@ -18,7 +18,7 @@ const isLocal = true;
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
   const baseUrl = isLocal
-    ? process.env.REACT_APP_LOCAL_SERVER_URL
+    ? process.env.REACT_APP_LOCAL_SERVER_URL_2
     : process.env.REACT_APP_SERVER_URL;
 
   if (!baseUrl) {
