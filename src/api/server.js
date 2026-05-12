@@ -553,6 +553,33 @@ export async function getWords({
   }
 }
 
+// 품사별 단어 목록을 가져온다.
+export async function getWordsByPartOfSpeech(partOfSpeech) {
+  const url = `${getServerUrl()}/api/words/part-of-speech/${encodeURIComponent(partOfSpeech)}`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.data?.message || "품사별 단어 조회 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
 // 랜덤 단어를 요청해 단어 테스트의 출제 후보를 가져온다.
 export async function getRandomWords(count, partOfSpeech = "") {
   const url = `${getServerUrl()}/api/words/random`;

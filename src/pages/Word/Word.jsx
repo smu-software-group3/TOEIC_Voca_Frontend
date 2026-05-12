@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getWords } from "../../api/server";
+import { getWords, getWordsByPartOfSpeech } from "../../api/server";
 import { Input } from "../../components/Input";
 import {
   difficultyBadgeClass,
@@ -17,6 +17,7 @@ import {
 function Word() {
   const [spelling, setSpelling] = useState("");
   const [difficulty, setDifficulty] = useState("");
+  const [partOfSpeech, setPartOfSpeech] = useState("");
   const [sort, setSort] = useState("asc");
   const [words, setWords] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
@@ -31,11 +32,13 @@ function Word() {
       const fetchWords = async () => {
         setError("");
         try {
-          const response = await getWords({
-            spelling: spelling.trim(),
-            difficulty,
-            sort,
-          });
+          const response = partOfSpeech
+            ? await getWordsByPartOfSpeech(partOfSpeech)
+            : await getWords({
+                spelling: spelling.trim(),
+                difficulty,
+                sort,
+              });
 
           if (!response?.success) {
             throw new Error(
@@ -43,9 +46,31 @@ function Word() {
             );
           }
 
-          const pageData = response.data || {};
-          setWords(pageData || []);
-          setTotalElements(pageData.length || 0);
+          const pageData = Array.isArray(response.data) ? response.data : [];
+          const normalizedSearch = spelling.trim().toLowerCase();
+
+          let filtered = [...pageData];
+
+          if (normalizedSearch) {
+            filtered = filtered.filter((word) =>
+              word.spelling.toLowerCase().includes(normalizedSearch),
+            );
+          }
+
+          if (difficulty) {
+            filtered = filtered.filter((word) => word.difficulty === difficulty);
+          }
+
+          filtered.sort((a, b) => {
+            if (sort === "asc") {
+              return a.spelling.localeCompare(b.spelling);
+            }
+
+            return b.spelling.localeCompare(a.spelling);
+          });
+
+          setWords(filtered);
+          setTotalElements(filtered.length);
         } catch (requestError) {
           if (requestError.code === "UNAUTHORIZED") {
             setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -66,7 +91,7 @@ function Word() {
     }, 500); // 500ms 딜레이로 디바운스 처리
 
     return () => clearTimeout(timer);
-  }, [spelling, difficulty, sort]);
+  }, [spelling, difficulty, partOfSpeech, sort]);
 
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
@@ -99,6 +124,17 @@ function Word() {
               <option value="EASY">쉬움</option>
               <option value="MEDIUM">중간</option>
               <option value="HARD">어려움</option>
+            </select>
+
+            <select
+              value={partOfSpeech}
+              onChange={handleFilterChange(setPartOfSpeech)}
+              className="word-page-select"
+            >
+              <option value="">품사 전체</option>
+              <option value="NOUN">명사</option>
+              <option value="VERB">동사</option>
+              <option value="ADJECTIVE">형용사</option>
             </select>
 
             <select
