@@ -73,6 +73,30 @@ const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
+      {
+        path: "retest/:listType",
+        element: (
+          <RequireAuth>
+            <Retest />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "retest/:listType/test",
+        element: (
+          <RequireAuth>
+            <Retest />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "retest/:listType/test/:testType",
+        element: (
+          <RequireAuth>
+            <Retest />
+          </RequireAuth>
+        ),
+      },
     ],
   },
   {
