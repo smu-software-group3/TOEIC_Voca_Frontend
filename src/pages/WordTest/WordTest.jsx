@@ -306,8 +306,8 @@ function WordTest() {
     setScore(0);
     setIsFinished(false);
     setFeedback("");
-    setError("");
-    navigate(customReturnPath || "/wtest");
+    setWrongWords([]);
+    setIsRetesting(true);
   };
 
   const handleSelectTestType = (testType) => {
