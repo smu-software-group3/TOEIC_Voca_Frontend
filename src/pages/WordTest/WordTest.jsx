@@ -90,6 +90,8 @@ function WordTest() {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [wrongWords, setWrongWords] = useState([]);
+  const [isRetesting, setIsRetesting] = useState(false);
 
   const navigate = useNavigate();
   const { testType } = useParams();
@@ -222,6 +224,14 @@ function WordTest() {
         setFeedback("정답입니다!");
       } else {
         setFeedback(`틀렸습니다. 정답은 "${answerData.answer}"입니다.`);
+        // Add the wrong word to the list for relearning
+        setWrongWords((prevWrongWords) => {
+          const wordId = currentQuestion.wordId;
+          if (!prevWrongWords.some((word) => word.wordId === wordId)) {
+            return [...prevWrongWords, currentQuestion];
+          }
+          return prevWrongWords;
+        });
       }
 
       setTimeout(() => {
@@ -246,14 +256,21 @@ function WordTest() {
   };
 
   const handleRetry = () => {
+    if (wrongWords.length === 0) {
+      navigate("/");
+      return;
+    }
+
+    // Start relearning with wrong words
+    setQuestions(wrongWords);
     setCurrentIndex(0);
     setSelectedChoiceId("");
     setUserAnswer("");
     setScore(0);
     setIsFinished(false);
     setFeedback("");
-    setError("");
-    navigate("/wtest");
+    setWrongWords([]);
+    setIsRetesting(true);
   };
 
   const handleSelectTestType = (testType) => {
@@ -314,12 +331,14 @@ function WordTest() {
             %
           </p>
           <div className="wordtest-finish-actions">
-            <Button
-              buttonText="다시 선택"
-              onClick={handleRetry}
-              type="button"
-              className="wordtest-btn-secondary"
-            />
+            {wrongWords.length > 0 && (
+              <Button
+                buttonText="재학습"
+                onClick={handleRetry}
+                type="button"
+                className="wordtest-btn-secondary"
+              />
+            )}
             <Button
               buttonText="홈으로"
               onClick={() => navigate("/")}

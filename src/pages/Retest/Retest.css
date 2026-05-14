@@ -170,6 +170,12 @@
 .weak-list li:last-child {
   border-bottom: none;
 }
+.retest-button-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .retest-button {
   width: fit-content;
   border: none;
@@ -187,6 +193,27 @@
 .retest-button:hover {
   transform: translateY(-2px);
   opacity: 0.95;
+}
+.retest-button-back {
+  width: fit-content;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: white;
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease,
+    background-color 0.18s ease;
+}
+.retest-button-back:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+  transform: translateY(-2px);
 }
 @media (max-width: 760px) {
   .retest-card {
