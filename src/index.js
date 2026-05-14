@@ -12,7 +12,6 @@ import Register from "./pages/Register/Register";
 import PasswordChange from "./pages/PasswordChange/PasswordChange";
 import PasswordFind from "./pages/PasswordFind/PasswordFind";
 import Retest from "./pages/Retest/Retest";
-import RetestSelect from "./pages/RetestSelect/RetestSelect";
 import AuthLayout from "./components/AuthLayout";
 import Home from "./pages/Home/Home";
 import { AuthProvider, RequireAuth } from "./contexts/AuthContext";
@@ -67,15 +66,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "retest-select",
-        element: (
-          <RequireAuth>
-            <RetestSelect />
-          </RequireAuth>
-        ),
-      },
-      {
-        path: "retest/:retestType",
+        path: "retest",
         element: (
           <RequireAuth>
             <Retest />
