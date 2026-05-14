@@ -7,7 +7,7 @@ import {
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { Form } from "../../components/Form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./WordTest.css";
 
 function translateQuestionType(type) {
@@ -93,10 +93,20 @@ function WordTest() {
   const [wrongWords, setWrongWords] = useState([]);
   const [isRetesting, setIsRetesting] = useState(false);
 
+  const location = useLocation();
   const navigate = useNavigate();
   const { testType } = useParams();
   const selectedTestType =
     testType === "objective" || testType === "subjective" ? testType : "";
+  const customWords = useMemo(
+    () =>
+      Array.isArray(location.state?.customWords)
+        ? location.state.customWords
+        : [],
+    [location.state?.customWords],
+  );
+  const customReturnPath = location.state?.customReturnPath || "";
+  const customSourceTitle = location.state?.customTitle || "";
   const currentQuestion = questions[currentIndex];
   const progressPercent =
     questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
@@ -128,6 +138,33 @@ function WordTest() {
       setError("");
 
       try {
+        if (customWords.length > 0) {
+          if (selectedTestType === "objective") {
+            const objectiveResults = await Promise.all(
+              customWords.map(async (word) => {
+                const questionResponse = await getWordTestQuestion(word.wordId);
+
+                if (!questionResponse?.success) {
+                  throw new Error(
+                    questionResponse?.message ||
+                      "객관식 문제 조회에 실패했습니다.",
+                  );
+                }
+
+                return questionResponse.data;
+              }),
+            );
+
+            setQuestions(
+              buildQuestionList(customWords, selectedTestType, objectiveResults),
+            );
+            return;
+          }
+
+          setQuestions(buildQuestionList(customWords, selectedTestType, []));
+          return;
+        }
+
         const randomWordsResponse = await getRandomWords(questionCount, "");
 
         if (!randomWordsResponse?.success) {
@@ -175,7 +212,7 @@ function WordTest() {
     };
 
     loadQuestions();
-  }, [selectedTestType, questionCount]);
+  }, [selectedTestType, questionCount, customWords]);
 
   const answerValue = useMemo(() => {
     if (!currentQuestion) {
@@ -269,8 +306,8 @@ function WordTest() {
     setScore(0);
     setIsFinished(false);
     setFeedback("");
-    setWrongWords([]);
-    setIsRetesting(true);
+    setError("");
+    navigate(customReturnPath || "/wtest");
   };
 
   const handleSelectTestType = (testType) => {
@@ -318,7 +355,11 @@ function WordTest() {
       <main className="wordtest-page">
         <section className="wordtest-finish-card">
           <p className="wordtest-finish-eyebrow">테스트 완료</p>
-          <h1 className="wordtest-finish-title">수고하셨습니다!</h1>
+          <h1 className="wordtest-finish-title">
+            {customSourceTitle
+              ? `${customSourceTitle} 테스트 완료`
+              : "수고하셨습니다!"}
+          </h1>
           <p className="wordtest-finish-desc">
             총 {questions.length}문제 중 <strong>{score}문제</strong>를
             맞혔습니다.
@@ -514,7 +555,8 @@ function WordTest() {
                   </p>
                   <div className="wordtest-meta-stack">
                     <p className="wordtest-difficulty-badge wordtest-part-of-speech-badge">
-                      품사: {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                      품사:{" "}
+                      {translatePartOfSpeech(currentQuestion.partOfSpeech)}
                     </p>
                     <p className="wordtest-difficulty-badge">
                       난이도: {translateDifficulty(currentQuestion.difficulty)}
@@ -531,7 +573,8 @@ function WordTest() {
                   </p>
                   <div className="wordtest-meta-stack">
                     <p className="wordtest-difficulty-badge wordtest-part-of-speech-badge">
-                      품사: {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                      품사:{" "}
+                      {translatePartOfSpeech(currentQuestion.partOfSpeech)}
                     </p>
                     <p className="wordtest-difficulty-badge">
                       난이도: {translateDifficulty(currentQuestion.difficulty)}
