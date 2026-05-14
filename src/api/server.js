@@ -572,7 +572,70 @@ export async function getWordsByPartOfSpeech(partOfSpeech) {
     const message =
       error.response?.status === 401
         ? "인증이 필요합니다. 다시 로그인해주세요."
-        : error.response?.data?.message || "품사별 단어 조회 요청에 실패했습니다.";
+        : error.response?.data?.message ||
+          "품사별 단어 조회 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 사용자의 취약 단어를 가져온다.
+export async function getWeakWords({ difficulty = "", limit = 10 } = {}) {
+  const url = `${getServerUrl()}/api/users/me/weak-words`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      params: { difficulty, limit },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 400
+          ? "잘못된 요청입니다."
+          : error.response?.data?.message || "취약 단어 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 오늘 틀린 단어를 가져온다.
+export async function getTodayWrongWords() {
+  const url = `${getServerUrl()}/api/users/me/today-wrong`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : error.response?.status === 400
+            ? "잘못된 요청입니다."
+            : error.response?.data?.message ||
+              "오늘 틀린 단어 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
@@ -742,7 +805,6 @@ function buildAdminWordRequestBody(payload) {
 
 // 관리자 단어 추가 요청을 보낸다.
 export async function createAdminWord(payload) {
-  
   const url = `${getServerUrl()}/api/admin/words`;
   const token = localStorage.getItem("token");
 

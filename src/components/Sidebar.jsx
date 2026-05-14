@@ -342,6 +342,43 @@ export function Sidebar({
           </svg>
           테스트
         </div>
+        <div
+          onClick={() => handleNavigate("/retest")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            color: "#64748b",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(139, 92, 246, 0.18)";
+            e.currentTarget.style.color = "#c4b5fd";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "#64748b";
+          }}
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M12 8v8" />
+            <path d="M8 12h8" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+          재학습
+        </div>
       </div>
 
       {/* Bottom Profile Section */}
