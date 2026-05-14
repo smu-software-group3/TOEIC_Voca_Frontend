@@ -663,6 +663,12 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+.retest-button-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .retest-button {
   width: fit-content;
   border: none;
