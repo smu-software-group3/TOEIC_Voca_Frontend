@@ -51,7 +51,7 @@
 
 .retest-choice-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
 
@@ -408,6 +408,12 @@
 .weak-list-main span {
   color: #5b6476;
   line-height: 1.4;
+}
+
+.weak-list-submeta {
+  color: #7c6fad;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .weak-list-meta {

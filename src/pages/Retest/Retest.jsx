@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getTodayWrongWords, getWeakWords } from "../../api/server";
+import { getRelearningWords, getTodayWrongWords, getWeakWords } from "../../api/server";
 import "./Retest.css";
 
 const LIST_META = {
@@ -14,6 +14,12 @@ const LIST_META = {
     description:
       "오답률이 높은 취약 단어들을 다시 확인하고 바로 테스트할 수 있습니다.",
     buttonText: "취약 단어 보기",
+  },
+  "old-relearning": {
+    title: "오래된 문제 재학습",
+    description:
+      "오래 전에 테스트한 단어들을 다시 확인하고 바로 테스트할 수 있습니다.",
+    buttonText: "오래된 문제 보기",
   },
 };
 
@@ -49,6 +55,24 @@ function translateDifficulty(difficulty) {
   };
 
   return difficultyMap[difficulty] || difficulty;
+}
+
+function formatLastTestedAt(lastTestedAt) {
+  if (!lastTestedAt) {
+    return "최근 테스트 기록 없음";
+  }
+
+  const parsedDate = new Date(lastTestedAt);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "최근 테스트 기록 없음";
+  }
+
+  return parsedDate.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
 
 function normalizeText(value) {
@@ -108,7 +132,9 @@ function Retest() {
   const { listType, flowType } = useParams();
 
   const activeListType =
-    listType === "weak" || listType === "today-wrong" ? listType : "";
+    listType === "weak" || listType === "today-wrong" || listType === "old-relearning"
+      ? listType
+      : "";
   const activeFlowType =
     flowType === "test" || flowType === "objective" || flowType === "subjective"
       ? flowType
@@ -121,6 +147,7 @@ function Retest() {
 
   const [todayWrongWords, setTodayWrongWords] = useState([]);
   const [weakWords, setWeakWords] = useState([]);
+  const [oldRelearningWords, setOldRelearningWords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -134,10 +161,15 @@ function Retest() {
   const [weakSelectionOpen, setWeakSelectionOpen] = useState(false);
 
   const activeListWords =
-    activeListType === "today-wrong" ? todayWrongWords : weakWords;
+    activeListType === "today-wrong"
+      ? todayWrongWords
+      : activeListType === "weak"
+        ? weakWords
+        : oldRelearningWords;
   const activeListMeta = activeListType ? LIST_META[activeListType] : null;
 
-  const isWeakList = activeListType === "weak";
+  const isSelectableList =
+    activeListType === "weak" || activeListType === "old-relearning";
 
   useEffect(() => {
     const loadRetestData = async () => {
@@ -145,9 +177,10 @@ function Retest() {
       setError("");
 
       try {
-        const [todayResponse, weakResponse] = await Promise.all([
+        const [todayResponse, weakResponse, relearningResponse] = await Promise.all([
           getTodayWrongWords(),
           getWeakWords({ limit: 10 }),
+          getRelearningWords(),
         ]);
 
         if (!todayResponse?.success) {
@@ -162,15 +195,26 @@ function Retest() {
           );
         }
 
+        if (!relearningResponse?.success) {
+          throw new Error(
+            relearningResponse?.message ||
+              "오래된 문제 재학습 조회에 실패했습니다.",
+          );
+        }
+
         const todayList = Array.isArray(todayResponse.data)
           ? todayResponse.data
           : [];
         const weakList = Array.isArray(weakResponse.data)
           ? weakResponse.data
           : [];
+        const relearningList = Array.isArray(relearningResponse.data)
+          ? relearningResponse.data
+          : [];
 
         setTodayWrongWords(todayList);
         setWeakWords(weakList);
+        setOldRelearningWords(relearningList);
       } catch (requestError) {
         if (requestError.code === "UNAUTHORIZED") {
           setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -186,6 +230,7 @@ function Retest() {
 
         setTodayWrongWords([]);
         setWeakWords([]);
+        setOldRelearningWords([]);
       } finally {
         setLoading(false);
       }
@@ -203,8 +248,12 @@ function Retest() {
       return weakWords;
     }
 
+    if (activeListType === "old-relearning") {
+      return oldRelearningWords;
+    }
+
     return [];
-  }, [activeListType, todayWrongWords, weakWords]);
+  }, [activeListType, todayWrongWords, weakWords, oldRelearningWords]);
 
   const questions = useMemo(() => {
     if (!isTestPage) {
@@ -256,7 +305,7 @@ function Retest() {
   };
 
   const openWeakSelection = () => {
-    if (!isWeakList) {
+    if (!isSelectableList) {
       return;
     }
 
@@ -275,7 +324,7 @@ function Retest() {
   const handleModePick = (type) => {
     setModePickerOpen(false);
     const wordsToTest =
-      activeListType === "weak" && selectedWeakWordIds.length > 0
+      isSelectableList && selectedWeakWordIds.length > 0
         ? activeListWords.filter((word) =>
             selectedWeakWordIds.includes(word.wordId),
           )
@@ -566,22 +615,23 @@ function Retest() {
             >
               이 목록으로 테스트하기
             </button>
-            {isWeakList && (
+            {isSelectableList && (
               <button
                 type="button"
                 className="retest-toolbar-button"
                 onClick={openWeakSelection}
               >
-                취약 단어 선택하기
+                {activeListType === "old-relearning"
+                  ? "오래된 문제 선택하기"
+                  : "취약 단어 선택하기"}
               </button>
             )}
           </div>
 
-          {isWeakList && weakSelectionOpen && (
+          {isSelectableList && weakSelectionOpen && (
             <div className="retest-selection-row">
               <p className="retest-selection-help">
-                체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체 취약
-                단어를 테스트합니다.
+                체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체 {activeListMeta?.title || "목록"}를 테스트합니다.
               </p>
               <button
                 type="button"
@@ -612,10 +662,9 @@ function Retest() {
                 </button>
               </div>
 
-              {isWeakList && (
+              {isSelectableList && (
                 <p className="retest-selection-help">
-                  체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체 취약
-                  단어를 테스트합니다.
+                  체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체 {activeListMeta?.title || "목록"}를 테스트합니다.
                 </p>
               )}
 
@@ -664,7 +713,7 @@ function Retest() {
                 <li
                   key={word.wordId}
                   className={
-                    isWeakList && selectedWeakWordIds.includes(word.wordId)
+                    isSelectableList && selectedWeakWordIds.includes(word.wordId)
                       ? "weak-list-item weak-list-item--selected"
                       : "weak-list-item"
                   }
@@ -675,8 +724,13 @@ function Retest() {
                       {getPrimaryMeaning(word)} ·{" "}
                       {translatePartOfSpeech(getPrimaryPartOfSpeech(word))}
                     </span>
+                    {activeListType === "old-relearning" && (
+                      <span className="weak-list-submeta">
+                        마지막 테스트: {formatLastTestedAt(word.lastTestedAt)}
+                      </span>
+                    )}
                   </div>
-                  {isWeakList && weakSelectionOpen && (
+                  {isSelectableList && weakSelectionOpen && (
                     <label className="weak-list-checkbox-wrap">
                       <span className="weak-list-checkbox-label">선택</span>
                       <input
