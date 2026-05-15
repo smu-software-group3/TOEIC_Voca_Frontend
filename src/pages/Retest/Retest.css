@@ -336,6 +336,9 @@
   border-radius: 20px;
   border: 1px solid rgba(124, 58, 237, 0.12);
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 .weak-list h2 {
   margin: 0 0 18px;
@@ -348,6 +351,10 @@
   margin: 0;
   display: grid;
   gap: 10px;
+  max-height: clamp(240px, 46vh, 460px);
+  overflow-y: auto;
+  padding-right: 6px;
+  overscroll-behavior: contain;
 }
 .weak-list li {
   display: flex;
@@ -430,6 +437,20 @@
 .weak-list-empty {
   justify-content: center;
   color: #7c6fad;
+}
+
+.weak-list ul::-webkit-scrollbar {
+  width: 8px;
+}
+
+.weak-list ul::-webkit-scrollbar-track {
+  background: rgba(124, 58, 237, 0.08);
+  border-radius: 999px;
+}
+
+.weak-list ul::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.28);
+  border-radius: 999px;
 }
 
 .wordtest-top-row {
@@ -715,6 +736,10 @@
   .weak-list li {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .weak-list ul {
+    max-height: 300px;
   }
 
   .weak-list-meta {
