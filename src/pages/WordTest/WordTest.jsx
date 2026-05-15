@@ -61,6 +61,7 @@ function buildQuestionList(randomWords, testType, objectiveQuestions) {
       return {
         wordId: word.wordId,
         type: "objective",
+        spelling: word.spelling,
         meaning: objectiveQuestion?.meaning || meaning,
         partOfSpeech,
         difficulty: word.difficulty,
@@ -90,8 +91,8 @@ function WordTest() {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [testResults, setTestResults] = useState([]);
   const [wrongWords, setWrongWords] = useState([]);
-  const [isRetesting, setIsRetesting] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -121,6 +122,8 @@ function WordTest() {
       setIsFinished(false);
       setFeedback("");
       setError("");
+      setTestResults([]);
+      setWrongWords([]);
       return;
     }
 
@@ -132,6 +135,8 @@ function WordTest() {
     setIsFinished(false);
     setFeedback("");
     setError("");
+    setTestResults([]);
+    setWrongWords([]);
 
     const loadQuestions = async () => {
       setLoading(true);
@@ -255,20 +260,40 @@ function WordTest() {
       }
 
       const answerData = response.data || {};
+      const isCorrect = Boolean(answerData.correct);
+      const correctAnswer = answerData.answer || currentQuestion.spelling || "";
 
-      if (answerData.correct) {
+      if (!isCorrect) {
+        setWrongWords((currentWrongWords) => {
+          const alreadyIncluded = currentWrongWords.some(
+            (word) => word.wordId === currentQuestion.wordId,
+          );
+
+          if (alreadyIncluded) {
+            return currentWrongWords;
+          }
+
+          return [...currentWrongWords, currentQuestion];
+        });
+      }
+
+      setTestResults((currentResults) => [
+        ...currentResults,
+        {
+          wordId: currentQuestion.wordId,
+          spelling: currentQuestion.spelling || currentQuestion.meaning,
+          meaning: currentQuestion.meaning,
+          submittedAnswer: submittedSpelling,
+          correctAnswer,
+          isCorrect,
+        },
+      ]);
+
+      if (isCorrect) {
         setScore((prevScore) => prevScore + 1);
         setFeedback("정답입니다!");
       } else {
-        setFeedback(`틀렸습니다. 정답은 "${answerData.answer}"입니다.`);
-        // Add the wrong word to the list for relearning
-        setWrongWords((prevWrongWords) => {
-          const wordId = currentQuestion.wordId;
-          if (!prevWrongWords.some((word) => word.wordId === wordId)) {
-            return [...prevWrongWords, currentQuestion];
-          }
-          return prevWrongWords;
-        });
+        setFeedback(`틀렸습니다. 정답은 "${correctAnswer}"입니다.`);
       }
 
       setTimeout(() => {
@@ -294,11 +319,10 @@ function WordTest() {
 
   const handleRetry = () => {
     if (wrongWords.length === 0) {
-      navigate("/");
+      navigate(customReturnPath || "/wtest");
       return;
     }
 
-    // Start relearning with wrong words
     setQuestions(wrongWords);
     setCurrentIndex(0);
     setSelectedChoiceId("");
@@ -306,8 +330,9 @@ function WordTest() {
     setScore(0);
     setIsFinished(false);
     setFeedback("");
+    setError("");
+    setTestResults([]);
     setWrongWords([]);
-    setIsRetesting(true);
   };
 
   const handleSelectTestType = (testType) => {
@@ -371,6 +396,43 @@ function WordTest() {
               : 0}
             %
           </p>
+          <div className="wordtest-result-list">
+            <h2 className="wordtest-result-title">문제별 결과</h2>
+            <ul className="wordtest-result-items">
+              {testResults.map((result, index) => (
+                <li
+                  key={`${result.wordId}-${index}`}
+                  className={
+                    result.isCorrect
+                      ? "wordtest-result-item wordtest-result-item--correct"
+                      : "wordtest-result-item wordtest-result-item--wrong"
+                  }
+                >
+                  <div className="wordtest-result-head">
+                    <span className="wordtest-result-word">
+                      {result.spelling}
+                    </span>
+                    <span
+                      className={
+                        result.isCorrect
+                          ? "wordtest-result-badge wordtest-result-badge--correct"
+                          : "wordtest-result-badge wordtest-result-badge--wrong"
+                      }
+                    >
+                      {result.isCorrect ? "정답" : "오답"}
+                    </span>
+                  </div>
+                  <p className="wordtest-result-meaning">뜻: {result.meaning}</p>
+                  <p className="wordtest-result-answer">
+                    내 답: {result.submittedAnswer || "미입력"}
+                  </p>
+                  <p className="wordtest-result-answer wordtest-result-answer--correct">
+                    정답: {result.correctAnswer}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
           <div className="wordtest-finish-actions">
             {wrongWords.length > 0 && (
               <Button
@@ -414,10 +476,8 @@ function WordTest() {
           </p>
 
           <div className="wordtest-card-grid">
-            <button
-              type="button"
+            <article
               className="wordtest-type-card wordtest-type-card--objective"
-              onClick={() => handleSelectTestType("objective")}
             >
               <div className="wordtest-card-icon-purple">A</div>
               <p className="wordtest-card-title">객관식</p>
@@ -428,13 +488,19 @@ function WordTest() {
                 <div className="wordtest-preview-active-purple">A 선택지 1</div>
                 <div className="wordtest-preview-inactive">B 선택지 2</div>
               </div>
-              <span className="wordtest-start-purple">객관식 시작 →</span>
-            </button>
+              <div className="wordtest-card-footer">
+                <button
+                  type="button"
+                  onClick={() => handleSelectTestType("objective")}
+                  className="wordtest-start-purple"
+                >
+                  객관식 시작 →
+                </button>
+              </div>
+            </article>
 
-            <button
-              type="button"
+            <article
               className="wordtest-type-card wordtest-type-card--subjective"
-              onClick={() => handleSelectTestType("subjective")}
             >
               <div className="wordtest-card-icon-teal">T</div>
               <p className="wordtest-card-title">주관식</p>
@@ -445,8 +511,16 @@ function WordTest() {
                 <div className="wordtest-preview-active-teal">직접 입력...</div>
                 <div className="wordtest-preview-inactive">정답 확인</div>
               </div>
-              <span className="wordtest-start-teal">주관식 시작 →</span>
-            </button>
+              <div className="wordtest-card-footer">
+                <button
+                  type="button"
+                  onClick={() => handleSelectTestType("subjective")}
+                  className="wordtest-start-teal"
+                >
+                  주관식 시작 →
+                </button>
+              </div>
+            </article>
           </div>
 
           <div className="wordtest-count-row">

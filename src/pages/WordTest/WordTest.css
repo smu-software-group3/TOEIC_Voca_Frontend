@@ -42,9 +42,11 @@
 }
 
 .wordtest-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  align-items: stretch;
   margin-bottom: 24px;
 }
 
@@ -52,11 +54,20 @@
   border: none;
   border-radius: 20px;
   padding: 28px 22px;
+  flex: 1 1 340px;
+  max-width: 430px;
   width: 100%;
   min-width: 0;
   text-align: left;
-  cursor: pointer;
   background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wordtest-type-card:hover {
+  transform: none;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
@@ -140,7 +151,9 @@
 }
 
 .wordtest-start-purple {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -151,10 +164,15 @@
   font-weight: 700;
   font-size: 13px;
   background: linear-gradient(135deg, #6d28d9, #4c1d95);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .wordtest-start-teal {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -165,6 +183,30 @@
   font-weight: 700;
   font-size: 13px;
   background: linear-gradient(135deg, #0d9488, #0f766e);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.wordtest-card-footer {
+  margin-top: auto;
+}
+
+.wordtest-card-footer .wordtest-start-purple,
+.wordtest-card-footer .wordtest-start-teal {
+  box-sizing: border-box !important;
+  padding: 10px 12px !important;
+}
+
+@media (max-width: 760px) {
+  .wordtest-card-grid {
+    gap: 16px;
+  }
+
+  .wordtest-type-card {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
 }
 
 .wordtest-count-row {
@@ -603,6 +645,99 @@
   font-weight: 700;
   color: #0d9488;
   margin-bottom: 22px;
+}
+
+.wordtest-result-list {
+  text-align: left;
+  margin: 0 auto 24px;
+  max-width: 620px;
+}
+
+.wordtest-result-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin-bottom: 12px;
+}
+
+.wordtest-result-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.wordtest-result-item {
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(139, 92, 246, 0.14);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.wordtest-result-item--correct {
+  border-color: rgba(13, 148, 136, 0.2);
+}
+
+.wordtest-result-item--wrong {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.wordtest-result-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.wordtest-result-word {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+
+.wordtest-result-badge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.wordtest-result-badge--correct {
+  color: #0f766e;
+  background: rgba(13, 148, 136, 0.12);
+}
+
+.wordtest-result-badge--wrong {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.wordtest-result-meaning,
+.wordtest-result-answer {
+  margin: 0;
+  font-size: 13px;
+  color: #5b5f7a;
+  line-height: 1.5;
+}
+
+.wordtest-result-answer {
+  margin-top: 4px;
+}
+
+.wordtest-result-answer--correct {
+  color: #0f766e;
+}
+
+@media (max-width: 760px) {
+  .wordtest-result-items {
+    max-height: 260px;
+  }
 }
 
 .wordtest-finish-actions {
