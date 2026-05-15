@@ -18,7 +18,7 @@ const isLocal = true;
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
   const baseUrl = isLocal
-    ? process.env.REACT_APP_LOCAL_SERVER_URL_2
+    ? process.env.REACT_APP_LOCAL_SERVER_URL
     : process.env.REACT_APP_SERVER_URL;
 
   if (!baseUrl) {
@@ -604,6 +604,41 @@ export async function getWeakWords({ difficulty = "", limit = 10 } = {}) {
         : error.response?.status === 400
           ? "잘못된 요청입니다."
           : error.response?.data?.message || "취약 단어 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 오래된 문제 재학습 단어를 가져온다.
+export async function getRelearningWords() {
+  const url = `${getServerUrl()}/api/users/me/relearning-words`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const status = error.response?.status;
+    const message =
+      status === 401
+        ? "인증이 필요합니다."
+        : status === 404
+          ? "회원을 찾을 수 없습니다."
+          : status === 400
+            ? "유효하지 않은 요청입니다."
+            : status >= 500
+              ? "서버 오류가 발생했습니다."
+              : error.response?.data?.message ||
+                "오래된 문제 재학습 조회에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
