@@ -1,21 +1,20 @@
-.app-layout {
+.auth-layout {
   min-height: 100vh;
   background: #f0eef8;
-  color: #1a1560;
 }
 
-.app-navbar {
+.auth-navbar {
   position: sticky;
   top: 0;
   z-index: 1100;
   height: 64px;
-  padding: 0 48px;
-  border-bottom: 1px solid rgba(224, 218, 245, 0.95);
-  background: rgba(255, 255, 255, 0.94);
+  padding: 0 32px;
+  border-bottom: 1px solid rgba(226, 221, 245, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
 }
 
-.app-navbar-inner {
+.auth-navbar-inner {
   height: 100%;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -23,7 +22,7 @@
   gap: 20px;
 }
 
-.app-logo {
+.auth-logo {
   display: inline-flex;
   align-items: center;
   border: none;
@@ -34,7 +33,7 @@
   color: #1a1560;
 }
 
-.app-logo-frame {
+.auth-logo-frame {
   width: 220px;
   height: 48px;
   overflow: hidden;
@@ -43,7 +42,7 @@
   justify-content: flex-start;
 }
 
-.app-logo-image {
+.auth-logo-image {
   width: 220px;
   height: 96px;
   object-fit: cover;
@@ -52,7 +51,7 @@
   transform: scale(1.03);
 }
 
-.app-nav-links {
+.auth-nav-links {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,45 +61,52 @@
   padding: 0;
 }
 
-.app-nav-link {
+.auth-nav-link,
+.auth-nav-link--disabled {
   font-size: 15px;
   font-weight: 600;
   color: #444;
   text-decoration: none;
-  padding: 0 0 4px;
-  border: none;
+  padding-bottom: 4px;
   border-bottom: 2.5px solid transparent;
-  background: transparent;
-  font: inherit;
-  cursor: pointer;
   transition:
     color 0.2s ease,
     border-color 0.2s ease;
 }
 
-.app-nav-link:hover {
+.auth-nav-link {
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-radius: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.auth-nav-link:hover {
   color: #5c45e0;
 }
 
-.app-nav-link--active {
+.auth-nav-link--active {
   color: #5c45e0;
   border-bottom-color: #5c45e0;
   font-weight: 700;
 }
 
-.app-nav-link--disabled {
+.auth-nav-link--disabled {
   color: #aaa;
   cursor: default;
 }
 
-.app-nav-right {
+.auth-nav-right {
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
-.app-notice-button,
-.app-profile-button {
+.auth-notice-button,
+.auth-profile-button {
   display: inline-flex;
   align-items: center;
   border: none;
@@ -109,19 +115,19 @@
   font: inherit;
 }
 
-.app-notice-button {
+.auth-notice-button {
   position: relative;
   justify-content: center;
   color: #7c6fad;
   cursor: pointer;
 }
 
-.app-notice-button svg {
+.auth-notice-button svg {
   width: 22px;
   height: 22px;
 }
 
-.app-notice-badge {
+.auth-notice-badge {
   position: absolute;
   top: 2px;
   right: 0;
@@ -138,13 +144,13 @@
   font-weight: 700;
 }
 
-.app-profile-button {
+.auth-profile-button {
   gap: 10px;
   color: #1a1560;
   cursor: pointer;
 }
 
-.app-avatar {
+.auth-avatar {
   width: 36px;
   height: 36px;
   border-radius: 999px;
@@ -156,13 +162,13 @@
   flex-shrink: 0;
 }
 
-.app-avatar svg {
+.auth-avatar svg {
   width: 20px;
   height: 20px;
   color: #5c45e0;
 }
 
-.app-user-name {
+.auth-user-name {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -172,57 +178,58 @@
   white-space: nowrap;
 }
 
-.app-user-arrow {
+.auth-user-arrow {
   width: 14px;
   height: 14px;
   color: #7c6fad;
 }
 
-.app-content {
+.auth-content {
   min-height: calc(100vh - 64px);
 }
 
-.app-bottom-nav {
+.auth-bottom-nav {
   display: none;
 }
 
 @media (max-width: 1024px) {
-  .app-navbar {
+  .auth-navbar {
     padding: 0 20px;
   }
 
-  .app-navbar-inner {
+  .auth-navbar-inner {
     gap: 14px;
   }
 
-  .app-nav-links {
+  .auth-nav-links {
     gap: 24px;
   }
 }
 
 @media (max-width: 860px) {
-  .app-navbar {
+  .auth-navbar {
     display: none;
   }
 
-  .app-content {
+  .auth-content {
     min-height: 100vh;
     padding-bottom: 92px;
   }
 
-  .app-navbar-inner {
+  .auth-navbar-inner {
     grid-template-columns: auto auto;
     grid-template-areas:
       "logo profile"
       "nav nav";
     row-gap: 12px;
+    align-items: center;
   }
 
-  .app-logo {
+  .auth-logo {
     grid-area: logo;
   }
 
-  .app-nav-links {
+  .auth-nav-links {
     grid-area: nav;
     justify-content: flex-start;
     gap: 18px;
@@ -230,12 +237,12 @@
     padding-bottom: 2px;
   }
 
-  .app-nav-right {
+  .auth-nav-right {
     grid-area: profile;
     justify-self: end;
   }
 
-  .app-bottom-nav {
+  .auth-bottom-nav {
     position: fixed;
     left: 0;
     right: 0;
@@ -246,12 +253,12 @@
     gap: 0;
     padding: 8px 8px 10px;
     background: rgba(255, 255, 255, 0.96);
-    border-top: 1px solid rgba(224, 218, 245, 0.95);
+    border-top: 1px solid rgba(226, 221, 245, 0.9);
     box-shadow: 0 -8px 30px rgba(92, 69, 224, 0.08);
     backdrop-filter: blur(12px);
   }
 
-  .app-bottom-nav-item {
+  .auth-bottom-nav-item {
     appearance: none;
     border: none;
     background: transparent;
@@ -267,16 +274,16 @@
     cursor: pointer;
   }
 
-  .app-bottom-nav-item--active {
+  .auth-bottom-nav-item--active {
     color: #5c45e0;
   }
 
-  .app-bottom-nav-item--disabled {
+  .auth-bottom-nav-item--disabled {
     color: #b5abc8;
     cursor: default;
   }
 
-  .app-bottom-nav-icon {
+  .auth-bottom-nav-icon {
     width: 28px;
     height: 28px;
     display: inline-flex;
@@ -284,12 +291,12 @@
     justify-content: center;
   }
 
-  .app-bottom-nav-icon svg {
+  .auth-bottom-nav-icon svg {
     width: 28px;
     height: 28px;
   }
 
-  .app-bottom-nav-label {
+  .auth-bottom-nav-label {
     font-size: 11px;
     font-weight: 700;
     line-height: 1.15;
@@ -297,41 +304,7 @@
     white-space: nowrap;
   }
 
-  .app-bottom-nav-item--active .app-bottom-nav-icon svg {
-    stroke: #5c45e0;
-  }
-
-  .app-bottom-nav-item--disabled .app-bottom-nav-icon svg {
-    stroke: currentColor;
-  }
-
-  .app-bottom-nav-item .app-bottom-nav-icon {
-    color: currentColor;
-  }
-
-  .app-bottom-nav-item--active .app-bottom-nav-label {
-    color: #5c45e0;
-  }
-
-  .app-bottom-nav-item--disabled .app-bottom-nav-label {
-    color: currentColor;
-  }
-
-  .app-bottom-nav-item--active .app-bottom-nav-icon,
-  .app-bottom-nav-item--active .app-bottom-nav-icon svg {
-    color: #5c45e0;
-  }
-
-  .app-bottom-nav-item--disabled .app-bottom-nav-icon,
-  .app-bottom-nav-item--disabled .app-bottom-nav-icon svg {
-    color: #b5abc8;
-  }
-
-  .app-bottom-nav-item:not(.app-bottom-nav-item--disabled):active {
-    transform: translateY(1px);
-  }
-
-  .app-bottom-nav-item .app-bottom-nav-profile-photo {
+  .auth-bottom-nav-profile-photo {
     width: 28px;
     height: 28px;
     border-radius: 999px;
@@ -342,15 +315,33 @@
     overflow: hidden;
   }
 
-  .app-bottom-nav-item .app-bottom-nav-profile-photo svg {
+  .auth-bottom-nav-profile-photo svg {
     width: 18px;
     height: 18px;
     color: #5c45e0;
   }
+
+  .auth-bottom-nav-item--active .auth-bottom-nav-label {
+    color: #5c45e0;
+  }
+
+  .auth-bottom-nav-item--disabled .auth-bottom-nav-label {
+    color: currentColor;
+  }
+
+  .auth-bottom-nav-item--active .auth-bottom-nav-icon,
+  .auth-bottom-nav-item--active .auth-bottom-nav-icon svg {
+    color: #5c45e0;
+  }
+
+  .auth-bottom-nav-item--disabled .auth-bottom-nav-icon,
+  .auth-bottom-nav-item--disabled .auth-bottom-nav-icon svg {
+    color: #b5abc8;
+  }
 }
 
 @media (min-width: 861px) {
-  .app-bottom-nav {
+  .auth-bottom-nav {
     display: none;
   }
 }
