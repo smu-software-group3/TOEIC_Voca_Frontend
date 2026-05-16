@@ -12,7 +12,6 @@ import Register from "./pages/Register/Register";
 import PasswordChange from "./pages/PasswordChange/PasswordChange";
 import PasswordFind from "./pages/PasswordFind/PasswordFind";
 import Retest from "./pages/Retest/Retest";
-import AuthLayout from "./components/AuthLayout";
 import Home from "./pages/Home/Home";
 import { AuthProvider, RequireAuth } from "./contexts/AuthContext";
 
@@ -97,11 +96,6 @@ const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
-    ],
-  },
-  {
-    element: <AuthLayout />,
-    children: [
       {
         path: "login",
         element: <Login />,

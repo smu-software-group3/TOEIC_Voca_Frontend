@@ -198,7 +198,6 @@ function WordTest() {
       setError("");
       setTestResults([]);
       setWrongWords([]);
-      setIsQuestionSettingsOpen(false);
       return;
     }
 
@@ -212,7 +211,6 @@ function WordTest() {
     setError("");
     setTestResults([]);
     setWrongWords([]);
-    setIsQuestionSettingsOpen(false);
 
     const loadQuestions = async () => {
       setLoading(true);
@@ -763,7 +761,7 @@ function WordTest() {
           <div className="wordtest-settings-banner">
             <div className="wordtest-settings-note">
               <strong>
-                테스트는 선택한 단어장과 난이도에 따라 출제됩니다.
+                테스트는 기본적으로 6 문항으로 출제됩니다.
               </strong>
               <span>
                 테스트 설정 변경을 누르면 문항 수를 조절할 수 있습니다.
@@ -826,7 +824,7 @@ function WordTest() {
                 >
                   직접 입력
                 </label>
-                <Input
+                <input
                   id="question-count"
                   type="number"
                   min={1}
