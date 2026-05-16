@@ -7,6 +7,14 @@ import {
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { Form } from "../../components/Form";
+import {
+  difficultyBadgeClass,
+  translateDifficulty,
+} from "../../utils/difficulty";
+import {
+  partOfSpeechBadgeClass,
+  partOfSpeechToKorean,
+} from "../../utils/partOfSpeech";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./WordTest.css";
 
@@ -16,32 +24,6 @@ function getPrimaryMeaning(word) {
 
 function getPrimaryPartOfSpeech(word) {
   return word?.meanings?.[0]?.partOfSpeech || word?.partOfSpeech || "";
-}
-
-function translatePartOfSpeech(partOfSpeech) {
-  const partOfSpeechMap = {
-    NOUN: "명사",
-    VERB: "동사",
-    ADJECTIVE: "형용사",
-    ADVERB: "부사",
-    PRONOUN: "대명사",
-    PREPOSITION: "전치사",
-    CONJUNCTION: "접속사",
-    INTERJECTION: "감탄사",
-    ARTICLE: "관사",
-  };
-
-  return partOfSpeechMap[partOfSpeech] || partOfSpeech;
-}
-
-function translateDifficulty(difficulty) {
-  const difficultyMap = {
-    EASY: "쉬움",
-    MEDIUM: "중간",
-    HARD: "어려움",
-  };
-
-  return difficultyMap[difficulty] || difficulty;
 }
 
 function shuffle(list) {
@@ -930,14 +912,24 @@ function WordTest() {
                   {isObjectiveTest ? (
                     <>
                       <div className="wordtest-objective-meta">
-                        <span className="wordtest-part-of-speech-badge">
-                          {translatePartOfSpeech(currentQuestion.partOfSpeech)}
+                        <span
+                          className={partOfSpeechBadgeClass(
+                            currentQuestion.partOfSpeech,
+                          )}
+                        >
+                          품사:{" "}
+                          {partOfSpeechToKorean(currentQuestion.partOfSpeech)}
                         </span>
-                        <span className="wordtest-difficulty-badge">
+                        <span
+                          className={difficultyBadgeClass(
+                            currentQuestion.difficulty,
+                          )}
+                        >
+                          난이도:{" "}
                           {translateDifficulty(currentQuestion.difficulty)}
                         </span>
                       </div>
-                      <p className="wordtest-word-main">
+                      <p className="wordtest-word-main-selective">
                         {currentQuestion.meaning}
                       </p>
                       <div className="wordtest-option-grid">
@@ -986,6 +978,24 @@ function WordTest() {
                     </>
                   ) : (
                     <>
+                      <div className="wordtest-subjective-meta wordtest-objective-meta">
+                        <span
+                          className={partOfSpeechBadgeClass(
+                            currentQuestion.partOfSpeech,
+                          )}
+                        >
+                          품사:{" "}
+                          {partOfSpeechToKorean(currentQuestion.partOfSpeech)}
+                        </span>
+                        <span
+                          className={difficultyBadgeClass(
+                            currentQuestion.difficulty,
+                          )}
+                        >
+                          난이도:{" "}
+                          {translateDifficulty(currentQuestion.difficulty)}
+                        </span>
+                      </div>
                       <p className="wordtest-word-main-subjective">
                         {currentQuestion.meaning}
                       </p>

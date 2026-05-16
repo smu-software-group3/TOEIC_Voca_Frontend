@@ -200,7 +200,7 @@
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 874px) {
   .app-navbar {
     display: none;
   }
@@ -349,7 +349,7 @@
   }
 }
 
-@media (min-width: 861px) {
+@media (min-width: 874px) {
   .app-bottom-nav {
     display: none;
   }

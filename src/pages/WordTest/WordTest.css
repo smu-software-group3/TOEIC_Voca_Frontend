@@ -179,6 +179,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 10px;
 }
 
 .wordtest-feature-list {
@@ -188,7 +189,7 @@
   gap: 12px;
   margin: 0;
   padding: 0;
-  margin-bottom: 12px;
+  margin-bottom: 30px;
 }
 
 .wordtest-feature-list li {
@@ -758,50 +759,115 @@
   color: #94a3b8;
 }
 
-.wordtest-word-main {
-  font-size: 42px;
+.wordtest-word-main-selective {
+  font-size: 38px;
+  margin-top: 0px;
   font-weight: 800;
   color: #1e1b4b;
   letter-spacing: -0.02em;
-  margin-bottom: 52px;
+  margin-bottom: 28px;
 }
 
-.wordtest-difficulty-badge {
-  display: inline-block;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(139, 92, 246, 0.14);
-  color: #4c1d95;
-  border: 0.5px solid rgba(139, 92, 246, 0.22);
-}
-
-.wordtest-meta-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.wordtest-meta-row {
+.wordtest-objective-meta {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-bottom: 16px;
 }
 
-.wordtest-part-of-speech-badge {
-  margin-bottom: 8px;
-  background: rgba(13, 148, 136, 0.12);
-  color: #0f766e;
-  border-color: rgba(13, 148, 136, 0.22);
+.wordtest-objective-meta .pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--pos-accent, #64748b);
+  background: color-mix(in srgb, var(--pos-accent, #64748b) 14%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--pos-accent, #64748b) 28%, #ffffff);
+}
+
+.wordtest-objective-meta .pos-badge--noun {
+  --pos-accent: #2563eb;
+}
+
+.wordtest-objective-meta .pos-badge--verb {
+  --pos-accent: #0d9488;
+}
+
+.wordtest-objective-meta .pos-badge--adjective {
+  --pos-accent: #7c3aed;
+}
+
+.wordtest-objective-meta .pos-badge--adverb {
+  --pos-accent: #d97706;
+}
+
+.wordtest-objective-meta .pos-badge--pronoun {
+  --pos-accent: #db2777;
+}
+
+.wordtest-objective-meta .pos-badge--preposition {
+  --pos-accent: #0f766e;
+}
+
+.wordtest-objective-meta .pos-badge--conjunction {
+  --pos-accent: #4f46e5;
+}
+
+.wordtest-objective-meta .pos-badge--interjection {
+  --pos-accent: #dc2626;
+}
+
+.wordtest-objective-meta .pos-badge--article {
+  --pos-accent: #334155;
+}
+
+.wordtest-objective-meta .pos-badge--default {
+  color: #64748b;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.wordtest-objective-meta .diff-badge {
+  display: inline-block;
+  font-size: 14px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.wordtest-subjective-meta {
+  margin-bottom: 16px;
+}
+
+.wordtest-objective-meta .diff-badge--easy {
+  background: rgba(45, 212, 191, 0.15);
+  color: #134e4a;
+  border: 0.5px solid rgba(13, 148, 136, 0.22);
+}
+
+.wordtest-objective-meta .diff-badge--medium {
+  background: rgba(251, 191, 36, 0.2);
+  color: #78350f;
+  border: 0.5px solid rgba(217, 119, 6, 0.24);
+}
+
+.wordtest-objective-meta .diff-badge--hard {
+  background: rgba(139, 92, 246, 0.14);
+  color: #4c1d95;
+  border: 0.5px solid rgba(139, 92, 246, 0.22);
 }
 
 .wordtest-word-main-subjective {
   font-size: 38px;
+  margin-top: 0px;
   font-weight: 800;
   color: #1e1b4b;
   letter-spacing: -0.03em;
@@ -1045,7 +1111,6 @@
   gap: 12px;
   margin-top: 28px;
   width: 100%;
-  max-width: 760px;
 }
 
 .wordtest-page button.wordtest-btn-exit {
@@ -1207,7 +1272,7 @@
   color: #0f766e;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 874px) {
   .wordtest-settings-banner {
     flex-direction: column;
     align-items: stretch;
