@@ -1023,26 +1023,7 @@ function WordTest() {
                         </div>
                       </div>
 
-                      <div className="wordtest-hint-box">
-                        <div className="wordtest-hint-title">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                          </svg>
-                          힌트
-                        </div>
-                        <div className="wordtest-hint-text">
-                          모범적이고 태도로 꾸준히 노력하는 모습
-                        </div>
-                      </div>
+                     
                     </>
                   )}
                 </div>
