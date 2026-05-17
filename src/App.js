@@ -4,6 +4,7 @@ import { getMemberInfo } from "./api/server";
 import { useAuth } from "./contexts/AuthContext";
 import logoDefault from "./img/logo_default.png";
 import "./App.css";
+import DefaultProfile from "./components/DefaultProfile";
 
 function renderNavIcon(type) {
   switch (type) {
@@ -205,19 +206,7 @@ function App() {
               className="app-profile-button"
               aria-label="사용자 정보"
             >
-              <span className="app-avatar" aria-hidden="true">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                </svg>
-              </span>
+              <DefaultProfile className={"app-avatar"}/>
               <span className="app-user-name">
                 {memberName}
                 <svg

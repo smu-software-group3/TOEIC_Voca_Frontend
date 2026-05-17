@@ -15,13 +15,13 @@
 }
 
 .profile-page {
-  background: linear-gradient(
-    145deg,
-    #e8e4ff 0%,
-    #d4e8ff 30%,
-    #c8f5f0 60%,
-    #e8e4ff 100%
-  );
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(94, 74, 242, 0.14),
+      transparent 34%
+    ),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -29,68 +29,9 @@
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  overflow-x: hidden;
   padding: 28px 0;
   position: relative;
-}
-
-.profile-blob-tr {
-  position: absolute;
-  top: -50px;
-  right: -50px;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(167, 139, 250, 0.35) 0%,
-    rgba(94, 234, 212, 0.15) 50%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.profile-blob-bl {
-  position: absolute;
-  bottom: -40px;
-  left: 5%;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(45, 212, 191, 0.25) 0%,
-    rgba(139, 92, 246, 0.1) 50%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.profile-blob-mr {
-  position: absolute;
-  top: 35%;
-  right: 5%;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(196, 181, 253, 0.3) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.profile-star {
-  position: absolute;
-  border-radius: 50%;
-  top: var(--star-top);
-  left: var(--star-left);
-  width: var(--star-size);
-  height: var(--star-size);
-  opacity: var(--star-opacity);
-  background: var(--star-color);
-  box-shadow: var(--star-shadow);
+  min-height: calc(100vh - 65px);
 }
 
 .profile-complete-banner {
@@ -133,32 +74,7 @@
 .profile-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(167, 139, 250, 0.4) 0%,
-    rgba(45, 212, 191, 0.25) 60%,
-    transparent 100%
-  );
-}
-
-.profile-banner-ring-lg {
-  position: absolute;
-  top: -25px;
-  right: 50px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(196, 181, 253, 0.4);
-}
-
-.profile-banner-ring-sm {
-  position: absolute;
-  top: -15px;
-  right: 60px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 1px solid rgba(94, 234, 212, 0.3);
+  background: rgb(119, 85, 221);
 }
 
 .profile-body {
@@ -181,18 +97,19 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #0d9488);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid #fff;
+  border: 4px solid #fff;
+  overflow: hidden;
   box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
 }
 
-.profile-avatar-letter {
-  font-size: 21px;
-  font-weight: 700;
-  color: #fff;
+.profile-avatar-default {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ede9ff, #d4f0e3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .profile-actions-col {
@@ -207,7 +124,7 @@
 }
 
 .profile-btn-edit {
-  background: linear-gradient(135deg, #6d28d9, #4c1d95);
+  background: #6d28d9;
   border-radius: 9px;
   padding: 8px 14px;
   cursor: pointer;
@@ -219,7 +136,7 @@
 }
 
 .profile-btn-pwc {
-  background: linear-gradient(135deg, #4c1d95, #0f766e);
+  background: #0f766e;
   border-radius: 9px;
   padding: 8px 14px;
   cursor: pointer;
@@ -231,7 +148,7 @@
 }
 
 .profile-btn-cancel {
-  background: rgba(255, 255, 255, 0.8);
+  background: #dc2626;
   border-radius: 9px;
   padding: 8px 14px;
   cursor: pointer;
@@ -308,7 +225,6 @@
 }
 
 .profile-select-job {
-  width: 100%;
   font-size: 13px;
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 8px;

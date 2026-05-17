@@ -2,13 +2,13 @@
   min-height: 100vh;
   padding: 32px;
   box-sizing: border-box;
-  background: linear-gradient(
-    145deg,
-    #e8e4ff 0%,
-    #d4e8ff 30%,
-    #c8f5f0 65%,
-    #e4e0ff 100%
-  );
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(94, 74, 242, 0.14),
+      transparent 34%
+    ),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -77,6 +77,30 @@
   margin: 0;
   color: #5b6476;
   line-height: 1.5;
+}
+
+.title-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.title-icon-weak {
+  color: #fff;
+  background: #d34127;
+}
+.title-icon-today-wrong {
+  color: #fff;
+  background: #28a164;
+}
+.title-icon-old-relearning {
+  color: #fff;
+  background: #7150be;
 }
 
 .retest-choice-meta {
@@ -775,5 +799,9 @@
 
   .wordtest-word-main {
     font-size: 30px;
+  }
+
+  .retest-toolbar-button {
+    font-size: 12px;
   }
 }

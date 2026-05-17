@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRelearningWords, getTodayWrongWords, getWeakWords } from "../../api/server";
+import {
+  getRelearningWords,
+  getTodayWrongWords,
+  getWeakWords,
+} from "../../api/server";
 import "./Retest.css";
 
 const LIST_META = {
@@ -22,6 +26,57 @@ const LIST_META = {
     buttonText: "오래된 문제 보기",
   },
 };
+
+function icon(type) {
+  const iconMap = {
+    "today-wrong": (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+        <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="3" />
+        <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="3" />
+        <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="3" />
+      </svg>
+    ),
+    weak: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+    "old-relearning": (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+  };
+  return iconMap[type] || null;
+}
 
 function getPrimaryMeaning(word) {
   return word?.meanings?.[0]?.meaning || word?.meaning || "";
@@ -132,7 +187,9 @@ function Retest() {
   const { listType, flowType } = useParams();
 
   const activeListType =
-    listType === "weak" || listType === "today-wrong" || listType === "old-relearning"
+    listType === "weak" ||
+    listType === "today-wrong" ||
+    listType === "old-relearning"
       ? listType
       : "";
   const activeFlowType =
@@ -177,11 +234,12 @@ function Retest() {
       setError("");
 
       try {
-        const [todayResponse, weakResponse, relearningResponse] = await Promise.all([
-          getTodayWrongWords(),
-          getWeakWords({ limit: 10 }),
-          getRelearningWords(),
-        ]);
+        const [todayResponse, weakResponse, relearningResponse] =
+          await Promise.all([
+            getTodayWrongWords(),
+            getWeakWords({ limit: 10 }),
+            getRelearningWords(),
+          ]);
 
         if (!todayResponse?.success) {
           throw new Error(
@@ -565,7 +623,9 @@ function Retest() {
               return (
                 <article key={key} className="retest-choice-card">
                   <div>
-                    <span className="eyebrow">{meta.title}</span>
+                    <div class={`title-icon title-icon-${key}`}>
+                      {icon(key)}
+                    </div>
                     <h2>{meta.title}</h2>
                     <p>{meta.description}</p>
                   </div>
@@ -631,7 +691,8 @@ function Retest() {
           {isSelectableList && weakSelectionOpen && (
             <div className="retest-selection-row">
               <p className="retest-selection-help">
-                체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체 {activeListMeta?.title || "목록"}를 테스트합니다.
+                체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체{" "}
+                {activeListMeta?.title || "목록"}를 테스트합니다.
               </p>
               <button
                 type="button"
@@ -664,7 +725,8 @@ function Retest() {
 
               {isSelectableList && (
                 <p className="retest-selection-help">
-                  체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체 {activeListMeta?.title || "목록"}를 테스트합니다.
+                  체크한 단어만 테스트하고, 아무것도 고르지 않으면 전체{" "}
+                  {activeListMeta?.title || "목록"}를 테스트합니다.
                 </p>
               )}
 
@@ -713,7 +775,8 @@ function Retest() {
                 <li
                   key={word.wordId}
                   className={
-                    isSelectableList && selectedWeakWordIds.includes(word.wordId)
+                    isSelectableList &&
+                    selectedWeakWordIds.includes(word.wordId)
                       ? "weak-list-item weak-list-item--selected"
                       : "weak-list-item"
                   }
@@ -994,7 +1057,6 @@ function Retest() {
             return (
               <article key={key} className="retest-choice-card">
                 <div>
-                  <span className="eyebrow">{meta.title}</span>
                   <h2>{meta.title}</h2>
                   <p>{meta.description}</p>
                 </div>
