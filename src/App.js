@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { getMemberInfo } from "./api/server";
+import { clearAuthTokens, getMemberInfo, logout } from "./api/server";
 import { useAuth } from "./contexts/AuthContext";
 import logoDefault from "./img/logo_default.png";
 import "./App.css";
@@ -92,7 +92,7 @@ function renderNavIcon(type) {
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, refreshAuthState } = useAuth();
   const [memberName, setMemberName] = useState("사용자");
 
   const navItems = useMemo(
@@ -145,6 +145,26 @@ function App() {
     }
 
     navigate(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await logout();
+
+      if (!response?.success) {
+        throw new Error(response?.message || "로그아웃 요청에 실패했습니다.");
+      }
+    } catch (requestError) {
+      if (requestError.code !== "UNAUTHORIZED") {
+        alert(requestError.message || "로그아웃 요청에 실패했습니다.");
+        return;
+      }
+    }
+
+    clearAuthTokens();
+    refreshAuthState();
+    setMemberName("사용자");
+    navigate("/login");
   };
 
   const isActivePath = (path) => location.pathname.startsWith(path);
@@ -201,18 +221,25 @@ function App() {
             })}
           </ul>
           <div className="app-nav-right">
-            
             <button
               type="button"
               className="app-profile-button"
               aria-label="사용자 정보"
               onClick={() => navigate("/profile")}
             >
-              <DefaultProfile className={"app-avatar"}/>
-              <span className="app-user-name">
-                {memberName}
-              </span>
+              <DefaultProfile className={"app-avatar"} />
+              <span className="app-user-name">{memberName}</span>
             </button>
+
+            {isAuthenticated && (
+              <button
+                type="button"
+                className="app-logout-button"
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+            )}
           </div>
         </div>
       </header>

@@ -14,7 +14,6 @@
   border-bottom: 1px solid rgba(224, 218, 245, 0.95);
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
-
 }
 
 .app-navbar-inner {
@@ -146,6 +145,35 @@
   cursor: pointer;
 }
 
+.app-logout-button {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(220, 38, 38, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #b91c1c;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.app-logout-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(220, 38, 38, 0.28);
+  background: rgba(254, 242, 242, 0.98);
+  color: #991b1b;
+}
+
+.app-logout-button:active {
+  transform: translateY(0);
+}
+
 .app-avatar {
   width: 36px;
   height: 36px;
@@ -202,7 +230,7 @@
   }
 }
 
-@media (max-width: 874px) {
+@media (max-width: 927px) {
   .app-navbar {
     display: none;
   }
@@ -235,6 +263,11 @@
   .app-nav-right {
     grid-area: profile;
     justify-self: end;
+  }
+
+  .app-logout-button {
+    height: 34px;
+    padding: 0 12px;
   }
 
   .app-bottom-nav {
@@ -351,7 +384,7 @@
   }
 }
 
-@media (min-width: 875px) {
+@media (min-width: 928px) {
   .app-bottom-nav {
     display: none;
   }

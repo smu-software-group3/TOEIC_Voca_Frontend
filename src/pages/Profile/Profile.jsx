@@ -190,7 +190,6 @@ function Profile() {
 
   // 표시 이름과 아바타 첫 글자를 계산한다.
   const displayName = userProfile.username || userProfile.nickname || "사용자";
-  const firstChar = displayName.charAt(0) || "사";
 
   return (
     <div className="profile-page">
