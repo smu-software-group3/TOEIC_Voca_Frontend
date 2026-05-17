@@ -80,10 +80,10 @@
 }
 
 .title-icon {
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
+  padding: 10px;
   border-radius: 16px;
-  padding: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
