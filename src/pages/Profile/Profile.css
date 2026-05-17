@@ -6,7 +6,7 @@
       transparent 34%
     ),
     linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  min-height: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -352,7 +352,6 @@
   .profile-actions-row {
     width: 100%;
     display: flex;
-    
   }
 
   .profile-btn-edit,
