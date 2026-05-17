@@ -1,5 +1,5 @@
 .word-page {
-  min-height: 100%;
+  min-height: 100vh;
   padding: 28px 32px 40px;
   box-sizing: border-box;
   background:
@@ -216,10 +216,10 @@
     border-color 0.15s ease,
     box-shadow 0.15s ease,
     transform 0.15s ease;
+  cursor: pointer;
 }
 
-.word-select:hover,
-.word-select:focus {
+.word-select:hover {
   border-color: rgba(92, 69, 224, 0.34);
   box-shadow: 0 0 0 4px rgba(92, 69, 224, 0.08);
 }
@@ -572,15 +572,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 10px;
+  min-height: 32px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   color: var(--pos-accent, #64748b);
   background: color-mix(in srgb, var(--pos-accent, #64748b) 14%, #ffffff);
   border: 1px solid color-mix(in srgb, var(--pos-accent, #64748b) 28%, #ffffff);
+}
+
+.diff-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.word-difficulty-header {
+  text-align: center;
 }
 
 .pos-badge--default {
@@ -727,44 +745,13 @@
   .word-sidebar {
     position: static;
   }
-}
-
-@media (max-width: 860px) {
-  .word-page {
-    padding: 20px 16px 32px;
-  }
-
-  .word-hero-inner {
-    padding: 22px 20px;
-    flex-direction: column;
-  }
-
   .word-hero-figure {
-    flex-basis: auto;
-    min-height: 140px;
-  }
-
-  .word-table-card,
-  .word-side-card {
-    border-radius: 20px;
-    padding: 18px;
-  }
-
-  .word-table-header {
-    flex-direction: column;
-  }
-
-  .word-filter-row {
-    justify-content: stretch;
-  }
-
-  .word-select {
-    width: 100%;
-    min-width: 0;
+    display: none;
   }
 }
 
-@media (max-width: 640px) {
+
+@media (max-width: 875px) {
   .word-search-bar {
     width: 100%;
   }
@@ -784,7 +771,11 @@
 
   .word-table tbody tr {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "favorite spelling"
+      "meaning meaning"
+      "pos difficulty";
     gap: 10px 12px;
     padding: 14px;
   }
@@ -796,25 +787,44 @@
   .word-table tbody td:first-child {
     width: auto;
     text-align: left;
-    grid-row: 1 / span 2;
+    grid-area: favorite;
   }
 
-  .word-table tbody td:nth-child(2),
-  .word-table tbody td:nth-child(4),
-  .word-table tbody td:nth-child(5) {
+  .word-table tbody td:nth-child(2) {
     width: auto;
+    grid-area: spelling;
+    align-self: center;
   }
 
   .word-spelling-cell {
     font-size: 15px;
   }
 
+  .word-spelling-button {
+    font-size: 18px;
+  }
+
+  .word-table tbody td:nth-child(4) {
+    width: auto;
+    grid-area: pos;
+    justify-self: start;
+    align-self: center;
+  }
+
+  .word-table tbody td:nth-child(5) {
+    width: auto;
+    grid-area: difficulty;
+    justify-self: end;
+    align-self: center;
+    text-align: right;
+  }
+
   .word-meaning-cell {
-    grid-column: 1 / -1;
+    grid-area: meaning;
   }
 
   .word-difficulty-cell {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .word-pagination {
@@ -836,6 +846,6 @@
   }
 
   .word-spelling-button {
-  font-size: 24px;
-}
+    font-size: 24px;
+  }
 }

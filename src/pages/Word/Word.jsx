@@ -14,7 +14,7 @@ import {
   partOfSpeechToKorean,
 } from "../../utils/partOfSpeech";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 function getUniquePartOfSpeechList(word) {
   const meanings = Array.isArray(word?.meanings) ? word.meanings : [];
@@ -255,7 +255,6 @@ function Word() {
     (word) => word.difficulty === "HARD",
   ).length;
   const selectedWordMeanings = getDetailedMeanings(selectedWord);
-  const selectedWordPartOfSpeechList = getUniquePartOfSpeechList(selectedWord);
 
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
@@ -385,9 +384,7 @@ function Word() {
                     <th>단어</th>
                     <th>뜻</th>
                     <th>품사</th>
-                    <th>
-                      난이도
-                    </th>
+                    <th className="word-difficulty-header">난이도</th>
                   </tr>
                 </thead>
                 <tbody>

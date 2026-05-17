@@ -1,17 +1,18 @@
 .profile-shell {
-  background: linear-gradient(
-    145deg,
-    #e8e4ff 0%,
-    #d4e8ff 30%,
-    #c8f5f0 60%,
-    #e8e4ff 100%
-  );
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(94, 74, 242, 0.14),
+      transparent 34%
+    ),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   width: 100%;
+  align-items: center;
 }
 
 .profile-page {
