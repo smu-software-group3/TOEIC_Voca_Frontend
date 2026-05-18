@@ -1,12 +1,6 @@
 .profile-shell {
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(94, 74, 242, 0.14),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  min-height: 100vh;
+  background: #f0eef8;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,14 +9,8 @@
 }
 
 .profile-page {
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(94, 74, 242, 0.14),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  min-height: 100%;
+  background: #f0eef8;
+  min-height: calc(100vh - var(--navbar-height));
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -31,7 +19,6 @@
   width: 100%;
   padding: 28px 0;
   position: relative;
-  min-height: calc(100vh - 65px);
 }
 
 .profile-complete-banner {

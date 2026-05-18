@@ -13,6 +13,8 @@ import {
   partOfSpeechColor,
   partOfSpeechToKorean,
 } from "../../utils/partOfSpeech";
+import img from "../../img/word_tr.png";
+import ScrollToTop from "../../components/ScrollToTop";
 
 const PAGE_SIZE = 8;
 
@@ -171,6 +173,14 @@ function Word() {
     setCurrentPage(1);
   }, [spelling, difficulty, partOfSpeech, sort]);
 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "instant", // 또는 "smooth"
+    });
+  }, [currentPage]);
+
   const filteredWords = useMemo(() => {
     const normalizedSearch = spelling.trim().toLowerCase();
 
@@ -262,7 +272,7 @@ function Word() {
 
   return (
     <main className="word-page">
-      <div className="word-page-inner">
+      <div className="word-page-inner fade-slide-up">
         <section className="word-hero-banner">
           <div className="word-hero-inner">
             <div className="word-hero-content">
@@ -308,9 +318,7 @@ function Word() {
             </div>
 
             <div className="word-hero-figure" aria-hidden="true">
-              <div className="word-hero-orb word-hero-orb--one" />
-              <div className="word-hero-orb word-hero-orb--two" />
-              <div className="word-hero-orb word-hero-orb--three" />
+              <img src={img} alt="Word Hero" className="word-hero-figure-img"/>
             </div>
           </div>
         </section>
@@ -400,7 +408,7 @@ function Word() {
                       const meaningString = Array.isArray(item.meanings)
                         ? item.meanings
                             .map((m) => m?.meaning || "")
-                            .join(" ")
+                            .join(", ")
                             .toLowerCase()
                         : String(item.meaning || "").toLowerCase();
 

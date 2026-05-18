@@ -55,7 +55,7 @@ function renderNavIcon(type) {
           <path d="M4 20v-5h5" />
         </svg>
       );
-    case "dashboard":
+    case "manage":
       return (
         <svg
           viewBox="0 0 24 24"
@@ -94,16 +94,28 @@ function App() {
   const location = useLocation();
   const { isAuthenticated, refreshAuthState } = useAuth();
   const [memberName, setMemberName] = useState("사용자");
+  const [memberRole, setMemberRole] = useState("");
+  const isAdmin =
+    memberRole === "ROLE_ADMIN" || memberRole.toLowerCase() === "admin";
 
   const navItems = useMemo(
     () => [
       { label: "단어장 조회", path: "/word", enabled: true, icon: "book" },
       { label: "단어 테스트", path: "/wtest", enabled: true, icon: "test" },
       { label: "재학습", path: "/retest", enabled: true, icon: "retest" },
-      { label: "대시보드", path: null, enabled: false, icon: "dashboard" },
+      ...(isAdmin
+        ? [
+            {
+              label: "단어장 관리",
+              path: "/admin",
+              enabled: true,
+              icon: "manage",
+            },
+          ]
+        : []),
       { label: "프로필", path: "/profile", enabled: true, icon: "profile" },
     ],
-    [],
+    [isAdmin],
   );
 
   useEffect(() => {
@@ -113,6 +125,7 @@ function App() {
       if (!isAuthenticated) {
         if (mounted) {
           setMemberName("사용자");
+          setMemberRole("");
         }
         return;
       }
@@ -121,13 +134,23 @@ function App() {
         const response = await getMemberInfo();
         const payload = response?.data || response || {};
         const displayName = payload.nickname || payload.username || "사용자";
+        const role =
+          payload.role ||
+          payload.userRole ||
+          (Array.isArray(payload.roles)
+            ? typeof payload.roles[0] === "string"
+              ? payload.roles[0]
+              : payload.roles[0]?.role
+            : "");
 
         if (mounted) {
           setMemberName(displayName);
+          setMemberRole(role || "");
         }
       } catch {
         if (mounted) {
           setMemberName("사용자");
+          setMemberRole("");
         }
       }
     }
@@ -164,6 +187,7 @@ function App() {
     clearAuthTokens();
     refreshAuthState();
     setMemberName("사용자");
+    setMemberRole("");
     navigate("/login");
   };
 
@@ -174,11 +198,12 @@ function App() {
       <header className="app-navbar">
         <div className="app-navbar-inner">
           {/* 상단 로고는 템플릿의 브랜드 영역을 그대로 대체한다. */}
-          <button
+          <div>
+            <button
             type="button"
             className="app-logo"
             aria-label="홈으로 이동"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/main")}
           >
             <span className="app-logo-frame" aria-hidden="true">
               <img
@@ -188,59 +213,53 @@ function App() {
               />
             </span>
           </button>
+          </div>
 
-          {/* 가운데 메뉴는 템플릿의 상단 내비게이션과 동일한 구조를 따른다. */}
-          <ul className="app-nav-links">
-            {navItems.map((item) => {
-              if (!item.enabled) {
-                return (
-                  <li key={item.label}>
-                    <span className="app-nav-link app-nav-link--disabled">
-                      {item.label}
-                    </span>
-                  </li>
-                );
-              }
+          {isAuthenticated /* 가운데 메뉴는 템플릿의 상단 내비게이션과 동일한 구조를 따른다. */ && (
+            <>
+              <ul className="app-nav-links">
+                {navItems.map((item) => {
+                  return (
+                    <li key={item.label}>
+                      <button
+                        type="button"
+                        className={[
+                          "app-nav-link",
+                          isActivePath(item.path) && "app-nav-link--active",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        onClick={() => handleNavigate(item.path)}
+                      >
+                        {item.label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="app-nav-right">
+                <button
+                  type="button"
+                  className="app-profile-button"
+                  aria-label="사용자 정보"
+                  onClick={() => navigate("/profile")}
+                >
+                  <DefaultProfile className={"app-avatar"} />
+                  <span className="app-user-name">{memberName}</span>
+                </button>
 
-              return (
-                <li key={item.label}>
+                {isAuthenticated && (
                   <button
                     type="button"
-                    className={[
-                      "app-nav-link",
-                      isActivePath(item.path) && "app-nav-link--active",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    onClick={() => handleNavigate(item.path)}
+                    className="app-logout-button"
+                    onClick={handleLogout}
                   >
-                    {item.label}
+                    로그아웃
                   </button>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="app-nav-right">
-            <button
-              type="button"
-              className="app-profile-button"
-              aria-label="사용자 정보"
-              onClick={() => navigate("/profile")}
-            >
-              <DefaultProfile className={"app-avatar"} />
-              <span className="app-user-name">{memberName}</span>
-            </button>
-
-            {isAuthenticated && (
-              <button
-                type="button"
-                className="app-logout-button"
-                onClick={handleLogout}
-              >
-                로그아웃
-              </button>
-            )}
-          </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -249,56 +268,47 @@ function App() {
         <Outlet />
       </main>
 
-      <nav className="app-bottom-nav" aria-label="모바일 하단 내비게이션">
-        {navItems.map((item) => {
-          const active =
-            item.enabled && item.path ? isActivePath(item.path) : false;
+      {isAuthenticated && (
+        <nav
+          className="app-bottom-nav"
+          aria-label="모바일 하단 내비게이션"
+          style={{
+            gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {navItems.map((item) => {
+            const active = item.path ? isActivePath(item.path) : false;
 
-          if (!item.enabled) {
             return (
               <button
                 key={item.label}
                 type="button"
-                className="app-bottom-nav-item app-bottom-nav-item--disabled"
-                disabled
+                className={[
+                  "app-bottom-nav-item",
+                  active && "app-bottom-nav-item--active",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onClick={() => handleNavigate(item.path)}
               >
-                <span className="app-bottom-nav-icon" aria-hidden="true">
-                  {renderNavIcon(item.icon)}
-                </span>
+                {item.icon === "profile" ? (
+                  <span
+                    className="app-bottom-nav-profile-photo"
+                    aria-hidden="true"
+                  >
+                    {renderNavIcon(item.icon)}
+                  </span>
+                ) : (
+                  <span className="app-bottom-nav-icon" aria-hidden="true">
+                    {renderNavIcon(item.icon)}
+                  </span>
+                )}
                 <span className="app-bottom-nav-label">{item.label}</span>
               </button>
             );
-          }
-
-          return (
-            <button
-              key={item.label}
-              type="button"
-              className={[
-                "app-bottom-nav-item",
-                active && "app-bottom-nav-item--active",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onClick={() => handleNavigate(item.path)}
-            >
-              {item.icon === "profile" ? (
-                <span
-                  className="app-bottom-nav-profile-photo"
-                  aria-hidden="true"
-                >
-                  {renderNavIcon(item.icon)}
-                </span>
-              ) : (
-                <span className="app-bottom-nav-icon" aria-hidden="true">
-                  {renderNavIcon(item.icon)}
-                </span>
-              )}
-              <span className="app-bottom-nav-label">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+          })}
+        </nav>
+      )}
     </div>
   );
 }

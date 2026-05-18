@@ -16,6 +16,7 @@ import {
   partOfSpeechToKorean,
 } from "../../utils/partOfSpeech";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import testSelectImage from "../../img/test_select_tr.png";
 import "./WordTest.css";
 
 function getPrimaryMeaning(word) {
@@ -529,7 +530,7 @@ function WordTest() {
             )}
             <Button
               buttonText="홈으로"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/main")}
               type="button"
               className="wordtest-btn-primary"
             />
@@ -553,16 +554,31 @@ function WordTest() {
   return (
     <main className="wordtest-page">
       {!selectedTestType ? (
-        <section className="wordtest-select-section">
-          <p className="wordtest-eyebrow">테스트 시작</p>
-          <h1 className="wordtest-page-title">
-            어떤 방식으로
-            <br />
-            <span>테스트</span>를 진행할까요?
-          </h1>
-          <p className="wordtest-subtext">
-            원하는 방식을 선택하고 단어 실력을 확인해 보세요!
-          </p>
+        <section className="wordtest-select-section fade-slide-up">
+          <div className="wordtest-select-hero">
+            <div className="wordtest-select-copy">
+              <p className="wordtest-eyebrow">테스트 시작</p>
+              <h1 className="wordtest-page-title">
+                어떤 방식으로
+                <br />
+                <span>테스트</span>를 진행할까요?
+              </h1>
+              <p className="wordtest-subtext">
+                원하는 방식을 선택하고 단어 실력을 확인해 보세요!
+              </p>
+            </div>
+
+            <div
+              className="wordtest-select-visual"
+              aria-hidden="true"
+            >
+              <img
+                src={testSelectImage}
+                alt=""
+                className="wordtest-select-image"
+              />
+            </div>
+          </div>
 
           <div className="wordtest-card-grid">
             <article className="wordtest-type-card wordtest-type-card--objective">
@@ -760,9 +776,7 @@ function WordTest() {
 
           <div className="wordtest-settings-banner">
             <div className="wordtest-settings-note">
-              <strong>
-                테스트는 기본적으로 6 문항으로 출제됩니다.
-              </strong>
+              <strong>테스트는 기본적으로 6 문항으로 출제됩니다.</strong>
               <span>
                 테스트 설정 변경을 누르면 문항 수를 조절할 수 있습니다.
               </span>
@@ -1022,8 +1036,6 @@ function WordTest() {
                           {currentIndex + 1} / {questions.length}
                         </div>
                       </div>
-
-                     
                     </>
                   )}
                 </div>

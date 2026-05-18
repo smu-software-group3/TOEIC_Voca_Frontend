@@ -2,13 +2,23 @@
   min-height: 100vh;
   padding: 28px 32px 40px;
   box-sizing: border-box;
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(94, 74, 242, 0.14),
-      transparent 34%
-    ),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  background: #f0eef8;
+}
+
+@keyframes wordtestFadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-slide-up {
+  animation: wordtestFadeSlideUp 0.55s cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
 .word-page-inner {
@@ -56,7 +66,7 @@
   margin: 0;
   font-size: clamp(30px, 4vw, 46px);
   line-height: 1.25;
-  font-size: 40px;
+  font-size: 35px;
   color: #0f172a;
 }
 
@@ -107,18 +117,15 @@
   flex: 0 0 240px;
   min-height: 220px;
   border-radius: 20px;
-  background:
-    linear-gradient(180deg, rgba(92, 69, 224, 0.05), rgba(92, 69, 224, 0)),
-    radial-gradient(
-      circle at 30% 30%,
-      rgba(92, 69, 224, 0.18),
-      transparent 38%
-    ),
-    radial-gradient(
-      circle at 70% 70%,
-      rgba(14, 165, 233, 0.14),
-      transparent 36%
-    );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 50px;
+}
+
+.word-hero-figure-img {
+  max-width: 400px;
+  object-fit: contain;
 }
 
 .word-hero-orb {
@@ -360,7 +367,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: inherit;
+  color: #111827;
   font: inherit;
   font-weight: inherit;
   letter-spacing: inherit;
@@ -442,7 +449,6 @@
 .word-page-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(92, 69, 224, 0.28);
-  color: #5c45e0;
 }
 
 .word-page-btn:disabled {

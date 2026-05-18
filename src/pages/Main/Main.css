@@ -31,6 +31,18 @@
   margin-bottom: 18px;
 }
 
+.home-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.home-logo {
+  width: 400px;
+  height: auto;
+  object-fit: contain;
+}
+
 .home-title {
   margin: 0;
   font-size: 26px;
@@ -110,4 +122,18 @@
 /* small adjustments */
 .home-card p {
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .home-card {
+    padding: 22px;
+  }
+
+  .home-logo-wrap {
+    margin-bottom: 14px;
+  }
+
+  .home-logo {
+    width: min(180px, 64vw);
+  }
 }
