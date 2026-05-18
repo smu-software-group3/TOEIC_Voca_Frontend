@@ -263,7 +263,10 @@ function Retest() {
             selectedWeakWordIds.includes(word.wordId),
           )
         : activeListWords;
-
+    if (wordsToTest.length === 0) {
+      setError("테스트할 단어가 없습니다.");
+      return;
+    }
     navigate(`/wtest/${type}`, {
       state: {
         customWords: wordsToTest,
@@ -452,7 +455,7 @@ function Retest() {
                   {listWords.length === 0 && (
                     <tr>
                       <td
-                        colSpan={isSelectableList ? 5 : 4}
+                        colSpan="6"
                         className="weak-list-empty"
                       >
                         목록이 없습니다.
@@ -535,25 +538,25 @@ function Retest() {
         <section className="retest-choice-section">
           <div className="retest-choice-grid">
             {Object.entries(LIST_META).map(([key, meta]) => (
-            <article key={key} className="retest-choice-card">
-              <div>
-                <div className={`title-icon title-icon-${key}`}>
-                  {icon(key)}
+              <article key={key} className="retest-choice-card">
+                <div>
+                  <div className={`title-icon title-icon-${key}`}>
+                    {icon(key)}
+                  </div>
+                  <h2>{meta.title}</h2>
+                  <p>{meta.description}</p>
                 </div>
-                <h2>{meta.title}</h2>
-                <p>{meta.description}</p>
-              </div>
-              <div className="retest-choice-meta">
-                <button
-                  type="button"
-                  className="retest-choice-button"
-                  onClick={() => goToList(key)}
-                >
-                  {meta.buttonText}
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="retest-choice-meta">
+                  <button
+                    type="button"
+                    className="retest-choice-button"
+                    onClick={() => goToList(key)}
+                  >
+                    {meta.buttonText}
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       </div>

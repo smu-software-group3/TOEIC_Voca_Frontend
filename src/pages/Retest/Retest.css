@@ -244,6 +244,7 @@ thead th {
 }
 thead th:first-child {
   text-align: center;
+  padding-top: 16px;
 }
 tbody tr {
   border-bottom: 1px solid #f0edf8;
