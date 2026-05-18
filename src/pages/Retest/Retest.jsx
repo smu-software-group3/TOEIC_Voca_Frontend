@@ -519,7 +519,7 @@ function Retest() {
   }
   return (
     <main className="retest-page">
-      <div className="retest-card">
+      <div className="retest-card fade-slide-up">
         <section className="retest-header">
           <div className="retest-hero">
             <span className="eyebrow">재학습</span>
