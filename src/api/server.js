@@ -553,6 +553,67 @@ export async function getWords({
   }
 }
 
+// 사용자의 즐겨찾기 단어 목록을 가져온다.
+export async function getBookmarks() {
+  const url = `${getServerUrl()}/api/words/bookmarks`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.data?.message || "즐겨찾기 조회 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 단어 즐겨찾기 등록/삭제를 처리한다.
+export async function toggleBookmark(wordId) {
+  const url = `${getServerUrl()}/api/words/${encodeURIComponent(wordId)}/bookmark`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const status = error.response?.status;
+    const message =
+      status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : error.response?.data?.message || "즐겨찾기 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
 // 품사별 단어 목록을 가져온다.
 export async function getWordsByPartOfSpeech(partOfSpeech) {
   const url = `${getServerUrl()}/api/words/part-of-speech/${encodeURIComponent(partOfSpeech)}`;
