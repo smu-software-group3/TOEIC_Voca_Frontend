@@ -135,10 +135,11 @@ body {
 }
 
 .retest-choice-grid {
-  max-width: 1180px;
-  width: max-content;
+  max-width: 1100px;
+  width: 100%;
   padding: 30px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   flex-wrap: wrap;
   justify-content: center;
@@ -156,7 +157,7 @@ body {
   border: 1px solid rgba(124, 58, 237, 0.12);
   background: #faf7ff;
   box-shadow: var(--shadow);
-  min-width: 240px;
+  width: 100%;
   flex: 0 1 320px;
 }
 .retest-choice-card h2 {
@@ -1108,6 +1109,7 @@ input[type="checkbox"] {
   transform: none;
   opacity: 0.65;
 }
+
 @media (max-width: 760px) {
   .retest-card {
     grid-template-columns: 1fr;
@@ -1140,6 +1142,6 @@ input[type="checkbox"] {
     display: none;
   }
   .retest-header h1 {
-      font-size: 28px;
+    font-size: 28px;
   }
 }

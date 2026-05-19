@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { getWords } from "../../api/server";
 import { Input } from "../../components/Input";
 import {
@@ -14,7 +15,6 @@ import {
   partOfSpeechToKorean,
 } from "../../utils/partOfSpeech";
 import img from "../../img/word_tr.png";
-import ScrollToTop from "../../components/ScrollToTop";
 
 const PAGE_SIZE = 8;
 
@@ -265,6 +265,87 @@ function Word() {
     (word) => word.difficulty === "HARD",
   ).length;
   const selectedWordMeanings = getDetailedMeanings(selectedWord);
+  const wordModal = selectedWord
+    ? createPortal(
+        <div
+          className="word-modal-overlay"
+          role="presentation"
+          onClick={() => setSelectedWord(null)}
+        >
+          <div
+            className="word-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="word-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="word-modal-header">
+              <div className="word-modal-header-content">
+                <p className="word-modal-eyebrow">단어 상세 정보</p>
+                <div className="word-modal-wrapper">
+                  <h3 id="word-modal-title" className="word-modal-title">
+                    {selectedWord.spelling}
+                  </h3>
+                  <span
+                    className={difficultyBadgeClass(selectedWord.difficulty)}
+                  >
+                    {translateDifficulty(selectedWord.difficulty)}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="word-modal-close"
+                onClick={() => setSelectedWord(null)}
+                aria-label="팝업 닫기"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="word-modal-section">
+              <div className="word-modal-label">뜻</div>
+              <div className="word-modal-meanings">
+                {selectedWordMeanings.map((meaningItem, index) => {
+                  const meaningText = meaningItem?.meaning || "-";
+                  const meaningPartOfSpeech = meaningItem?.partOfSpeech || "";
+
+                  return (
+                    <div
+                      key={`${meaningText}-${index}`}
+                      className="word-modal-meaning-item"
+                    >
+                      <div className="word-modal-meaning-index">
+                        {index + 1}
+                      </div>
+                      <div className="word-modal-meaning-body">
+                        <div className="word-modal-meaning-text">
+                          {meaningText}
+                        </div>
+                        {meaningPartOfSpeech && (
+                          <span
+                            className={partOfSpeechBadgeClass(
+                              meaningPartOfSpeech,
+                            )}
+                            style={{
+                              "--pos-accent":
+                                partOfSpeechColor(meaningPartOfSpeech),
+                            }}
+                          >
+                            {partOfSpeechToKorean(meaningPartOfSpeech)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )
+    : null;
 
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
@@ -633,84 +714,7 @@ function Word() {
           </aside>
         </div>
 
-        {selectedWord && (
-          <div
-            className="word-modal-overlay"
-            role="presentation"
-            onClick={() => setSelectedWord(null)}
-          >
-            <div
-              className="word-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="word-modal-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="word-modal-header">
-                <div className="word-modal-header-content">
-                  <p className="word-modal-eyebrow">단어 상세 정보</p>
-                  <div className="word-modal-wrapper">
-                    <h3 id="word-modal-title" className="word-modal-title">
-                      {selectedWord.spelling}
-                    </h3>
-                    <span
-                      className={difficultyBadgeClass(selectedWord.difficulty)}
-                    >
-                      {translateDifficulty(selectedWord.difficulty)}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="word-modal-close"
-                  onClick={() => setSelectedWord(null)}
-                  aria-label="팝업 닫기"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="word-modal-section">
-                <div className="word-modal-label">뜻</div>
-                <div className="word-modal-meanings">
-                  {selectedWordMeanings.map((meaningItem, index) => {
-                    const meaningText = meaningItem?.meaning || "-";
-                    const meaningPartOfSpeech = meaningItem?.partOfSpeech || "";
-
-                    return (
-                      <div
-                        key={`${meaningText}-${index}`}
-                        className="word-modal-meaning-item"
-                      >
-                        <div className="word-modal-meaning-index">
-                          {index + 1}
-                        </div>
-                        <div className="word-modal-meaning-body">
-                          <div className="word-modal-meaning-text">
-                            {meaningText}
-                          </div>
-                          {meaningPartOfSpeech && (
-                            <span
-                              className={partOfSpeechBadgeClass(
-                                meaningPartOfSpeech,
-                              )}
-                              style={{
-                                "--pos-accent":
-                                  partOfSpeechColor(meaningPartOfSpeech),
-                              }}
-                            >
-                              {partOfSpeechToKorean(meaningPartOfSpeech)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {wordModal}
       </div>
     </main>
   );

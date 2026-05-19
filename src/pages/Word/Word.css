@@ -615,14 +615,15 @@
 
 .word-modal-overlay {
   position: fixed;
-  inset: 0;
-  z-index: 50;
+  inset: 0 0 0 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(8px);
+  overflow: auto;
 }
 
 .word-modal {
