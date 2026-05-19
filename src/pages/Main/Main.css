@@ -31,9 +31,10 @@
   margin-bottom: 18px;
 }
 
-.home-score-card {
+.home-score-card,
+.home-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-top: 24px;
   padding: 20px;
@@ -42,18 +43,21 @@
   border: 1px solid rgba(124, 58, 237, 0.12);
 }
 
-.home-score-item {
+.home-score-item,
+.home-dashboard-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.home-score-label {
+.home-score-label,
+.home-dashboard-label {
   font-size: 13px;
   color: #6b7280;
 }
 
-.home-score-value {
+.home-score-value,
+.home-dashboard-value {
   font-size: 20px;
   font-weight: 700;
   color: #1f2937;
@@ -176,6 +180,12 @@
 @media (max-width: 640px) {
   .home-card {
     padding: 22px;
+  }
+
+  .home-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 16px;
   }
 
   .home-logo-wrap {
