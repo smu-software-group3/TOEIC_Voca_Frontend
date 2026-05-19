@@ -368,7 +368,7 @@ function Retest() {
                   <col />
                   <col style={{ width: "240px" }} />
                   <col style={{ width: "140px" }} />
-                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "130px" }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -526,7 +526,7 @@ function Retest() {
         <section className="retest-header">
           <div className="retest-hero">
             <span className="eyebrow">재학습</span>
-            <h1>취약 단어 재학습</h1>
+            <h1 className="retest-title">원하시는 단어를 선택하고<br /> <span>재학습</span>하세요.</h1>
             <p>
               오늘 틀린 단어와 취약 단어를 분리해 확인하고, 각 목록에서 바로
               테스트할 수 있습니다.

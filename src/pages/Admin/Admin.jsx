@@ -521,12 +521,6 @@ export default function Admin() {
                     <option value="NOUN">명사</option>
                     <option value="VERB">동사</option>
                     <option value="ADJECTIVE">형용사</option>
-                    <option value="ADVERB">부사</option>
-                    <option value="PRONOUN">대명사</option>
-                    <option value="PREPOSITION">전치사</option>
-                    <option value="CONJUNCTION">접속사</option>
-                    <option value="INTERJECTION">감탄사</option>
-                    <option value="ARTICLE">관사</option>
                   </select>
 
                   <select

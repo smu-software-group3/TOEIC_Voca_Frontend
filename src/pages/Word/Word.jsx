@@ -285,40 +285,10 @@ function Word() {
               <p className="word-hero-desc">
                 단어의 뜻과 난이도를 확인하고 학습 계획을 세워보세요.
               </p>
-
-              <div className="word-search-bar">
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <Input
-                  placeholder="단어 또는 뜻을 검색하세요"
-                  value={spelling}
-                  onChange={handleFilterChange(setSpelling)}
-                  autoComplete="off"
-                  className="word-search-input"
-                  style={{
-                    border: "none",
-                    padding: 0,
-                    background: "transparent",
-                    boxShadow: "none",
-                    borderRadius: 0,
-                  }}
-                />
-              </div>
             </div>
 
             <div className="word-hero-figure" aria-hidden="true">
-              <img src={img} alt="Word Hero" className="word-hero-figure-img"/>
+              <img src={img} alt="Word Hero" className="word-hero-figure-img" />
             </div>
           </div>
         </section>
@@ -367,6 +337,35 @@ function Word() {
                   <option value="desc">내림차순</option>
                 </select>
               </div>
+            </div>
+            <div className="word-search-bar">
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <Input
+                placeholder="단어 또는 뜻을 검색하세요"
+                value={spelling}
+                onChange={handleFilterChange(setSpelling)}
+                autoComplete="off"
+                className="word-search-input"
+                style={{
+                  border: "none",
+                  padding: 0,
+                  background: "transparent",
+                  boxShadow: "none",
+                  borderRadius: 0,
+                }}
+              />
             </div>
 
             {error && (

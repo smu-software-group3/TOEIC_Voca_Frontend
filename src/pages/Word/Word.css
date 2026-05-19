@@ -30,7 +30,6 @@
 }
 
 .word-hero-banner {
-  margin-bottom: 22px;
 }
 
 .word-hero-inner {
@@ -82,6 +81,7 @@
   align-items: center;
   gap: 12px;
   margin-top: 22px;
+  margin-bottom: 22px;
   padding: 14px 18px;
   width: min(100%, 620px);
   border-radius: 18px;
