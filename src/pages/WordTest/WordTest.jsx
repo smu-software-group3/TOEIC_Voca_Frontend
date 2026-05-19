@@ -329,16 +329,21 @@ function WordTest() {
     setError("");
 
     try {
-      const response = await checkWordAnswer(
-        currentQuestion.wordId,
-        submittedSpelling,
-      );
+      const response = await checkWordAnswer([
+        {
+          wordId: currentQuestion.wordId,
+          submittedSpelling,
+        },
+      ]);
 
       if (!response?.success) {
         throw new Error(response?.message || "정답 확인에 실패했습니다.");
       }
 
-      const answerData = response.data || {};
+      const answerArray = Array.isArray(response.data)
+        ? response.data
+        : [response.data || {}];
+      const answerData = answerArray[0] || {};
       const isCorrect = Boolean(answerData.correct);
       const correctAnswer = answerData.answer || currentQuestion.spelling || "";
 
