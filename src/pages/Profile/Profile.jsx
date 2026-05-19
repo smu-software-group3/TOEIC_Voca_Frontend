@@ -783,7 +783,6 @@ function Profile() {
               <div className="dashboard-chart-grid">
                 <ChartCard
                   title="오답률 기준 취약 단어"
-                  subtitle="weakWords"
                   data={weakWordChartData}
                   barColor={CHART_COLORS.weak}
                   horizontal
@@ -792,7 +791,6 @@ function Profile() {
                 />
                 <ChartCard
                   title="틀린 횟수 기준 많이 틀린 단어"
-                  subtitle="topWrongWords"
                   data={topWrongWordChartData}
                   barColor={CHART_COLORS.wrong}
                   horizontal
@@ -801,7 +799,6 @@ function Profile() {
                 />
                 <ChartCard
                   title="맞은 횟수 기준 많이 맞은 단어"
-                  subtitle="topCorrectWords"
                   data={topCorrectWordChartData}
                   barColor={CHART_COLORS.correct}
                   horizontal
@@ -835,11 +832,6 @@ function Profile() {
               </div>
               <ChartCard
                 title="날짜별 학습량"
-                subtitle={
-                  dashboardRange === "30"
-                    ? "dailyStats.last30Days"
-                    : "dailyStats.last7Days"
-                }
                 data={dailyChartData}
                 barColor={CHART_COLORS.daily}
                 valueFormatter={formatNumber}

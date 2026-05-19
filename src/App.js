@@ -7,88 +7,6 @@ import "./App.css";
 import DefaultProfile from "./components/DefaultProfile";
 import ScrollToTop from "./components/ScrollToTop";
 
-function renderNavIcon(type) {
-  switch (type) {
-    case "book":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-          <path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3Z" />
-        </svg>
-      );
-    case "test":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="4" y="3" width="16" height="18" rx="2" />
-          <path d="M8 7h8" />
-          <path d="M8 11h8" />
-          <path d="M8 15h5" />
-        </svg>
-      );
-    case "retest":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 12a9 9 0 0 1 15-6.7L20 7" />
-          <path d="M20 4v5h-5" />
-          <path d="M21 12a9 9 0 0 1-15 6.7L4 17" />
-          <path d="M4 20v-5h5" />
-        </svg>
-      );
-    case "manage":
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 19h16" />
-          <path d="M6 17V9" />
-          <path d="M11 17V5" />
-          <path d="M16 17v-7" />
-        </svg>
-      );
-    case "profile":
-    default:
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-        </svg>
-      );
-  }
-}
-
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -118,6 +36,78 @@ function App() {
     ],
     [isAdmin],
   );
+
+  function renderNavIcon(type) {
+    switch (type) {
+      case "book":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3Z" />
+          </svg>
+        );
+      case "test":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="4" y="3" width="16" height="18" rx="2" />
+            <path d="M8 7h8" />
+            <path d="M8 11h8" />
+            <path d="M8 15h5" />
+          </svg>
+        );
+      case "retest":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 12a9 9 0 0 1 15-6.7L20 7" />
+            <path d="M20 4v5h-5" />
+            <path d="M21 12a9 9 0 0 1-15 6.7L4 17" />
+            <path d="M4 20v-5h5" />
+          </svg>
+        );
+      case "manage":
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4 19h16" />
+            <path d="M6 17V9" />
+            <path d="M11 17V5" />
+            <path d="M16 17v-7" />
+          </svg>
+        );
+      case "profile":
+      default:
+        return (
+          <DefaultProfile src={memberProfileImage} alt="사용자 프로필 사진" width={35} height={35} borderWidth={2}/>
+        );
+    }
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -315,12 +305,7 @@ function App() {
                 onClick={() => handleNavigate(item.path)}
               >
                 {item.icon === "profile" ? (
-                  <span
-                    className="app-bottom-nav-profile-photo"
-                    aria-hidden="true"
-                  >
-                    {renderNavIcon(item.icon)}
-                  </span>
+                  renderNavIcon(item.icon)
                 ) : (
                   <span className="app-bottom-nav-icon" aria-hidden="true">
                     {renderNavIcon(item.icon)}

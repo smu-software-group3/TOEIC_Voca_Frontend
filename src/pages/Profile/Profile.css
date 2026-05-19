@@ -655,7 +655,7 @@
 
   .dashboard-section {
     margin-top: 20px;
-    padding: 0 0 20px;
+    padding: 12px;
   }
 
   .dashboard-header {
@@ -682,6 +682,9 @@
   .dashboard-loading,
   .dashboard-error {
     border-radius: 16px;
+  }
+  .dashboard-range-container {
+    display: none;
   }
 }
 
