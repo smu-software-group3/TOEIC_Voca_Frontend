@@ -1270,6 +1270,36 @@
   margin-bottom: 22px;
 }
 
+.wordtest-user-score-card {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #f8f6ff;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+}
+
+.wordtest-user-score-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.wordtest-user-score-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.wordtest-score-error {
+  margin-top: 16px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
 .wordtest-result-list {
   text-align: left;
   margin: 0 auto 24px;
