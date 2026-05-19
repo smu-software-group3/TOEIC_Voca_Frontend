@@ -566,7 +566,6 @@ function WordTest() {
               <p className="wordtest-user-score-row">
                 <strong>{userScore.score?.toLocaleString()}</strong>
               </p>
-              
             </div>
           )}
           {scoreFetchError && (
@@ -917,7 +916,7 @@ function WordTest() {
                         : "wordtest-count-pill"
                     }
                   >
-                    {value === 50 ? "전체" : `${value}문제`}
+                    {`${value}문제`}
                   </button>
                 ))}
               </div>
@@ -951,6 +950,38 @@ function WordTest() {
       ) : (
         <section className="wordtest-test-shell">
           <div className="wordtest-test-layout">
+            <div className="wordtest-top-row-mobile">
+              <div className="wordtest-top-left">
+                <button
+                  type="button"
+                  className="wordtest-back-btn"
+                  onClick={() => navigate("/wtest")}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                  나가기
+                </button>
+                <div className="wordtest-progress-center">
+                  <span className="wordtest-progress-label">
+                    문제 {currentIndex + 1} / {questions.length}
+                  </span>
+                  <div className="wordtest-progress-track">
+                    <div
+                      className="wordtest-progress-fill"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="wordtest-test-main">
               <div className="wordtest-top-row">
                 <div className="wordtest-top-left">
@@ -969,7 +1000,7 @@ function WordTest() {
                     >
                       <polyline points="15 18 9 12 15 6" />
                     </svg>
-                    {isObjectiveTest ? "객관식 테스트" : "주관식 테스트"}
+                    나가기
                   </button>
                   <div className="wordtest-progress-center">
                     <span className="wordtest-progress-label">
@@ -983,13 +1014,6 @@ function WordTest() {
                     </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="wordtest-end-btn"
-                  onClick={() => setIsFinished(true)}
-                >
-                  테스트 종료
-                </button>
               </div>
 
               <Form onSubmit={handleSubmit} className="wordtest-form">
