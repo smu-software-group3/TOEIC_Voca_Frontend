@@ -979,6 +979,41 @@ export async function getUserScore() {
   }
 }
 
+// 현재 로그인한 사용자의 학습 대시보드를 조회한다.
+export async function getDashboard() {
+  const url = `${getServerUrl()}/api/users/me/dashboard`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(
+      url,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다."
+        : error.response?.status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : error.response?.status === 400
+            ? "잘못된 요청입니다."
+            : error.response?.data?.message || "대시보드 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code || (error.response?.status === 401 ? "UNAUTHORIZED" : "INVALID_INPUT");
+    throw requestError;
+  }
+}
+
 function normalizeAdminWordMeanings({ meaning, partOfSpeech, meanings }) {
   if (Array.isArray(meanings) && meanings.length > 0) {
     return meanings

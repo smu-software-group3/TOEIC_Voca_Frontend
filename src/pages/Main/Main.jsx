@@ -1,11 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMemberInfo, getUserScore } from "../../api/server";
+import { getDashboard, getMemberInfo } from "../../api/server";
 import { useAuth } from "../../contexts/AuthContext";
 import homeMascot from "../../img/logo_with_character_tr.png";
 import "./Main.css";
 import DefaultProfile from "../../components/DefaultProfile";
 
+function toPercent(value) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return "0%";
+  }
+
+  const normalized = numeric <= 1 ? numeric * 100 : numeric;
+  return `${Math.round(normalized * 10) / 10}%`;
+}
 const ENCOURAGEMENT_MESSAGES = [
   "오늘도 단어 하나씩, 꾸준히가 실력이 됩니다! 💪",
   "어제보다 오늘 더 똑똑해지는 중! 🧠",
@@ -23,8 +33,8 @@ export default function Main() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
-  const [userScore, setUserScore] = useState(null);
-  const [scoreError, setScoreError] = useState("");
+  const [dashboard, setDashboard] = useState(null);
+  const [dashboardError, setDashboardError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -52,18 +62,21 @@ export default function Main() {
         if (mounted) setUserProfile(response.data);
 
         try {
-          const scoreResponse = await getUserScore();
-          if (scoreResponse?.success) {
-            if (mounted) setUserScore(scoreResponse.data);
+          const dashboardResponse = await getDashboard();
+          if (dashboardResponse?.success) {
+            if (mounted) setDashboard(dashboardResponse.data);
           } else {
-            if (mounted) setScoreError(
-              scoreResponse?.message || "점수 정보를 불러오지 못했습니다.",
-            );
+            if (mounted)
+              setDashboardError(
+                dashboardResponse?.message ||
+                  "대시보드 정보를 불러오지 못했습니다.",
+              );
           }
-        } catch (scoreRequestError) {
+        } catch (dashboardRequestError) {
           if (mounted) {
-            setScoreError(
-              scoreRequestError.message || "점수 정보를 불러오지 못했습니다.",
+            setDashboardError(
+              dashboardRequestError.message ||
+                "대시보드 정보를 불러오지 못했습니다.",
             );
           }
         }
@@ -108,6 +121,9 @@ export default function Main() {
   const displayName =
     userProfile?.username || userProfile?.nickname || "사용자";
   const profileImage = userProfile?.profileImage || "";
+  const todayStats = dashboard?.todayStats || {};
+  const streak = dashboard?.streak || {};
+  const score = dashboard?.score || {};
   const welcomeMessage = ENCOURAGEMENT_MESSAGES[
     Math.floor(Math.random() * ENCOURAGEMENT_MESSAGES.length)
   ];
@@ -167,34 +183,38 @@ export default function Main() {
               {welcomeMessage}
             </p>
 
-            {userScore && (
-              <div className="home-score-card">
-                <div className="home-score-item">
-                  <span className="home-score-label">누적 점수</span>
-                  <strong className="home-score-value">
-                    {userScore.score?.toLocaleString()}
+            {dashboard && (
+              <div className="home-dashboard-grid">
+                <div className="home-dashboard-item">
+                  <span className="home-dashboard-label">오늘 학습한 단어 수</span>
+                  <strong className="home-dashboard-value">
+                    {Number(todayStats.studiedWordCount || 0).toLocaleString()}
                   </strong>
                 </div>
-                <div className="home-score-item">
-                  <span className="home-score-label">평균 정답률</span>
-                  <strong className="home-score-value">
-                    {Math.round((userScore.averageCorrectRate || 0) * 10000) / 100}%
+                <div className="home-dashboard-item">
+                  <span className="home-dashboard-label">평균 정답률</span>
+                  <strong className="home-dashboard-value">
+                    {toPercent(todayStats.avgCorrectRate)}
                   </strong>
                 </div>
-                <div className="home-score-item">
-                  <span className="home-score-label">최근 학습</span>
-                  <strong className="home-score-value">
-                    {userScore.lastStudiedAt
-                      ? new Date(userScore.lastStudiedAt).toLocaleString()
-                      : "정보 없음"}
+                <div className="home-dashboard-item">
+                  <span className="home-dashboard-label">연속 학습 일수</span>
+                  <strong className="home-dashboard-value">
+                    {Number(streak.currentStreak || 0).toLocaleString()}일
+                  </strong>
+                </div>
+                <div className="home-dashboard-item">
+                  <span className="home-dashboard-label">사용자 점수</span>
+                  <strong className="home-dashboard-value">
+                    {Number(score.score || 0).toLocaleString()}
                   </strong>
                 </div>
               </div>
             )}
 
-            {scoreError && !userScore && (
+            {dashboardError && !dashboard && (
               <p className="home-score-error" role="alert">
-                {scoreError}
+                {dashboardError}
               </p>
             )}
           </div>
