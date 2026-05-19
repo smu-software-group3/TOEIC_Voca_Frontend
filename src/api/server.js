@@ -13,7 +13,7 @@ const SILENT_REFRESH_EXCLUDED_PATHS = [
   "/api/password/find",
 ];
 
-const isLocal = true;
+const isLocal = false;
 
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
@@ -803,14 +803,17 @@ export async function getWordTestQuestion(wordId) {
 }
 
 // 사용자가 제출한 답안을 서버로 보내 정답 여부를 확인한다.
-export async function checkWordAnswer(wordId, submittedSpelling) {
+export async function checkWordAnswer(answerOrWordId, submittedSpelling) {
   const url = `${getServerUrl()}/api/words/check-answer`;
   const token = localStorage.getItem("token");
+  const answers = Array.isArray(answerOrWordId)
+    ? answerOrWordId
+    : [{ wordId: answerOrWordId, submittedSpelling }];
 
   try {
     const response = await axios.post(
       url,
-      { wordId, submittedSpelling },
+      { answers },
       {
         headers: {
           "Content-Type": "application/json",
