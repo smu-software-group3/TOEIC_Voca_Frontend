@@ -13,7 +13,7 @@ const SILENT_REFRESH_EXCLUDED_PATHS = [
   "/api/password/find",
 ];
 
-const isLocal = false;
+const isLocal = true;
 
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
@@ -987,7 +987,6 @@ export async function getDashboard() {
   try {
     const response = await axios.get(
       url,
-      {},
       {
         headers: {
           "Content-Type": "application/json",
