@@ -39,7 +39,7 @@ export default function Login() {
       if (!authTokens.accessToken) {
         throw new Error("로그인 토큰을 받지 못했습니다.");
       }
-      navigate("/");
+      navigate("/main");
       // TODO: 로그인 성공 후 리다이렉트 또는 사용자 상태 저장
     } catch (err) {
       setError(err.message || "로그인에 실패했습니다.");

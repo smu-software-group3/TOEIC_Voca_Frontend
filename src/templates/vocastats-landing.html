@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VocaStats - 환영합니다</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #6c5ce7;
+      --purple-dark: #5a4bd1;
+      --purple-light: #ede9ff;
+      --green: #28a164;
+      --orange: #e09200;
+      --text-dark: #2d2d3a;
+      --text-body: #666;
+      --text-muted: #aaa;
+      --white: #ffffff;
+      --border: #e8e4f5;
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(160deg, #eceaf8 0%, #dddaf5 40%, #e8e6f5 70%, #ededf8 100%);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── HERO SECTION ── */
+    .hero-section {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 60px;
+      flex: 0 0 auto;
+    }
+
+    .hero-card {
+      background: var(--white);
+      border-radius: 28px;
+      box-shadow: 0 8px 48px rgba(108,92,231,0.10), 0 2px 12px rgba(108,92,231,0.06);
+      padding: 64px 80px 60px;
+      max-width: 620px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .hero-card h1 {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.35;
+      color: var(--text-dark);
+      margin-bottom: 18px;
+    }
+    .hero-card h1 .brand {
+      color: var(--purple);
+      font-style: italic;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-body);
+      margin-bottom: 36px;
+      font-weight: 400;
+    }
+
+    .login-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 60px;
+      background: var(--purple);
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 16px rgba(108,92,231,0.30);
+    }
+    .login-btn:hover {
+      background: var(--purple-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(108,92,231,0.35);
+    }
+    .login-btn:active { transform: translateY(0); }
+
+    /* ── FEATURES SECTION ── */
+    .features-section {
+      width: calc(100% - 80px);
+      max-width: 860px;
+      background: var(--white);
+      border-radius: 28px;
+      box-shadow: 0 4px 32px rgba(108,92,231,0.07);
+      padding: 60px 48px 64px;
+      margin-bottom: 80px;
+      text-align: center;
+    }
+
+    .features-section h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+    .features-section .sub {
+      font-size: 14px;
+      color: var(--text-body);
+      margin-bottom: 44px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature-card {
+      background: #faf9ff;
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 32px 24px 36px;
+      text-align: left;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(108,92,231,0.10);
+    }
+
+    .feature-icon-wrap {
+      width: 54px; height: 54px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 22px;
+    }
+    .feature-icon-wrap.purple { background: var(--purple-light); }
+    .feature-icon-wrap.green  { background: #d4f0e3; }
+    .feature-icon-wrap.orange { background: #fff3d4; }
+
+    .feature-icon-wrap svg { width: 26px; height: 26px; }
+    .feature-icon-wrap.purple svg { color: var(--purple); }
+    .feature-icon-wrap.green  svg { color: var(--green); }
+    .feature-icon-wrap.orange svg { color: var(--orange); }
+
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 13.5px;
+      color: var(--text-body);
+      line-height: 1.75;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero-section">
+    <div class="hero-card">
+      <h1><span class="brand">VocaStats</span>에 오신 것을<br>환영합니다.</h1>
+      <p class="hero-subtitle">서비스를 이용하려면 로그인을 해주세요.</p>
+      <button class="login-btn">로그인</button>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section">
+    <h2>VocaStats와 함께라면</h2>
+    <p class="sub">단어 암기부터 실력 확인까지, 모든 것을 한 곳에서</p>
+
+    <div class="feature-grid">
+
+      <!-- 스마트 단어장 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrap purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="4" rx="1"/>
+            <rect x="3" y="10" width="7" height="4" rx="1"/>
+            <rect x="3" y="17" width="7" height="4" rx="1"/>
+            <line x1="14" y1="5" x2="21" y2="5"/>
+            <line x1="14" y1="12" x2="21" y2="12"/>
+            <line x1="14" y1="19" x2="21" y2="19"/>
+          </svg>
+        </div>
+        <h3>스마트 단어장</h3>
+        <p>효율적인 단어장으로<br>체계적인 공부를<br>시작해보세요!</p>
+      </div>
+
+      <!-- 다양한 테스트 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrap green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <h3>다양한 테스트</h3>
+        <p>객관식, 주관식 다양한 유형으로 실력을 테스트하고 틀린 단어를 재학습하세요.</p>
+      </div>
+
+      <!-- 학습 통계 대시보드 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrap orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6"  y1="20" x2="6"  y2="14"/>
+          </svg>
+        </div>
+        <h3>학습 통계 대시보드</h3>
+        <p>나의 학습 패턴을 분석해 약점 단어를 집중 공략할 수 있어요.</p>
+      </div>
+
+    </div>
+  </section>
+
+</body>
+</html>

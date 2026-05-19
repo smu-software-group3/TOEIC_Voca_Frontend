@@ -1,0 +1,139 @@
+/* Page background and fullscreen states */
+.home-fullscreen {
+  height: 100vh;
+  background: #f0eef8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.home-page {
+  background: #f0eef8;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.home-inner {
+  width: 100%;
+  max-width: 980px;
+}
+
+.home-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.08);
+  margin-bottom: 18px;
+}
+
+.home-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.home-logo {
+  width: 400px;
+  height: auto;
+  object-fit: contain;
+}
+
+.home-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.home-subtitle {
+  margin-top: 8px;
+  color: #6b7280;
+}
+
+.alert-banner {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(253, 230, 230, 0.9);
+  border: 1px solid rgba(220, 38, 38, 0.12);
+  color: #7f1d1d;
+  display: flex;
+  align-items: center;
+}
+
+.alert-banner .btn {
+  margin-left: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn {
+  font: inherit;
+}
+
+.btn-primary {
+  border: none;
+  background: #6d28d9;
+  color: #fff;
+}
+
+.btn-outline {
+  border: 1px solid rgba(92, 63, 164, 0.12);
+  background: transparent;
+  color: #4c1d95;
+}
+
+.home-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.action-btn.primary {
+  border: none;
+  background: #6d28d9;
+  color: #fff;
+}
+
+.action-btn.gradient {
+  border: 1px solid rgba(13, 148, 136, 0.12);
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  color: #fff;
+}
+
+.action-btn.ghost {
+  border: 1px solid rgba(92, 63, 164, 0.12);
+  background: transparent;
+  color: #4c1d95;
+}
+
+/* small adjustments */
+.home-card p {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .home-card {
+    padding: 22px;
+  }
+
+  .home-logo-wrap {
+    margin-bottom: 14px;
+  }
+
+  .home-logo {
+    width: min(180px, 64vw);
+  }
+}

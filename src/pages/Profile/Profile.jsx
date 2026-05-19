@@ -7,6 +7,7 @@ import {
   updateMyProfile,
 } from "../../api/server";
 import "./Profile.css";
+import DefaultProfile from "../../components/DefaultProfile";
 
 const USER_TYPE_OPTIONS = [
   { value: "HIGH_SCHOOL_STUDENT", label: "고등학생" },
@@ -189,82 +190,9 @@ function Profile() {
 
   // 표시 이름과 아바타 첫 글자를 계산한다.
   const displayName = userProfile.username || userProfile.nickname || "사용자";
-  const firstChar = displayName.charAt(0) || "사";
 
   return (
     <div className="profile-page">
-      <div className="profile-blob-tr" aria-hidden />
-      <div className="profile-blob-bl" aria-hidden />
-      <div className="profile-blob-mr" aria-hidden />
-
-      {/* 별들 */}
-      {[
-        {
-          top: "8%",
-          left: "18%",
-          size: "2px",
-          opacity: 0.4,
-          color: "#6d28d9",
-        },
-        {
-          top: "14%",
-          left: "55%",
-          size: "3px",
-          opacity: 0.35,
-          color: "#7c3aed",
-          glow: true,
-        },
-        {
-          top: "22%",
-          left: "80%",
-          size: "2px",
-          opacity: 0.3,
-          color: "#0d9488",
-        },
-        {
-          top: "60%",
-          left: "12%",
-          size: "2px",
-          opacity: 0.3,
-          color: "#6d28d9",
-        },
-        {
-          top: "70%",
-          left: "88%",
-          size: "3px",
-          opacity: 0.4,
-          color: "#0d9488",
-          glow: true,
-        },
-        {
-          top: "85%",
-          left: "50%",
-          size: "2px",
-          opacity: 0.3,
-          color: "#7c3aed",
-        },
-        {
-          top: "45%",
-          left: "95%",
-          size: "2px",
-          opacity: 0.35,
-          color: "#4c1d95",
-        },
-      ].map((star, idx) => (
-        <div
-          key={idx}
-          className="profile-star"
-          style={{
-            "--star-top": star.top,
-            "--star-left": star.left,
-            "--star-size": star.size,
-            "--star-opacity": star.opacity,
-            "--star-color": star.color,
-            "--star-shadow": star.glow ? `0 0 4px ${star.color}` : "none",
-          }}
-        />
-      ))}
-
       {(!userProfile?.userType || !userProfile?.birthDate) && (
         <div className="profile-complete-banner">
           프로필을 완성하기 위해 생년월일과 직업을 입력해주세요.
@@ -274,15 +202,13 @@ function Profile() {
       <div className="profile-card">
         <div className="profile-banner">
           <div className="profile-banner-overlay" />
-          <div className="profile-banner-ring-lg" />
-          <div className="profile-banner-ring-sm" />
         </div>
 
         <div className="profile-body">
           <div className="profile-header-row">
             <div className="profile-avatar-wrap">
               <div className="profile-avatar">
-                <span className="profile-avatar-letter">{firstChar}</span>
+                <DefaultProfile className="profile-avatar-default" />
               </div>
             </div>
             <div className="profile-actions-col">

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vocastats - 객관식 테스트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0eef8;
+      --white: #ffffff;
+      --purple: #5c45e0;
+      --purple-light: #ede9ff;
+      --purple-dark: #4232c2;
+      --green: #28a164;
+      --red: #e83a3a;
+      --text-dark: #1a1560;
+      --text-body: #555;
+      --text-muted: #aaa;
+      --border: #e2ddf5;
+      --shadow: 0 2px 16px rgba(92,69,224,0.07);
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 22px; font-weight: 800;
+      color: var(--text-dark); text-decoration: none;
+    }
+    .logo-icon {
+      width: 28px; height: 28px; background: var(--purple);
+      border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 18px; height: 18px; }
+    .nav-links { display: flex; gap: 40px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; font-size: 15px; font-weight: 500;
+      color: var(--text-body); padding-bottom: 4px; transition: color .2s;
+    }
+    .nav-links a.active {
+      color: var(--purple); border-bottom: 2.5px solid var(--purple); font-weight: 700;
+    }
+    .nav-links a:hover { color: var(--purple); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .bell-btn {
+      position: relative; background: none; border: none;
+      cursor: pointer; color: var(--text-muted); padding: 4px;
+    }
+    .bell-badge {
+      position: absolute; top: 0; right: 0;
+      background: #e83a3a; color: #fff;
+      font-size: 10px; font-weight: 700;
+      border-radius: 99px; min-width: 16px; height: 16px;
+      display: flex; align-items: center; justify-content: center; padding: 0 3px;
+    }
+    .user-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: none; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--text-dark); font-family: inherit;
+    }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--purple-light);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 32px 40px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── LEFT COLUMN ── */
+    .left-col { display: flex; flex-direction: column; gap: 0; }
+
+    /* progress bar row */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; color: var(--text-dark);
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+      transition: border-color .2s;
+    }
+    .back-btn:hover { border-color: var(--purple); color: var(--purple); }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    .progress-center {
+      flex: 1;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .progress-label {
+      font-size: 13px; font-weight: 600; color: var(--text-body); white-space: nowrap;
+    }
+    .progress-track {
+      flex: 1; height: 8px; background: #ddd8f5; border-radius: 99px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--purple); border-radius: 99px;
+      width: 35%; /* 7/20 */
+      transition: width .4s;
+    }
+
+    .timer {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 500; color: var(--text-body); white-space: nowrap;
+    }
+    .timer strong { font-weight: 800; color: var(--text-dark); }
+    .timer svg { width: 16px; height: 16px; color: var(--text-muted); }
+
+    /* question card */
+    .question-card {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 52px 48px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .question-instruction {
+      font-size: 15px; color: var(--text-body); margin-bottom: 32px;
+    }
+    .question-word {
+      font-size: 42px; font-weight: 800;
+      color: var(--text-dark); display: flex; align-items: center; gap: 14px;
+      margin-bottom: 40px;
+    }
+    .sound-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--purple); padding: 0; line-height: 1;
+      transition: opacity .2s;
+    }
+    .sound-btn:hover { opacity: .7; }
+    .sound-btn svg { width: 26px; height: 26px; }
+
+    /* options */
+    .options {
+      width: 100%;
+      display: flex; flex-direction: column; gap: 14px;
+      margin-bottom: 40px;
+    }
+    .option-label {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px 22px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px; font-weight: 500;
+      color: var(--text-dark);
+      transition: border-color .15s, background .15s;
+      user-select: none;
+    }
+    .option-label:hover { border-color: var(--purple); background: #faf9ff; }
+    .option-label.selected {
+      border-color: var(--purple);
+      background: var(--purple-light);
+      color: var(--purple);
+      font-weight: 700;
+    }
+
+    /* custom radio */
+    .option-label input[type="radio"] { display: none; }
+    .radio-circle {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .15s;
+    }
+    .option-label.selected .radio-circle {
+      border-color: var(--purple);
+      background: var(--purple);
+    }
+    .radio-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--white);
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .option-label.selected .radio-dot { opacity: 1; }
+
+    /* nav buttons */
+    .nav-buttons {
+      width: 100%;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .prev-btn {
+      padding: 14px 28px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--white);
+      font-size: 15px; font-weight: 600;
+      color: var(--text-dark); cursor: pointer; font-family: inherit;
+      transition: border-color .2s;
+    }
+    .prev-btn:hover { border-color: var(--purple); color: var(--purple); }
+    .next-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 32px;
+      background: var(--purple);
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700;
+      color: var(--white); cursor: pointer; font-family: inherit;
+      transition: background .2s, transform .15s;
+    }
+    .next-btn:hover { background: var(--purple-dark); transform: translateY(-1px); }
+    .next-btn svg { width: 16px; height: 16px; }
+
+    /* ── RIGHT SIDEBAR ── */
+    .sidebar { display: flex; flex-direction: column; gap: 18px; }
+
+    .side-card {
+      background: var(--white);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px 22px 20px;
+    }
+    .side-title {
+      font-size: 15px; font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    /* answer status legend */
+    .legend {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--text-body); font-weight: 500;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .dot-green { background: var(--green); }
+    .dot-purple { background: var(--purple); }
+    .dot-gray { background: #ddd; }
+
+    /* number grid */
+    .num-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .num-btn {
+      width: 100%; aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      font-size: 13px; font-weight: 700;
+      color: var(--text-body);
+      cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .num-btn:hover { border-color: var(--purple); color: var(--purple); }
+    .num-btn.done {
+      background: #e8f7ee; border-color: #b8e8ce; color: var(--green);
+    }
+    .num-btn.current {
+      background: var(--purple); border-color: var(--purple);
+      color: var(--white);
+    }
+
+    /* current wordbook */
+    .wordbook-name {
+      font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .badge-mid {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 2px 9px; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      background: #fff3e0; color: #e07b00;
+    }
+    .wordbook-count {
+      font-size: 13px; color: var(--text-body);
+    }
+
+    /* donut chart */
+    .donut-row {
+      display: flex; align-items: center; gap: 20px;
+    }
+    .donut-wrap {
+      position: relative; width: 100px; height: 100px; flex-shrink: 0;
+    }
+    .donut-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .donut-label {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .donut-num {
+      font-size: 20px; font-weight: 800; color: var(--text-dark); line-height: 1;
+    }
+    .donut-sub {
+      font-size: 11px; color: var(--text-muted); margin-top: 2px;
+    }
+    .donut-legend {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .dl-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-body);
+    }
+    .dl-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .dl-dot.green { background: var(--green); }
+    .dl-dot.red   { background: var(--red); }
+    .dl-dot.gray  { background: #ddd; }
+    .dl-count { font-weight: 700; color: var(--text-dark); margin-left: auto; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 4px 0 32px;
+      font-size: 13px; color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    Vocastats
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#">단어장 조회</a></li>
+    <li><a href="#" class="active">단어테스트</a></li>
+    <li><a href="#">재학습</a></li>
+    <li><a href="#">대시보드</a></li>
+  </ul>
+
+  <div class="nav-right">
+    <button class="bell-btn" aria-label="알림">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="bell-badge">3</span>
+    </button>
+    <button class="user-btn">
+      <div class="avatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5c45e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      지우바보
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- LEFT -->
+  <div class="left-col">
+
+    <!-- Progress Row -->
+    <div class="progress-row">
+      <button class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        객관식 테스트
+      </button>
+      <div class="progress-center">
+        <span class="progress-label">문제 7 / 20</span>
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+      <div class="timer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        남은 시간 <strong>14:35</strong>
+      </div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="question-card">
+      <p class="question-instruction">다음 단어의 뜻으로 가장 알맞은 것을 고르세요.</p>
+
+      <div class="question-word">
+        abundant
+        <button class="sound-btn" aria-label="발음 듣기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="options">
+        <label class="option-label" id="opt1">
+          <input type="radio" name="answer" value="1" />
+          <div class="radio-circle"><div class="radio-dot"></div></div>
+          부족한, 결핍된
+        </label>
+        <label class="option-label selected" id="opt2">
+          <input type="radio" name="answer" value="2" checked />
+          <div class="radio-circle"><div class="radio-dot"></div></div>
+          풍부한, 충분한
+        </label>
+        <label class="option-label" id="opt3">
+          <input type="radio" name="answer" value="3" />
+          <div class="radio-circle"><div class="radio-dot"></div></div>
+          혼란스러운, 복잡한
+        </label>
+        <label class="option-label" id="opt4">
+          <input type="radio" name="answer" value="4" />
+          <div class="radio-circle"><div class="radio-dot"></div></div>
+          작은, 미미한
+        </label>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="prev-btn">이전 문제</button>
+        <button class="next-btn">
+          다음 문제
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- 답안 현황 -->
+    <div class="side-card">
+      <div class="side-title">답안 현황</div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot dot-green"></span> 답변 완료</div>
+        <div class="legend-item"><span class="dot dot-purple"></span> 현재</div>
+        <div class="legend-item"><span class="dot dot-gray"></span> 미답변</div>
+      </div>
+      <div class="num-grid">
+        <button class="num-btn done">1</button>
+        <button class="num-btn done">2</button>
+        <button class="num-btn done">3</button>
+        <button class="num-btn current">4</button>
+        <button class="num-btn">5</button>
+        <button class="num-btn">6</button>
+        <button class="num-btn">7</button>
+        <button class="num-btn">8</button>
+        <button class="num-btn">9</button>
+        <button class="num-btn">10</button>
+        <button class="num-btn">11</button>
+        <button class="num-btn">12</button>
+        <button class="num-btn">13</button>
+        <button class="num-btn">14</button>
+        <button class="num-btn">15</button>
+        <button class="num-btn">16</button>
+        <button class="num-btn">17</button>
+        <button class="num-btn">18</button>
+        <button class="num-btn">19</button>
+        <button class="num-btn">20</button>
+      </div>
+    </div>
+
+    <!-- 현재 단어장 -->
+    <div class="side-card">
+      <div class="side-title">현재 단어장</div>
+      <div class="wordbook-name">
+        토익 필수 단어 600
+        <span class="badge-mid">중급</span>
+      </div>
+      <div class="wordbook-count">단어 수 600개</div>
+    </div>
+
+    <!-- 진행 현황 -->
+    <div class="side-card">
+      <div class="side-title">진행 현황</div>
+      <div class="donut-row">
+        <div class="donut-wrap">
+          <!-- SVG donut: total 7 problems (5 correct, 2 wrong, 13 remaining out of 20) -->
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- background circle -->
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#e8e4f5" stroke-width="12"/>
+            <!-- remaining (gray) — drawn first as base -->
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#e0daf5" stroke-width="12"
+              stroke-dasharray="251.2" stroke-dashoffset="0"/>
+            <!-- wrong (red) 2/20 = 10% = 25.12 -->
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#e83a3a" stroke-width="12"
+              stroke-dasharray="25.12 226.08" stroke-dashoffset="-188.4"/>
+            <!-- correct (green) 5/20 = 25% = 62.8 -->
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#28a164" stroke-width="12"
+              stroke-dasharray="62.8 188.4" stroke-dashoffset="0"/>
+          </svg>
+          <div class="donut-label">
+            <div class="donut-num">7 / 20</div>
+            <div class="donut-sub">문제</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-item">
+            <span class="dl-dot green"></span>
+            맞은 문제
+            <span class="dl-count">5</span>
+          </div>
+          <div class="dl-item">
+            <span class="dl-dot red"></span>
+            틀린 문제
+            <span class="dl-count">2</span>
+          </div>
+          <div class="dl-item">
+            <span class="dl-dot gray"></span>
+            남은 문제
+            <span class="dl-count">13</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<footer>© 2024 Vocastats. All rights reserved.</footer>
+
+<script>
+  // Option selection
+  document.querySelectorAll('.option-label').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+</script>
+
+</body>
+</html>

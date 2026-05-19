@@ -12,9 +12,9 @@ import Register from "./pages/Register/Register";
 import PasswordChange from "./pages/PasswordChange/PasswordChange";
 import PasswordFind from "./pages/PasswordFind/PasswordFind";
 import Retest from "./pages/Retest/Retest";
-import AuthLayout from "./components/AuthLayout";
-import Home from "./pages/Home/Home";
 import { AuthProvider, RequireAuth } from "./contexts/AuthContext";
+import Landing from "./pages/Landing/Landing";
+import Main from "./pages/Main/Main";
 
 const router = createBrowserRouter([
   {
@@ -23,7 +23,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <Landing />,
+      },
+      {
+        path: "main",
+        element: <RequireAuth><Main /></RequireAuth>,
       },
       {
         path: "admin",
@@ -97,11 +101,6 @@ const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
-    ],
-  },
-  {
-    element: <AuthLayout />,
-    children: [
       {
         path: "login",
         element: <Login />,
