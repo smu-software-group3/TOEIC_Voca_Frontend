@@ -4,6 +4,7 @@ import { getMemberInfo, getUserScore } from "../../api/server";
 import { useAuth } from "../../contexts/AuthContext";
 import homeMascot from "../../img/logo_with_character_tr.png";
 import "./Main.css";
+import DefaultProfile from "../../components/DefaultProfile";
 
 export default function Main() {
   const navigate = useNavigate();

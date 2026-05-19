@@ -98,16 +98,17 @@ function Profile() {
         setScoreError(
           scoreRequestError.message || "점수 정보를 불러오지 못했습니다.",
         );
-      // Notify other parts of the app (e.g., navbar) that profile data changed
-      try {
-        window.dispatchEvent(
-          new CustomEvent("profilechange", { detail: profile }),
-        );
-      } catch (e) {
-        // ignore environments that disallow CustomEvent
+        // Notify other parts of the app (e.g., navbar) that profile data changed
         try {
-          window.dispatchEvent(new Event("profilechange"));
-        } catch {}
+          window.dispatchEvent(
+            new CustomEvent("profilechange", { detail: profile }),
+          );
+        } catch (e) {
+          // ignore environments that disallow CustomEvent
+          try {
+            window.dispatchEvent(new Event("profilechange"));
+          } catch {}
+        }
       }
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
@@ -119,7 +120,6 @@ function Profile() {
       setLoading(false);
     }
   };
-
   const handleProfileImageButtonClick = () => {
     profileImageInputRef.current?.click();
   };
@@ -464,7 +464,9 @@ function Profile() {
                 <div className="profile-detail-row">
                   <span className="profile-detail-label">평균 정답률</span>
                   <span className="profile-detail-value">
-                    {Math.round((userScore.averageCorrectRate || 0) * 10000) / 100}%
+                    {Math.round((userScore.averageCorrectRate || 0) * 10000) /
+                      100}
+                    %
                   </span>
                 </div>
                 <div className="profile-detail-row profile-detail-row--tight">
