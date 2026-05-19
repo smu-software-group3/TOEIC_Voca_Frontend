@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { getWords } from "../../api/server";
+import { getWords, getBookmarks, toggleBookmark } from "../../api/server";
 import { Input } from "../../components/Input";
 import {
   difficultyBadgeClass,
@@ -95,6 +95,9 @@ function Word() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedWord, setSelectedWord] = useState(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
+  const [bookmarkLoadingIds, setBookmarkLoadingIds] = useState([]);
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 640px)");
@@ -170,8 +173,44 @@ function Word() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
+    const loadBookmarks = async () => {
+      try {
+        const response = await getBookmarks();
+
+        if (mounted && response?.success) {
+          setBookmarkedIds(
+            Array.isArray(response.data)
+              ? response.data.map((item) => item.wordId)
+              : [],
+          );
+        }
+      } catch (requestError) {
+        if (!mounted) {
+          return;
+        }
+
+        if (requestError.code === "UNAUTHORIZED") {
+          setError("인증이 필요합니다. 다시 로그인해주세요.");
+        } else {
+          setError(
+            requestError.message || "즐겨찾기 조회 요청에 실패했습니다.",
+          );
+        }
+      }
+    };
+
+    loadBookmarks();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     setCurrentPage(1);
-  }, [spelling, difficulty, partOfSpeech, sort]);
+  }, [spelling, difficulty, partOfSpeech, sort, showBookmarksOnly]);
 
   useEffect(() => {
     window.scrollTo({
@@ -227,10 +266,16 @@ function Word() {
     return result;
   }, [allWords, spelling, difficulty, partOfSpeech, sort]);
 
-  const totalElements = filteredWords.length;
+  const displayWords = useMemo(() => {
+    return showBookmarksOnly
+      ? filteredWords.filter((word) => bookmarkedIds.includes(word.wordId))
+      : filteredWords;
+  }, [filteredWords, showBookmarksOnly, bookmarkedIds]);
+
+  const totalElements = displayWords.length;
   const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const pageWords = filteredWords.slice(
+  const pageWords = displayWords.slice(
     (safeCurrentPage - 1) * PAGE_SIZE,
     safeCurrentPage * PAGE_SIZE,
   );
@@ -260,7 +305,7 @@ function Word() {
     [safeCurrentPage, totalPages],
   );
 
-  const filteredCount = filteredWords.length;
+  const filteredCount = displayWords.length;
   const hardCount = allWords.filter(
     (word) => word.difficulty === "HARD",
   ).length;
@@ -347,6 +392,38 @@ function Word() {
       )
     : null;
 
+  const handleToggleBookmark = async (wordId) => {
+    if (bookmarkLoadingIds.includes(wordId)) {
+      return;
+    }
+
+    setBookmarkLoadingIds((current) => [...current, wordId]);
+    setError("");
+
+    try {
+      const response = await toggleBookmark(wordId);
+      const nextIds = response.code === "FAVORITE_ADDED"
+        ? Array.from(new Set([...bookmarkedIds, wordId]))
+        : bookmarkedIds.filter((id) => id !== wordId);
+
+      setBookmarkedIds(nextIds);
+    } catch (requestError) {
+      if (requestError.code === "UNAUTHORIZED") {
+        setError("인증이 필요합니다. 다시 로그인해주세요.");
+      } else if (requestError.code === "NOT_FOUND") {
+        setError("존재하지 않는 단어입니다.");
+      } else {
+        setError(
+          requestError.message || "즐겨찾기 요청에 실패했습니다.",
+        );
+      }
+    } finally {
+      setBookmarkLoadingIds((current) =>
+        current.filter((id) => id !== wordId),
+      );
+    }
+  };
+
   const handleFilterChange = (setter) => (event) => {
     setter(event.target.value);
   };
@@ -387,6 +464,20 @@ function Word() {
               </div>
 
               <div className="word-filter-row">
+                <button
+                  type="button"
+                  className={[
+                    "word-bookmark-filter-btn",
+                    showBookmarksOnly && "word-bookmark-filter-btn--active",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onClick={() => setShowBookmarksOnly((prev) => !prev)}
+                >
+                  {showBookmarksOnly ? "전체 단어 보기" : "즐겨찾기만 보기"}
+                  {` (${bookmarkedIds.length})`}
+                </button>
+
                 <select
                   value={partOfSpeech}
                   onChange={handleFilterChange(setPartOfSpeech)}
@@ -502,16 +593,28 @@ function Word() {
                         >
                           <td className="word-favorite-cell">
                             <button
-                              className="word-star-btn"
-                              aria-label="즐겨찾기"
+                              className={[
+                                "word-star-btn",
+                                bookmarkedIds.includes(item.wordId) &&
+                                  "word-star-btn--active",
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
+                              aria-label={
+                                bookmarkedIds.includes(item.wordId)
+                                  ? "즐겨찾기 해제"
+                                  : "즐겨찾기 추가"
+                              }
                               type="button"
+                              onClick={() => handleToggleBookmark(item.wordId)}
+                              disabled={bookmarkLoadingIds.includes(item.wordId)}
                             >
                               <svg
                                 width="16"
                                 height="16"
                                 viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
+                                fill={bookmarkedIds.includes(item.wordId) ? "#f59e0b" : "none"}
+                                stroke={bookmarkedIds.includes(item.wordId) ? "#f59e0b" : "currentColor"}
                                 strokeWidth="2"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"

@@ -231,6 +231,34 @@
   box-shadow: 0 0 0 4px rgba(92, 69, 224, 0.08);
 }
 
+.word-bookmark-filter-btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid #dbe2f0;
+  background: #f8fafc;
+  color: #0f172a;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.word-bookmark-filter-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(92, 69, 224, 0.34);
+  background: rgba(92, 69, 224, 0.08);
+}
+
+.word-bookmark-filter-btn--active {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #b45309;
+}
+
 .word-error-text {
   margin: 0 0 14px;
   color: #b91c1c;
@@ -345,6 +373,12 @@
     border-color 0.15s ease,
     color 0.15s ease,
     background-color 0.15s ease;
+}
+
+.word-star-btn--active {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: #fffbeb;
 }
 
 .word-star-btn:hover {
