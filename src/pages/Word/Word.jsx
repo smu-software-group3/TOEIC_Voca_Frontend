@@ -474,7 +474,7 @@ function Word() {
                     .join(" ")}
                   onClick={() => setShowBookmarksOnly((prev) => !prev)}
                 >
-                  {showBookmarksOnly ? "전체 단어 보기" : "즐겨찾기만 보기"}
+                  {showBookmarksOnly ? "전체 단어" : "즐겨찾기"}
                   {` (${bookmarkedIds.length})`}
                 </button>
 
@@ -483,7 +483,7 @@ function Word() {
                   onChange={handleFilterChange(setPartOfSpeech)}
                   className="word-select"
                 >
-                  <option value="">품사 전체</option>
+                  <option value="">품사</option>
                   <option value="NOUN">명사</option>
                   <option value="VERB">동사</option>
                   <option value="ADJECTIVE">형용사</option>
@@ -494,7 +494,7 @@ function Word() {
                   onChange={handleFilterChange(setDifficulty)}
                   className="word-select"
                 >
-                  <option value="">난이도 전체</option>
+                  <option value="">난이도</option>
                   <option value="EASY">쉬움</option>
                   <option value="MEDIUM">중간</option>
                   <option value="HARD">어려움</option>

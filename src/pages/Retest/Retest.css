@@ -1113,7 +1113,6 @@ input[type="checkbox"] {
 @media (max-width: 760px) {
   .retest-card {
     grid-template-columns: 1fr;
-    padding: 24px;
   }
   .retest-choice-grid {
     grid-template-columns: 1fr;

@@ -17,6 +17,7 @@ import {
 } from "../../utils/partOfSpeech";
 import adminMascot from "../../img/logo_with_character_tr.png";
 import "./Admin.css";
+import { createPortal } from "react-dom";
 
 function getMeaningSearchText(word) {
   const meanings = Array.isArray(word.meanings) ? word.meanings : [];
@@ -506,7 +507,7 @@ export default function Admin() {
                     onChange={(e) => setDifficulty(e.target.value)}
                     className="admin-filter-select"
                   >
-                    <option value="">난이도 전체</option>
+                    <option value="">난이도</option>
                     <option value="EASY">쉬움</option>
                     <option value="MEDIUM">중간</option>
                     <option value="HARD">어려움</option>
@@ -517,7 +518,7 @@ export default function Admin() {
                     onChange={(e) => setPartOfSpeech(e.target.value)}
                     className="admin-filter-select"
                   >
-                    <option value="">품사 전체</option>
+                    <option value="">품사</option>
                     <option value="NOUN">명사</option>
                     <option value="VERB">동사</option>
                     <option value="ADJECTIVE">형용사</option>
@@ -754,184 +755,203 @@ export default function Admin() {
           </div>
         </section>
 
-        {showEditModal && (
-          <div
-            className="admin-modal-bg"
-            onClick={(e) => e.target === e.currentTarget && closeEditModal()}
-          >
-            <div className="admin-modal">
-              <div className="admin-modal-header">
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
-                  <span className="admin-modal-title">
-                    {editingWord ? "단어 수정" : "단어 추가"}
-                  </span>
-                  <span
-                    className={`admin-modal-badge ${editingWord ? "edit" : "add"}`}
+        {showEditModal &&
+          createPortal(
+            <div
+              className="word-modal-overlay"
+              onClick={(e) => e.target === e.currentTarget && closeEditModal()}
+            >
+              <div className="admin-modal">
+                <div className="admin-modal-header">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
                   >
-                    {editingWord ? "EDIT" : "NEW"}
-                  </span>
-                </div>
-                <button className="admin-modal-close" onClick={closeEditModal}>
-                  ✕
-                </button>
-              </div>
-              <div className="admin-modal-content">
-                {error && (
-                  <p className="admin-inline-error" role="alert">
-                    {error}
-                  </p>
-                )}
-                <div className="admin-modal-field">
-                  <label>영어 단어 *</label>
-                  <input
-                    type="text"
-                    value={spelling}
-                    onChange={handleChangeSpelling}
-                    placeholder="e.g. ambiguous"
-                    className="admin-modal-input"
-                  />
-                </div>
-                <div className="admin-modal-field">
-                  <label>뜻 / 품사 *</label>
-                  <div className="admin-meaning-list">
-                    {meanings.map((item, index) => (
-                      <div
-                        key={`meaning-${index}`}
-                        className="admin-meaning-row"
-                      >
-                        <input
-                          type="text"
-                          value={item.meaning}
-                          onChange={(event) =>
-                            updateMeaningEntry(
-                              index,
-                              "meaning",
-                              event.target.value,
-                            )
-                          }
-                          placeholder="예: 불분명한, 모호한"
-                          className="admin-modal-input admin-modal-input--meaning"
-                        />
-                        <select
-                          value={item.partOfSpeech}
-                          onChange={(event) =>
-                            updateMeaningEntry(
-                              index,
-                              "partOfSpeech",
-                              event.target.value,
-                            )
-                          }
-                          className="admin-modal-select admin-modal-select--pos"
-                        >
-                          <option value="NOUN">명사</option>
-                          <option value="VERB">동사</option>
-                          <option value="ADJECTIVE">형용사</option>
-                        </select>
-                        <button
-                          type="button"
-                          className="admin-meaning-remove"
-                          onClick={() => removeMeaningEntry(index)}
-                          disabled={meanings.length === 1}
-                          title="뜻 삭제"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
+                    <span className="admin-modal-title">
+                      {editingWord ? "단어 수정" : "단어 추가"}
+                    </span>
+                    <span
+                      className={`admin-modal-badge ${editingWord ? "edit" : "add"}`}
+                    >
+                      {editingWord ? "EDIT" : "NEW"}
+                    </span>
                   </div>
                   <button
-                    type="button"
-                    className="admin-meaning-add"
-                    onClick={addMeaningEntry}
+                    className="admin-modal-close"
+                    onClick={closeEditModal}
                   >
-                    + 뜻 추가
+                    ✕
                   </button>
                 </div>
-                <div className="admin-modal-field">
-                  <label>난이도 *</label>
-                  <select
-                    value={formDifficulty}
-                    onChange={(event) => setFormDifficulty(event.target.value)}
-                    className="admin-modal-select"
+                <div className="admin-modal-content">
+                  {error && (
+                    <p className="admin-inline-error" role="alert">
+                      {error}
+                    </p>
+                  )}
+                  <div className="admin-modal-field">
+                    <label>영어 단어 *</label>
+                    <input
+                      type="text"
+                      value={spelling}
+                      onChange={handleChangeSpelling}
+                      placeholder="e.g. ambiguous"
+                      className="admin-modal-input"
+                    />
+                  </div>
+                  <div className="admin-modal-field">
+                    <label>뜻 / 품사 *</label>
+                    <div className="admin-meaning-list">
+                      {meanings.map((item, index) => (
+                        <div
+                          key={`meaning-${index}`}
+                          className="admin-meaning-row"
+                        >
+                          <input
+                            type="text"
+                            value={item.meaning}
+                            onChange={(event) =>
+                              updateMeaningEntry(
+                                index,
+                                "meaning",
+                                event.target.value,
+                              )
+                            }
+                            placeholder="예: 불분명한, 모호한"
+                            className="admin-modal-input admin-modal-input--meaning"
+                          />
+                          <select
+                            value={item.partOfSpeech}
+                            onChange={(event) =>
+                              updateMeaningEntry(
+                                index,
+                                "partOfSpeech",
+                                event.target.value,
+                              )
+                            }
+                            className="admin-modal-select admin-modal-select--pos"
+                          >
+                            <option value="NOUN">명사</option>
+                            <option value="VERB">동사</option>
+                            <option value="ADJECTIVE">형용사</option>
+                          </select>
+                          <button
+                            type="button"
+                            className="admin-meaning-remove"
+                            onClick={() => removeMeaningEntry(index)}
+                            disabled={meanings.length === 1}
+                            title="뜻 삭제"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="admin-meaning-add"
+                      onClick={addMeaningEntry}
+                    >
+                      + 뜻 추가
+                    </button>
+                  </div>
+                  <div className="admin-modal-field">
+                    <label>난이도 *</label>
+                    <select
+                      value={formDifficulty}
+                      onChange={(event) =>
+                        setFormDifficulty(event.target.value)
+                      }
+                      className="admin-modal-select"
+                    >
+                      <option value="EASY">쉬움</option>
+                      <option value="MEDIUM">중간</option>
+                      <option value="HARD">어려움</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="admin-modal-footer">
+                  <button
+                    className="admin-modal-cancel"
+                    onClick={closeEditModal}
                   >
-                    <option value="EASY">쉬움</option>
-                    <option value="MEDIUM">중간</option>
-                    <option value="HARD">어려움</option>
-                  </select>
+                    취소
+                  </button>
+                  <button
+                    className="admin-modal-save"
+                    onClick={handleSaveWord}
+                    disabled={loading}
+                  >
+                    {loading
+                      ? "처리 중..."
+                      : editingWord
+                        ? "수정 저장"
+                        : "단어 추가"}
+                  </button>
                 </div>
               </div>
-              <div className="admin-modal-footer">
-                <button className="admin-modal-cancel" onClick={closeEditModal}>
-                  취소
-                </button>
-                <button
-                  className="admin-modal-save"
-                  onClick={handleSaveWord}
-                  disabled={loading}
-                >
-                  {loading
-                    ? "처리 중..."
-                    : editingWord
-                      ? "수정 저장"
-                      : "단어 추가"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body,
+          )}
 
-        {showDeleteModal && deletingWord && (
-          <div
-            className="admin-modal-bg"
-            onClick={(e) => e.target === e.currentTarget && closeDeleteModal()}
-          >
-            <div className="admin-modal admin-modal--delete">
-              <div className="admin-delete-icon">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#e0415a"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14H6L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                  <path d="M9 6V4h6v2" />
-                </svg>
+        {showDeleteModal &&
+          deletingWord &&
+          createPortal(
+            <div
+              className="admin-modal-bg"
+              onClick={(e) =>
+                e.target === e.currentTarget && closeDeleteModal()
+              }
+            >
+              <div className="admin-modal admin-modal--delete">
+                <div className="admin-delete-icon">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#e0415a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
+                  </svg>
+                </div>
+                <p className="admin-delete-title">정말 삭제할까요?</p>
+                <p className="admin-delete-desc">
+                  <span className="admin-delete-word">
+                    "{deletingWord.spelling}"
+                  </span>{" "}
+                  단어를 삭제하면
+                  <br />
+                  학습 기록도 함께 사라집니다.
+                </p>
+                <div className="admin-delete-footer">
+                  <button
+                    className="admin-modal-cancel"
+                    style={{ flex: 1 }}
+                    onClick={closeDeleteModal}
+                  >
+                    취소
+                  </button>
+                  <button
+                    className="admin-delete-confirm"
+                    onClick={handleDeleteWord}
+                    disabled={loading}
+                  >
+                    {loading ? "처리 중..." : "삭제"}
+                  </button>
+                </div>
               </div>
-              <p className="admin-delete-title">정말 삭제할까요?</p>
-              <p className="admin-delete-desc">
-                <span className="admin-delete-word">
-                  "{deletingWord.spelling}"
-                </span>{" "}
-                단어를 삭제하면
-                <br />
-                학습 기록도 함께 사라집니다.
-              </p>
-              <div className="admin-delete-footer">
-                <button
-                  className="admin-modal-cancel"
-                  style={{ flex: 1 }}
-                  onClick={closeDeleteModal}
-                >
-                  취소
-                </button>
-                <button
-                  className="admin-delete-confirm"
-                  onClick={handleDeleteWord}
-                  disabled={loading}
-                >
-                  {loading ? "처리 중..." : "삭제"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body,
+          )}
       </div>
     </div>
   );
