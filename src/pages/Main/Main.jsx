@@ -75,6 +75,7 @@ export default function Main() {
 
   const displayName =
     userProfile?.username || userProfile?.nickname || "사용자";
+  const profileImage = userProfile?.profileImage || "";
 
   return (
     <div className="home-page">
@@ -104,6 +105,13 @@ export default function Main() {
                 src={homeMascot}
                 alt="VocaStats 로고"
                 className="home-logo"
+              />
+            </div>
+            <div className="home-profile-wrap">
+              <DefaultProfile
+                className="home-profile-avatar"
+                src={profileImage}
+                alt="사용자 프로필 사진"
               />
             </div>
             {isAuthenticated ? (

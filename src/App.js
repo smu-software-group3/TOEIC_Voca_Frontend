@@ -95,6 +95,7 @@ function App() {
   const { isAuthenticated, refreshAuthState } = useAuth();
   const [memberName, setMemberName] = useState("사용자");
   const [memberRole, setMemberRole] = useState("");
+  const [memberProfileImage, setMemberProfileImage] = useState("");
   const isAdmin =
     memberRole === "ROLE_ADMIN" || memberRole.toLowerCase() === "admin";
 
@@ -126,6 +127,7 @@ function App() {
         if (mounted) {
           setMemberName("사용자");
           setMemberRole("");
+          setMemberProfileImage("");
         }
         return;
       }
@@ -133,7 +135,8 @@ function App() {
       try {
         const response = await getMemberInfo();
         const payload = response?.data || response || {};
-        const displayName = payload.nickname || payload.username || "사용자";
+        const displayName =
+          payload.nickname || payload.username || "로그인을 해주세요";
         const role =
           payload.role ||
           payload.userRole ||
@@ -146,19 +149,33 @@ function App() {
         if (mounted) {
           setMemberName(displayName);
           setMemberRole(role || "");
+          setMemberProfileImage(payload.profileImage || "");
         }
       } catch {
         if (mounted) {
           setMemberName("사용자");
           setMemberRole("");
+          setMemberProfileImage("");
         }
       }
     }
 
     loadMemberName();
 
+    const handleProfileChange = (event) => {
+      const payload = (event && event.detail) || {};
+      const profileImage = payload.profileImage || "";
+      const newName = payload.nickname || payload.username || null;
+
+      setMemberProfileImage(profileImage);
+      if (newName) setMemberName(newName);
+    };
+
+    window.addEventListener("profilechange", handleProfileChange);
+
     return () => {
       mounted = false;
+      window.removeEventListener("profilechange", handleProfileChange);
     };
   }, [isAuthenticated]);
 
@@ -188,6 +205,7 @@ function App() {
     refreshAuthState();
     setMemberName("사용자");
     setMemberRole("");
+    setMemberProfileImage("");
     navigate("/login");
   };
 
@@ -200,19 +218,19 @@ function App() {
           {/* 상단 로고는 템플릿의 브랜드 영역을 그대로 대체한다. */}
           <div>
             <button
-            type="button"
-            className="app-logo"
-            aria-label="홈으로 이동"
-            onClick={() => navigate("/main")}
-          >
-            <span className="app-logo-frame" aria-hidden="true">
-              <img
-                src={logoDefault}
-                alt="VocaStats 로고"
-                className="app-logo-image"
-              />
-            </span>
-          </button>
+              type="button"
+              className="app-logo"
+              aria-label="홈으로 이동"
+              onClick={() => navigate("/main")}
+            >
+              <span className="app-logo-frame" aria-hidden="true">
+                <img
+                  src={logoDefault}
+                  alt="VocaStats 로고"
+                  className="app-logo-image"
+                />
+              </span>
+            </button>
           </div>
 
           {isAuthenticated /* 가운데 메뉴는 템플릿의 상단 내비게이션과 동일한 구조를 따른다. */ && (
@@ -244,7 +262,12 @@ function App() {
                   aria-label="사용자 정보"
                   onClick={() => navigate("/profile")}
                 >
-                  <DefaultProfile className={"app-avatar"} />
+                  <DefaultProfile
+                    src={memberProfileImage}
+                    alt="사용자 프로필 사진"
+                    width={50}
+                    height={50}
+                  />
                   <span className="app-user-name">{memberName}</span>
                 </button>
 

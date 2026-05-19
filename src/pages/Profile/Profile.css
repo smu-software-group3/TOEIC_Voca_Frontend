@@ -78,6 +78,10 @@
 
 .profile-avatar-wrap {
   margin-top: -30px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .profile-avatar {
@@ -97,6 +101,36 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  object-fit: cover;
+}
+
+.profile-avatar-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.profile-avatar-upload-btn {
+  margin-top: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #5b21b6;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.profile-avatar-upload-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .profile-actions-col {
