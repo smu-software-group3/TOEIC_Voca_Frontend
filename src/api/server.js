@@ -454,6 +454,91 @@ export async function updateMyProfile({ username, birthDate, userType }) {
   }
 }
 
+const PROFILE_IMAGE_REGEX =
+  /^data:image\/(png|jpe?g|gif);base64,([a-z0-9+/=]+)$/i;
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function createInvalidProfileImageError() {
+  const requestError = new Error("입력값이 올바르지 않습니다.");
+  requestError.code = "INVALID_INPUT";
+  return requestError;
+}
+
+function validateProfileImage(profileImage) {
+  if (!profileImage || typeof profileImage !== "string") {
+    throw createInvalidProfileImageError();
+  }
+
+  const trimmedProfileImage = profileImage.trim();
+  const matched = trimmedProfileImage.match(PROFILE_IMAGE_REGEX);
+
+  if (!matched) {
+    throw createInvalidProfileImageError();
+  }
+
+  const base64Data = matched[2] || "";
+  const paddingLength = base64Data.endsWith("==")
+    ? 2
+    : base64Data.endsWith("=")
+      ? 1
+      : 0;
+  const byteLength = Math.floor((base64Data.length * 3) / 4) - paddingLength;
+
+  if (byteLength >= MAX_PROFILE_IMAGE_BYTES) {
+    throw createInvalidProfileImageError();
+  }
+
+  return trimmedProfileImage;
+}
+
+// 현재 로그인한 사용자의 프로필 이미지를 업로드한다.
+export async function uploadProfileImage(profileImage) {
+  const url = `${getServerUrl()}/api/users/me/profile-image`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const validatedProfileImage = validateProfileImage(profileImage);
+    const response = await axios.post(
+      url,
+      { profileImage: validatedProfileImage },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error.code === "INVALID_INPUT") {
+      throw error;
+    }
+
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const message =
+      status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : status === 400
+            ? "입력값이 올바르지 않습니다."
+            : error.response?.data?.message ||
+              "프로필 이미지 업로드 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code =
+      code ||
+      (status === 404
+        ? "NOT_FOUND"
+        : status === 401
+          ? "UNAUTHORIZED"
+          : "INVALID_INPUT");
+    throw requestError;
+  }
+}
+
 // 현재 비밀번호와 새 비밀번호를 서버에 전달해 변경한다.
 export async function changePassword(
   currentPassword,
