@@ -392,7 +392,7 @@ function Retest() {
                     <th style={{ textAlign: "center" }}>난이도</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="retest-tbody">
                   {listWords.map((word, idx) => {
                     const partOfSpeechList = getUniquePartOfSpeechList(word);
                     return (
