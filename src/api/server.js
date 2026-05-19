@@ -985,15 +985,12 @@ export async function getDashboard() {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.get(
-      url,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
@@ -1008,7 +1005,9 @@ export async function getDashboard() {
             : error.response?.data?.message || "대시보드 조회에 실패했습니다.";
     const requestError = new Error(message);
 
-    requestError.code = code || (error.response?.status === 401 ? "UNAUTHORIZED" : "INVALID_INPUT");
+    requestError.code =
+      code ||
+      (error.response?.status === 401 ? "UNAUTHORIZED" : "INVALID_INPUT");
     throw requestError;
   }
 }
