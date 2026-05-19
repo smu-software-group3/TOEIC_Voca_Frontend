@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDashboard, getMemberInfo } from "../../api/server";
 import { useAuth } from "../../contexts/AuthContext";
@@ -16,6 +16,18 @@ function toPercent(value) {
   const normalized = numeric <= 1 ? numeric * 100 : numeric;
   return `${Math.round(normalized * 10) / 10}%`;
 }
+const ENCOURAGEMENT_MESSAGES = [
+  "오늘도 단어 하나씩, 꾸준히가 실력이 됩니다! 💪",
+  "어제보다 오늘 더 똑똑해지는 중! 🧠",
+  "TOEIC 목표 점수, 오늘 한 발짝 더 가까워져요. 🎯",
+  "꾸준한 학습이 가장 강력한 무기예요. 📚",
+  "오늘 외운 단어가 시험장에서 빛날 거예요. ✨",
+  "잠깐이라도 괜찮아요, 오늘 학습 시작해봐요! 🦉",
+  "포기하지 않는 사람이 결국 이깁니다. 🏆",
+  "매일 조금씩, 결과는 크게 달라져요. 📈",
+  "오늘의 복습이 내일의 자신감이 됩니다. 🌟",
+  "단어 하나가 점수 하나예요, 같이 해봐요! 🚀",
+];
 
 export default function Main() {
   const navigate = useNavigate();
@@ -112,6 +124,9 @@ export default function Main() {
   const todayStats = dashboard?.todayStats || {};
   const streak = dashboard?.streak || {};
   const score = dashboard?.score || {};
+  const welcomeMessage = ENCOURAGEMENT_MESSAGES[
+    Math.floor(Math.random() * ENCOURAGEMENT_MESSAGES.length)
+  ];
 
   return (
     <div className="home-page">
@@ -165,7 +180,7 @@ export default function Main() {
               </h1>
             )}
             <p style={{ marginTop: "8px", color: "#6b7280" }}>
-              VOCA STATS에 오신 것을 환영합니다. 오늘의 학습을 시작해보세요.
+              {welcomeMessage}
             </p>
 
             {dashboard && (
