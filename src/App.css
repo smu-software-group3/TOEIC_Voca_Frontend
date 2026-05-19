@@ -101,6 +101,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
 }
 
 .app-notice-button,
@@ -111,7 +112,6 @@
   background: transparent;
   padding: 6px 8px;
   font: inherit;
-  margin-left: auto;
 }
 
 .app-notice-button {
@@ -188,6 +188,7 @@
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  object-fit: cover;
 }
 
 .app-avatar svg {

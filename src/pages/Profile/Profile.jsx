@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   clearAuthTokens,
   deleteMyAccount,
   getMemberInfo,
+  uploadProfileImage,
   updateMyProfile,
 } from "../../api/server";
 import "./Profile.css";
@@ -31,15 +32,34 @@ function mapProfileToEditForm(profile) {
   };
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(typeof reader.result === "string" ? reader.result : "");
+    };
+
+    reader.onerror = () => {
+      reject(new Error("파일을 읽는 중 오류가 발생했습니다."));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
 function Profile() {
   const navigate = useNavigate();
+  const profileImageInputRef = useRef(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [profileImageError, setProfileImageError] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
   const [editForm, setEditForm] = useState({
     username: "",
     birthDate: "",
@@ -49,6 +69,7 @@ function Profile() {
   const fetchMemberInfo = async () => {
     setLoading(true);
     setError("");
+    setProfileImageError("");
     try {
       const response = await getMemberInfo();
 
@@ -59,6 +80,17 @@ function Profile() {
       const profile = response.data;
       setUserProfile(profile);
       setEditForm(mapProfileToEditForm(profile));
+      // Notify other parts of the app (e.g., navbar) that profile data changed
+      try {
+        window.dispatchEvent(
+          new CustomEvent("profilechange", { detail: profile }),
+        );
+      } catch (e) {
+        // ignore environments that disallow CustomEvent
+        try {
+          window.dispatchEvent(new Event("profilechange"));
+        } catch {}
+      }
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
         setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -67,6 +99,48 @@ function Profile() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleProfileImageButtonClick = () => {
+    profileImageInputRef.current?.click();
+  };
+
+  const handleProfileImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    setProfileImageError("");
+    setUploadingProfileImage(true);
+
+    try {
+      const profileImage = await readFileAsDataUrl(file);
+      const response = await uploadProfileImage(profileImage);
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message || "프로필 이미지 업로드에 실패했습니다.",
+        );
+      }
+
+      await fetchMemberInfo();
+    } catch (requestError) {
+      if (requestError.code === "UNAUTHORIZED") {
+        clearAuthTokens();
+        alert("인증이 필요합니다. 다시 로그인해주세요.");
+        navigate("/login");
+        return;
+      }
+
+      setProfileImageError(
+        requestError.message || "프로필 이미지 업로드에 실패했습니다.",
+      );
+    } finally {
+      setUploadingProfileImage(false);
     }
   };
 
@@ -207,9 +281,25 @@ function Profile() {
         <div className="profile-body">
           <div className="profile-header-row">
             <div className="profile-avatar-wrap">
-              <div className="profile-avatar">
-                <DefaultProfile className="profile-avatar-default" />
-              </div>
+              <DefaultProfile
+                src={userProfile.profileImage || ""}
+                alt={`${displayName} 프로필 사진`}
+              />
+              <button
+                type="button"
+                className="profile-avatar-upload-btn"
+                onClick={handleProfileImageButtonClick}
+                disabled={uploadingProfileImage}
+              >
+                {uploadingProfileImage ? "업로드 중..." : "사진 변경"}
+              </button>
+              <input
+                ref={profileImageInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/gif"
+                className="profile-avatar-file-input"
+                onChange={handleProfileImageChange}
+              />
             </div>
             <div className="profile-actions-col">
               <div className="profile-actions-row">
@@ -314,6 +404,11 @@ function Profile() {
             {actionError && (
               <div role="alert" className="profile-action-error">
                 {actionError}
+              </div>
+            )}
+            {profileImageError && (
+              <div role="alert" className="profile-action-error">
+                {profileImageError}
               </div>
             )}
             <div className="profile-detail-row">
