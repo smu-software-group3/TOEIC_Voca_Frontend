@@ -107,17 +107,22 @@ export default function Main() {
                 className="home-logo"
               />
             </div>
-            <div className="home-profile-wrap">
-              <DefaultProfile
-                className="home-profile-avatar"
-                src={profileImage}
-                alt="사용자 프로필 사진"
-              />
-            </div>
+
             {isAuthenticated ? (
-              <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 900 }}>
-                {displayName}님, 환영합니다.
-              </h1>
+              <div
+                style={{ display: "flex", gap: "8px", alignItems: "center" }}
+              >
+                <DefaultProfile
+                  className="home-profile-avatar"
+                  src={profileImage}
+                  alt="사용자 프로필 사진"
+                  width={80}
+                  height={80}
+                />
+                <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 900 }}>
+                  {displayName}님, 환영합니다.
+                </h1>
+              </div>
             ) : (
               <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 900 }}>
                 VocaStats에 오신 것을 환영합니다.
