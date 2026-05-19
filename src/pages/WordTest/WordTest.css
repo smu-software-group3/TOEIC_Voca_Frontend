@@ -1178,6 +1178,10 @@
   );
 }
 
+.wordtest-feedback-hidden {
+  display: none;
+}
+
 .wordtest-error-text {
   color: #b91c1c;
   font-weight: 700;
@@ -1276,6 +1280,8 @@
   border-radius: 16px;
   background: #f8f6ff;
   border: 1px solid rgba(124, 58, 237, 0.12);
+  margin-left: 30px;
+  margin-right: 30px;
 }
 
 .wordtest-user-score-title {
@@ -1287,10 +1293,10 @@
 
 .wordtest-user-score-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   margin: 8px 0;
-  font-size: 14px;
+  font-size: 34px;
   color: #374151;
 }
 
@@ -1304,6 +1310,7 @@
   text-align: left;
   margin: 0 auto 24px;
   max-width: 620px;
+  margin-top: 20px;
 }
 
 .wordtest-result-title {
@@ -1315,13 +1322,14 @@
 
 .wordtest-result-items {
   list-style: none;
-  padding: 0;
+  padding: 10px;
   margin: 0;
   display: grid;
   gap: 12px;
   max-height: 320px;
   overflow-y: auto;
   padding-right: 6px;
+  border: 3px solid rgba(224, 218, 245, 0.95);
 }
 
 .wordtest-result-item {
@@ -1329,7 +1337,6 @@
   padding: 16px 18px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(139, 92, 246, 0.14);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .wordtest-result-item--correct {

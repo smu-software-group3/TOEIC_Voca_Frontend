@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDashboard, getMemberInfo } from "../../api/server";
 import { useAuth } from "../../contexts/AuthContext";
@@ -124,9 +124,10 @@ export default function Main() {
   const todayStats = dashboard?.todayStats || {};
   const streak = dashboard?.streak || {};
   const score = dashboard?.score || {};
-  const welcomeMessage = ENCOURAGEMENT_MESSAGES[
-    Math.floor(Math.random() * ENCOURAGEMENT_MESSAGES.length)
-  ];
+  const welcomeMessage =
+    ENCOURAGEMENT_MESSAGES[
+      Math.floor(Math.random() * ENCOURAGEMENT_MESSAGES.length)
+    ];
 
   return (
     <div className="home-page">
@@ -186,7 +187,9 @@ export default function Main() {
             {dashboard && (
               <div className="home-dashboard-grid">
                 <div className="home-dashboard-item">
-                  <span className="home-dashboard-label">오늘 학습한 단어 수</span>
+                  <span className="home-dashboard-label">
+                    오늘 학습한 단어 수
+                  </span>
                   <strong className="home-dashboard-value">
                     {Number(todayStats.studiedWordCount || 0).toLocaleString()}
                   </strong>
