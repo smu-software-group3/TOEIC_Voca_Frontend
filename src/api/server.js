@@ -952,6 +952,33 @@ export async function getMemberInfo() {
   }
 }
 
+// 현재 로그인한 사용자의 점수 정보를 조회한다.
+export async function getUserScore() {
+  const url = `${getServerUrl()}/api/users/me/score`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.data?.message || "점수 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
 function normalizeAdminWordMeanings({ meaning, partOfSpeech, meanings }) {
   if (Array.isArray(meanings) && meanings.length > 0) {
     return meanings

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   checkWordAnswer,
   getRandomWords,
+  getUserScore,
   getWordTestQuestion,
 } from "../../api/server";
 import { Input } from "../../components/Input";
@@ -141,6 +142,8 @@ function WordTest() {
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [userAnswer, setUserAnswer] = useState("");
   const [score, setScore] = useState(0);
+  const [userScore, setUserScore] = useState(null);
+  const [scoreFetchError, setScoreFetchError] = useState("");
   const [isFinished, setIsFinished] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
@@ -401,6 +404,32 @@ function WordTest() {
     }
   };
 
+  useEffect(() => {
+    if (!isFinished) {
+      return;
+    }
+
+    const fetchUserScore = async () => {
+      setScoreFetchError("");
+
+      try {
+        const response = await getUserScore();
+
+        if (!response?.success) {
+          throw new Error(response?.message || "점수 정보를 불러오지 못했습니다.");
+        }
+
+        setUserScore(response.data);
+      } catch (requestError) {
+        setScoreFetchError(
+          requestError.message || "점수 정보를 불러오지 못했습니다.",
+        );
+      }
+    };
+
+    fetchUserScore();
+  }, [isFinished]);
+
   const handleRetry = () => {
     if (wrongWords.length === 0) {
       navigate(customReturnPath || "/wtest");
@@ -485,6 +514,34 @@ function WordTest() {
               : 0}
             %
           </p>
+          {userScore && (
+            <div className="wordtest-user-score-card">
+              <h2 className="wordtest-user-score-title">내 점수</h2>
+              <p className="wordtest-user-score-row">
+                <span>누적 점수</span>
+                <strong>{userScore.score?.toLocaleString()}</strong>
+              </p>
+              <p className="wordtest-user-score-row">
+                <span>평균 정답률</span>
+                <strong>
+                  {Math.round((userScore.averageCorrectRate || 0) * 10000) / 100}%
+                </strong>
+              </p>
+              <p className="wordtest-user-score-row">
+                <span>최근 학습</span>
+                <strong>
+                  {userScore.lastStudiedAt
+                    ? new Date(userScore.lastStudiedAt).toLocaleString()
+                    : "정보 없음"}
+                </strong>
+              </p>
+            </div>
+          )}
+          {scoreFetchError && (
+            <p className="wordtest-score-error" role="alert">
+              {scoreFetchError}
+            </p>
+          )}
           <div className="wordtest-result-list">
             <h2 className="wordtest-result-title">문제별 결과</h2>
             <ul className="wordtest-result-items">

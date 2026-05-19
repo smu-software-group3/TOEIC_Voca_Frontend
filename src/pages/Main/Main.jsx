@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMemberInfo } from "../../api/server";
+import { getMemberInfo, getUserScore } from "../../api/server";
 import { useAuth } from "../../contexts/AuthContext";
 import homeMascot from "../../img/logo_with_character_tr.png";
 import "./Main.css";
-import DefaultProfile from "../../components/DefaultProfile";
 
 export default function Main() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
+  const [userScore, setUserScore] = useState(null);
+  const [scoreError, setScoreError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -35,6 +36,23 @@ export default function Main() {
         }
 
         if (mounted) setUserProfile(response.data);
+
+        try {
+          const scoreResponse = await getUserScore();
+          if (scoreResponse?.success) {
+            if (mounted) setUserScore(scoreResponse.data);
+          } else {
+            if (mounted) setScoreError(
+              scoreResponse?.message || "점수 정보를 불러오지 못했습니다.",
+            );
+          }
+        } catch (scoreRequestError) {
+          if (mounted) {
+            setScoreError(
+              scoreRequestError.message || "점수 정보를 불러오지 못했습니다.",
+            );
+          }
+        }
       } catch (err) {
         if (!mounted) {
           return;
@@ -131,6 +149,37 @@ export default function Main() {
             <p style={{ marginTop: "8px", color: "#6b7280" }}>
               VOCA STATS에 오신 것을 환영합니다. 오늘의 학습을 시작해보세요.
             </p>
+
+            {userScore && (
+              <div className="home-score-card">
+                <div className="home-score-item">
+                  <span className="home-score-label">누적 점수</span>
+                  <strong className="home-score-value">
+                    {userScore.score?.toLocaleString()}
+                  </strong>
+                </div>
+                <div className="home-score-item">
+                  <span className="home-score-label">평균 정답률</span>
+                  <strong className="home-score-value">
+                    {Math.round((userScore.averageCorrectRate || 0) * 10000) / 100}%
+                  </strong>
+                </div>
+                <div className="home-score-item">
+                  <span className="home-score-label">최근 학습</span>
+                  <strong className="home-score-value">
+                    {userScore.lastStudiedAt
+                      ? new Date(userScore.lastStudiedAt).toLocaleString()
+                      : "정보 없음"}
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            {scoreError && !userScore && (
+              <p className="home-score-error" role="alert">
+                {scoreError}
+              </p>
+            )}
           </div>
         </div>
       )}

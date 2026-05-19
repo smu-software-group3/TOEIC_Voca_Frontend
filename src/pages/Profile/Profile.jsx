@@ -4,6 +4,7 @@ import {
   clearAuthTokens,
   deleteMyAccount,
   getMemberInfo,
+  getUserScore,
   uploadProfileImage,
   updateMyProfile,
 } from "../../api/server";
@@ -52,6 +53,8 @@ function Profile() {
   const navigate = useNavigate();
   const profileImageInputRef = useRef(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [userScore, setUserScore] = useState(null);
+  const [scoreError, setScoreError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -80,6 +83,21 @@ function Profile() {
       const profile = response.data;
       setUserProfile(profile);
       setEditForm(mapProfileToEditForm(profile));
+
+      try {
+        const scoreResponse = await getUserScore();
+
+        if (scoreResponse?.success) {
+          setUserScore(scoreResponse.data);
+        } else {
+          setScoreError(
+            scoreResponse?.message || "점수 정보를 불러오지 못했습니다.",
+          );
+        }
+      } catch (scoreRequestError) {
+        setScoreError(
+          scoreRequestError.message || "점수 정보를 불러오지 못했습니다.",
+        );
       // Notify other parts of the app (e.g., navbar) that profile data changed
       try {
         window.dispatchEvent(
@@ -435,6 +453,35 @@ function Profile() {
               <span className="profile-detail-label">이메일</span>
               <span className="profile-detail-value">{userProfile.email}</span>
             </div>
+            {userScore && (
+              <>
+                <div className="profile-detail-row">
+                  <span className="profile-detail-label">누적 점수</span>
+                  <span className="profile-detail-value">
+                    {userScore.score?.toLocaleString()}
+                  </span>
+                </div>
+                <div className="profile-detail-row">
+                  <span className="profile-detail-label">평균 정답률</span>
+                  <span className="profile-detail-value">
+                    {Math.round((userScore.averageCorrectRate || 0) * 10000) / 100}%
+                  </span>
+                </div>
+                <div className="profile-detail-row profile-detail-row--tight">
+                  <span className="profile-detail-label">최근 학습</span>
+                  <span className="profile-detail-value">
+                    {userScore.lastStudiedAt
+                      ? new Date(userScore.lastStudiedAt).toLocaleString()
+                      : "정보 없음"}
+                  </span>
+                </div>
+              </>
+            )}
+            {scoreError && (
+              <div role="alert" className="profile-action-error">
+                {scoreError}
+              </div>
+            )}
           </div>
         </div>
       </div>
