@@ -104,7 +104,13 @@ function App() {
       case "profile":
       default:
         return (
-          <DefaultProfile src={memberProfileImage} alt="사용자 프로필 사진" width={35} height={35} borderWidth={2}/>
+          <DefaultProfile
+            src={memberProfileImage}
+            alt="사용자 프로필 사진"
+            width={35}
+            height={35}
+            borderWidth={2}
+          />
         );
     }
   }
@@ -249,29 +255,34 @@ function App() {
           )}
 
           <div className="app-nav-right">
-            <button
-              type="button"
-              className="app-profile-button"
-              aria-label={isAuthenticated ? "사용자 정보" : "로그인 페이지로 이동"}
-              onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
-            >
-              <DefaultProfile
-                src={memberProfileImage}
-                alt="사용자 프로필 사진"
-                width={50}
-                height={50}
-              />
-              <span className="app-user-name">{memberName}</span>
-            </button>
-
             {isAuthenticated && (
-              <button
-                type="button"
-                className="app-logout-button"
-                onClick={handleLogout}
-              >
-                로그아웃
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="app-profile-button"
+                  aria-label={
+                    isAuthenticated ? "사용자 정보" : "로그인 페이지로 이동"
+                  }
+                  onClick={() =>
+                    navigate(isAuthenticated ? "/profile" : "/login")
+                  }
+                >
+                  <DefaultProfile
+                    src={memberProfileImage}
+                    alt="사용자 프로필 사진"
+                    width={50}
+                    height={50}
+                  />
+                  <span className="app-user-name">{memberName}</span>
+                </button>
+                <button
+                  type="button"
+                  className="app-logout-button"
+                  onClick={handleLogout}
+                >
+                  로그아웃
+                </button>
+              </>
             )}
           </div>
         </div>
