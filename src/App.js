@@ -11,7 +11,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, refreshAuthState } = useAuth();
-  const [memberName, setMemberName] = useState("사용자");
+  const [memberName, setMemberName] = useState("로그인");
   const [memberRole, setMemberRole] = useState("");
   const [memberProfileImage, setMemberProfileImage] = useState("");
   const isAdmin =
@@ -115,7 +115,7 @@ function App() {
     async function loadMemberName() {
       if (!isAuthenticated) {
         if (mounted) {
-          setMemberName("로그인을 해주세요.");
+          setMemberName("로그인");
           setMemberRole("");
           setMemberProfileImage("");
         }
@@ -143,7 +143,7 @@ function App() {
         }
       } catch {
         if (mounted) {
-          setMemberName("사용자");
+          setMemberName("로그인");
           setMemberRole("");
           setMemberProfileImage("");
         }
@@ -193,7 +193,7 @@ function App() {
 
     clearAuthTokens();
     refreshAuthState();
-    setMemberName("사용자");
+    setMemberName("로그인");
     setMemberRole("");
     setMemberProfileImage("");
     navigate("/login");
@@ -245,34 +245,35 @@ function App() {
                   );
                 })}
               </ul>
-              <div className="app-nav-right">
-                <button
-                  type="button"
-                  className="app-profile-button"
-                  aria-label="사용자 정보"
-                  onClick={() => navigate("/profile")}
-                >
-                  <DefaultProfile
-                    src={memberProfileImage}
-                    alt="사용자 프로필 사진"
-                    width={50}
-                    height={50}
-                  />
-                  <span className="app-user-name">{memberName}</span>
-                </button>
-
-                {isAuthenticated && (
-                  <button
-                    type="button"
-                    className="app-logout-button"
-                    onClick={handleLogout}
-                  >
-                    로그아웃
-                  </button>
-                )}
-              </div>
             </>
           )}
+
+          <div className="app-nav-right">
+            <button
+              type="button"
+              className="app-profile-button"
+              aria-label={isAuthenticated ? "사용자 정보" : "로그인 페이지로 이동"}
+              onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
+            >
+              <DefaultProfile
+                src={memberProfileImage}
+                alt="사용자 프로필 사진"
+                width={50}
+                height={50}
+              />
+              <span className="app-user-name">{memberName}</span>
+            </button>
+
+            {isAuthenticated && (
+              <button
+                type="button"
+                className="app-logout-button"
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
