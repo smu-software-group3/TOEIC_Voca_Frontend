@@ -1051,28 +1051,17 @@ export async function getDashboard() {
   }
 }
 
-function normalizeAdminWordMeanings({ meaning, partOfSpeech, meanings }) {
-  if (Array.isArray(meanings) && meanings.length > 0) {
-    return meanings
-      .map((item) => ({
-        meaning: String(item?.meaning || "").trim(),
-        partOfSpeech: String(item?.partOfSpeech || "NOUN").trim(),
-      }))
-      .filter((item) => item.meaning);
-  }
-
-  const normalizedMeaning = String(meaning || "").trim();
-
-  if (!normalizedMeaning) {
+function normalizeAdminWordMeanings({ meanings }) {
+  if (!Array.isArray(meanings) || meanings.length === 0) {
     return [];
   }
 
-  return [
-    {
-      meaning: normalizedMeaning,
-      partOfSpeech: String(partOfSpeech || "NOUN").trim(),
-    },
-  ];
+  return meanings
+    .map((item) => ({
+      meaning: String(item?.meaning || "").trim(),
+      partOfSpeech: String(item?.partOfSpeech || "NOUN").trim(),
+    }))
+    .filter((item) => item.meaning);
 }
 
 function buildAdminWordRequestBody(payload) {
