@@ -1,6 +1,13 @@
 import React from "react";
 
-export default function DefaultProfile({ src, alt, width = 60, height = 60, borderWidth = 4, className }) {
+export default function DefaultProfile({
+  src,
+  alt,
+  width = 60,
+  height = 60,
+  borderWidth = 4,
+  className,
+}) {
   if (src) {
     const imgStyle = {
       width: "100%",
@@ -36,7 +43,7 @@ export default function DefaultProfile({ src, alt, width = 60, height = 60, bord
         width: `${width}px`,
         height: `${height}px`,
         borderRadius: "50%",
-        border: `${borderWidth}px solid #fff` ,
+        border: `${borderWidth}px solid #fff`,
         overflow: "hidden",
         boxShadow: "0 4px 16px rgba(124, 58, 237, 0.35)",
         backgroundColor: "#e5e7eb",

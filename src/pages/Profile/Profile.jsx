@@ -14,6 +14,7 @@ import {
   deleteMyAccount,
   getDashboard,
   getMemberInfo,
+  logout,
   uploadProfileImage,
   updateMyProfile,
 } from "../../api/server";
@@ -283,6 +284,7 @@ function Profile() {
   const [actionError, setActionError] = useState("");
   const [profileImageError, setProfileImageError] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
@@ -419,6 +421,28 @@ function Profile() {
     } finally {
       setWithdrawing(false);
     }
+  };
+
+  const handleLogout = async () => {
+    setActionError("");
+    setLoggingOut(true);
+
+    try {
+      const response = await logout();
+
+      if (!response?.success) {
+        throw new Error(response?.message || "로그아웃 요청에 실패했습니다.");
+      }
+    } catch (requestError) {
+      if (requestError.code !== "UNAUTHORIZED") {
+        setActionError(requestError.message || "로그아웃 요청에 실패했습니다.");
+        setLoggingOut(false);
+        return;
+      }
+    }
+
+    clearAuthTokens();
+    navigate("/login");
   };
 
   const handleSaveProfile = async () => {
@@ -673,9 +697,17 @@ function Profile() {
                 )}
                 <button
                   type="button"
+                  className="profile-btn-logout"
+                  onClick={handleLogout}
+                  disabled={loggingOut || withdrawing || savingProfile}
+                >
+                  {loggingOut ? "로그아웃 중..." : "로그아웃"}
+                </button>
+                <button
+                  type="button"
                   className="profile-btn-withdraw"
                   onClick={handleDeleteAccount}
-                  disabled={withdrawing || savingProfile}
+                  disabled={withdrawing || savingProfile || loggingOut}
                 >
                   {withdrawing ? "탈퇴 처리 중..." : "회원 탈퇴"}
                 </button>

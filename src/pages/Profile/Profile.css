@@ -200,6 +200,24 @@
   color: #fff;
 }
 
+.profile-btn-logout {
+  display: none;
+  background: #1e3a8a;
+  border-radius: 9px;
+  padding: 8px 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(30, 58, 138, 0.2);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.profile-btn-logout:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
 .profile-avatar-edit-wrap {
   position: absolute;
   inset: 0;
@@ -607,11 +625,18 @@
 
   .profile-btn-edit,
   .profile-btn-pwc,
+  .profile-btn-logout,
   .profile-btn-cancel,
   .profile-btn-save,
   .profile-btn-withdraw {
     padding: 10px 12px;
     font-size: 12px;
+  }
+
+  .profile-btn-logout {
+    display: inline-flex;
+    order: -1;
+    margin-right: auto;
   }
 
   .profile-name-block {
@@ -714,6 +739,7 @@
 
   .profile-btn-edit,
   .profile-btn-pwc,
+  .profile-btn-logout,
   .profile-btn-cancel,
   .profile-btn-save,
   .profile-btn-withdraw {

@@ -115,7 +115,7 @@ function App() {
     async function loadMemberName() {
       if (!isAuthenticated) {
         if (mounted) {
-          setMemberName("사용자");
+          setMemberName("로그인을 해주세요.");
           setMemberRole("");
           setMemberProfileImage("");
         }
