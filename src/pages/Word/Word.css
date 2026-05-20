@@ -790,6 +790,9 @@
   .word-hero-figure {
     display: none;
   }
+  .word-side-card {
+    display: none;
+  }
 }
 
 @media (max-width: 875px) {
