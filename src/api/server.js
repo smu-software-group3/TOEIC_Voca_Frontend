@@ -72,6 +72,10 @@ const extractAccessToken = (responseData, responseHeaders = {}) => {
 
 let silentRefreshTimeoutId = null;
 
+// In-memory refresh token is used when the user didn't opt into persistent (auto) login.
+// This allows silent refresh to work for the current session even if `autoLogin` is false.
+let inMemoryRefreshToken = null;
+
 const clearSilentRefreshTimer = () => {
   if (silentRefreshTimeoutId) {
     clearTimeout(silentRefreshTimeoutId);
@@ -99,7 +103,8 @@ export function getStoredAccessToken() {
 }
 
 export function getStoredRefreshToken() {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  // Prefer persisted token in localStorage, fall back to in-memory token for session-only logins
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || inMemoryRefreshToken;
 }
 
 export function isAutoLoginEnabled() {
@@ -115,6 +120,9 @@ export function clearAuthTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 
+  // Clear any session-only refresh token
+  inMemoryRefreshToken = null;
+
   window.dispatchEvent(new Event("authchange"));
 }
 
@@ -127,10 +135,21 @@ export function storeAuthTokens({
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   }
 
-  if (persistRefreshToken && refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  // If the user opted into persistent login, store the refresh token in localStorage.
+  // Otherwise, keep it in memory for the current session so silent refresh can still work.
+  if (refreshToken) {
+    if (persistRefreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      inMemoryRefreshToken = null;
+    } else {
+      // store only in memory for this session
+      inMemoryRefreshToken = refreshToken;
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+    }
   } else if (!persistRefreshToken) {
+    // ensure persistent storage is cleared when not persisting
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    inMemoryRefreshToken = null;
   }
 
   window.dispatchEvent(new Event("authchange"));
@@ -274,6 +293,8 @@ axios.interceptors.response.use(
 );
 
 const bootstrapSilentRefresh = () => {
+  // Schedule silent refresh if we have both an access token and either a persisted
+  // or in-memory refresh token (session logins).
   if (getStoredAccessToken() && getStoredRefreshToken()) {
     scheduleSilentRefresh();
   }

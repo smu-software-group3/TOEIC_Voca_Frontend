@@ -402,9 +402,10 @@ function Word() {
 
     try {
       const response = await toggleBookmark(wordId);
-      const nextIds = response.code === "FAVORITE_ADDED"
-        ? Array.from(new Set([...bookmarkedIds, wordId]))
-        : bookmarkedIds.filter((id) => id !== wordId);
+      const nextIds =
+        response.code === "FAVORITE_ADDED"
+          ? Array.from(new Set([...bookmarkedIds, wordId]))
+          : bookmarkedIds.filter((id) => id !== wordId);
 
       setBookmarkedIds(nextIds);
     } catch (requestError) {
@@ -413,14 +414,10 @@ function Word() {
       } else if (requestError.code === "NOT_FOUND") {
         setError("존재하지 않는 단어입니다.");
       } else {
-        setError(
-          requestError.message || "즐겨찾기 요청에 실패했습니다.",
-        );
+        setError(requestError.message || "즐겨찾기 요청에 실패했습니다.");
       }
     } finally {
-      setBookmarkLoadingIds((current) =>
-        current.filter((id) => id !== wordId),
-      );
+      setBookmarkLoadingIds((current) => current.filter((id) => id !== wordId));
     }
   };
 
@@ -463,51 +460,53 @@ function Word() {
                 </p>
               </div>
 
-              <div className="word-filter-row">
-                <button
-                  type="button"
-                  className={[
-                    "word-bookmark-filter-btn",
-                    showBookmarksOnly && "word-bookmark-filter-btn--active",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => setShowBookmarksOnly((prev) => !prev)}
-                >
-                  {showBookmarksOnly ? "전체 단어" : "즐겨찾기"}
-                  {` (${bookmarkedIds.length})`}
-                </button>
+              <div className="word-filter-wrapper">
+                <div className="word-filter-row">
+                  <button
+                    type="button"
+                    className={[
+                      "word-bookmark-filter-btn",
+                      showBookmarksOnly && "word-bookmark-filter-btn--active",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => setShowBookmarksOnly((prev) => !prev)}
+                  >
+                    {showBookmarksOnly ? "전체 단어" : "즐겨찾기"}
+                    {` (${bookmarkedIds.length})`}
+                  </button>
 
-                <select
-                  value={partOfSpeech}
-                  onChange={handleFilterChange(setPartOfSpeech)}
-                  className="word-select"
-                >
-                  <option value="">품사</option>
-                  <option value="NOUN">명사</option>
-                  <option value="VERB">동사</option>
-                  <option value="ADJECTIVE">형용사</option>
-                </select>
+                  <select
+                    value={partOfSpeech}
+                    onChange={handleFilterChange(setPartOfSpeech)}
+                    className="word-select"
+                  >
+                    <option value="">품사</option>
+                    <option value="NOUN">명사</option>
+                    <option value="VERB">동사</option>
+                    <option value="ADJECTIVE">형용사</option>
+                  </select>
 
-                <select
-                  value={difficulty}
-                  onChange={handleFilterChange(setDifficulty)}
-                  className="word-select"
-                >
-                  <option value="">난이도</option>
-                  <option value="EASY">쉬움</option>
-                  <option value="MEDIUM">중간</option>
-                  <option value="HARD">어려움</option>
-                </select>
+                  <select
+                    value={difficulty}
+                    onChange={handleFilterChange(setDifficulty)}
+                    className="word-select"
+                  >
+                    <option value="">난이도</option>
+                    <option value="EASY">쉬움</option>
+                    <option value="MEDIUM">중간</option>
+                    <option value="HARD">어려움</option>
+                  </select>
 
-                <select
-                  value={sort}
-                  onChange={handleFilterChange(setSort)}
-                  className="word-select"
-                >
-                  <option value="asc">오름차순</option>
-                  <option value="desc">내림차순</option>
-                </select>
+                  <select
+                    value={sort}
+                    onChange={handleFilterChange(setSort)}
+                    className="word-select"
+                  >
+                    <option value="asc">오름차순</option>
+                    <option value="desc">내림차순</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div className="word-search-bar">
@@ -607,14 +606,24 @@ function Word() {
                               }
                               type="button"
                               onClick={() => handleToggleBookmark(item.wordId)}
-                              disabled={bookmarkLoadingIds.includes(item.wordId)}
+                              disabled={bookmarkLoadingIds.includes(
+                                item.wordId,
+                              )}
                             >
                               <svg
                                 width="16"
                                 height="16"
                                 viewBox="0 0 24 24"
-                                fill={bookmarkedIds.includes(item.wordId) ? "#f59e0b" : "none"}
-                                stroke={bookmarkedIds.includes(item.wordId) ? "#f59e0b" : "currentColor"}
+                                fill={
+                                  bookmarkedIds.includes(item.wordId)
+                                    ? "#f59e0b"
+                                    : "none"
+                                }
+                                stroke={
+                                  bookmarkedIds.includes(item.wordId)
+                                    ? "#f59e0b"
+                                    : "currentColor"
+                                }
                                 strokeWidth="2"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
