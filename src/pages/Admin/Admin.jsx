@@ -684,7 +684,7 @@ export default function Admin() {
                   const meaningsText = meaningsArr
                     .map((m) => m.meaning)
                     .filter(Boolean)
-                    .join(" ");
+                    .join(", ");
                   const uniquePos = Array.from(
                     new Set(meaningsArr.map((m) => m.partOfSpeech)),
                   ).filter(Boolean);

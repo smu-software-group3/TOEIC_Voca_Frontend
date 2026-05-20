@@ -228,16 +228,37 @@ const getRefreshTokenPromise = () => {
   return refreshTokenPromise;
 };
 
+// Request 인터셉터: 모든 요청에 access token 자동 추가
+axios.interceptors.request.use(
+  (config) => {
+    const accessToken = getStoredAccessToken();
+
+    if (accessToken) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
 const triggerSilentRefresh = async () => {
   try {
     await getRefreshTokenPromise();
+    // Silent refresh 성공 후 다시 스케줄
+    scheduleSilentRefresh();
   } catch {
     clearAuthTokens();
   }
 };
 
 axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 성공 응답 후 silent refresh 타이머 갱신
+    scheduleSilentRefresh();
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
@@ -275,6 +296,7 @@ axios.interceptors.response.use(
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`;
 
+      // 토큰 갱신 후 원래 요청 재시도
       return axios(originalRequest);
     } catch (refreshError) {
       clearAuthTokens();

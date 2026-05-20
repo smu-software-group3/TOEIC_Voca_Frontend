@@ -373,7 +373,7 @@ function Retest() {
 
           <div className="retest-toolbar">
             <span className="retest-toolbar-info">
-              {activeListWords.length}문제가 준비되어 있습니다.
+              {activeListWords.length} 문제가 준비되어 있습니다.
             </span>
             <button
               type="button"

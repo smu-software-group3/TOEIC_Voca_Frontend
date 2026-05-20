@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function DefaultProfile({ src, alt, width = 60, height = 60, borderWidth = 4}) {
+export default function DefaultProfile({ src, alt, width = 60, height = 60, borderWidth = 4, className }) {
   if (src) {
     const imgStyle = {
       width: "100%",
@@ -11,6 +11,7 @@ export default function DefaultProfile({ src, alt, width = 60, height = 60, bord
 
     return (
       <span
+        className={className}
         style={{
           width: `${width}px`,
           height: `${height}px`,
@@ -18,6 +19,8 @@ export default function DefaultProfile({ src, alt, width = 60, height = 60, bord
           border: `${borderWidth}px solid #fff`,
           overflow: "hidden",
           boxShadow: "0 4px 16px rgba(124, 58, 237, 0.35)",
+          flexShrink: 0,
+          aspectRatio: "1 / 1",
         }}
         aria-hidden="true"
       >
@@ -28,6 +31,7 @@ export default function DefaultProfile({ src, alt, width = 60, height = 60, bord
 
   return (
     <span
+      className={className}
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -36,6 +40,8 @@ export default function DefaultProfile({ src, alt, width = 60, height = 60, bord
         overflow: "hidden",
         boxShadow: "0 4px 16px rgba(124, 58, 237, 0.35)",
         backgroundColor: "#e5e7eb",
+        flexShrink: 0,
+        aspectRatio: "1 / 1",
       }}
       aria-hidden="true"
     >
