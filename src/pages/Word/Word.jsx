@@ -97,6 +97,7 @@ function Word() {
   const [selectedWord, setSelectedWord] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [bookmarkLoadingIds, setBookmarkLoadingIds] = useState([]);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
 
   useEffect(() => {
@@ -185,6 +186,7 @@ function Word() {
               ? response.data.map((item) => item.wordId)
               : [],
           );
+          setFavoriteCount(response.data?.length || 0);
         }
       } catch (requestError) {
         if (!mounted) {
@@ -408,6 +410,7 @@ function Word() {
           : bookmarkedIds.filter((id) => id !== wordId);
 
       setBookmarkedIds(nextIds);
+      setFavoriteCount(nextIds.length);
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
         setError("인증이 필요합니다. 다시 로그인해주세요.");
@@ -743,8 +746,8 @@ function Word() {
             <section className="word-side-card">
               <div className="word-side-card-header">
                 <div>
-                  <p className="word-side-eyebrow">내 학습 현황</p>
-                  <h2 className="word-side-title">학습 데이터 요약</h2>
+                  <p className="word-side-eyebrow">정보</p>
+                  <h2 className="word-side-title">단어장 정보 요약</h2>
                 </div>
                 <span className="word-side-count">
                   {filteredCount.toLocaleString()}개
@@ -786,8 +789,8 @@ function Word() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                   </div>
                   <div className="word-stat-label">현재 조회 결과</div>
@@ -811,9 +814,9 @@ function Word() {
                       <path d="M12 2l3 7h7l-5.5 4 2.1 7L12 16l-6.6 4 2.1-7L2 9h7z" />
                     </svg>
                   </div>
-                  <div className="word-stat-label">난이도 참고</div>
+                  <div className="word-stat-label">즐겨찾기</div>
                   <div className="word-stat-value">
-                    고급 {hardCount.toLocaleString()}개
+                    {favoriteCount.toLocaleString()}개
                   </div>
                 </div>
               </div>

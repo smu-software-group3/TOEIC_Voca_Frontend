@@ -915,4 +915,9 @@
   .word-filter-row {
     width: max-content;
   }
+  .word-page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+  }
 }

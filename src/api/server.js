@@ -2,6 +2,7 @@ import axios from "axios";
 
 const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const SESSION_REFRESH_TOKEN_KEY = "sessionRefreshToken";
 const AUTO_LOGIN_ENABLED_KEY = "autoLoginEnabled";
 const SILENT_REFRESH_DELAY_MS = 12 * 60 * 1000;
 const SILENT_REFRESH_EXCLUDED_PATHS = [
@@ -18,7 +19,7 @@ const isLocal = true;
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
   const baseUrl = isLocal
-    ? process.env.REACT_APP_LOCAL_SERVER_URL
+    ? process.env.REACT_APP_LOCAL_SERVER_URL_2
     : process.env.REACT_APP_SERVER_URL;
 
   if (!baseUrl) {
@@ -72,10 +73,6 @@ const extractAccessToken = (responseData, responseHeaders = {}) => {
 
 let silentRefreshTimeoutId = null;
 
-// In-memory refresh token is used when the user didn't opt into persistent (auto) login.
-// This allows silent refresh to work for the current session even if `autoLogin` is false.
-let inMemoryRefreshToken = null;
-
 const clearSilentRefreshTimer = () => {
   if (silentRefreshTimeoutId) {
     clearTimeout(silentRefreshTimeoutId);
@@ -103,8 +100,11 @@ export function getStoredAccessToken() {
 }
 
 export function getStoredRefreshToken() {
-  // Prefer persisted token in localStorage, fall back to in-memory token for session-only logins
-  return localStorage.getItem(REFRESH_TOKEN_KEY) || inMemoryRefreshToken;
+  // Prefer persistent refresh token, then the session-scoped token used when auto login is off.
+  return (
+    localStorage.getItem(REFRESH_TOKEN_KEY) ||
+    sessionStorage.getItem(SESSION_REFRESH_TOKEN_KEY)
+  );
 }
 
 export function isAutoLoginEnabled() {
@@ -119,9 +119,7 @@ export function clearAuthTokens() {
   clearSilentRefreshTimer();
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
-
-  // Clear any session-only refresh token
-  inMemoryRefreshToken = null;
+  sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
 
   window.dispatchEvent(new Event("authchange"));
 }
@@ -136,20 +134,18 @@ export function storeAuthTokens({
   }
 
   // If the user opted into persistent login, store the refresh token in localStorage.
-  // Otherwise, keep it in memory for the current session so silent refresh can still work.
+  // Otherwise, keep it in sessionStorage so silent refresh survives page reloads.
   if (refreshToken) {
     if (persistRefreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-      inMemoryRefreshToken = null;
+      sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
     } else {
-      // store only in memory for this session
-      inMemoryRefreshToken = refreshToken;
       localStorage.removeItem(REFRESH_TOKEN_KEY);
+      sessionStorage.setItem(SESSION_REFRESH_TOKEN_KEY, refreshToken);
     }
   } else if (!persistRefreshToken) {
-    // ensure persistent storage is cleared when not persisting
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    inMemoryRefreshToken = null;
+    sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
   }
 
   window.dispatchEvent(new Event("authchange"));

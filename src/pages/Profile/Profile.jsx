@@ -112,7 +112,6 @@ function formatDateLabel(dateValue) {
   }
 
   return new Intl.DateTimeFormat("ko-KR", {
-    month: "numeric",
     day: "numeric",
   }).format(parsedDate);
 }
@@ -234,10 +233,15 @@ function ChartCard({
             ) : (
               <BarChart
                 data={chartData}
-                margin={{ top: 8, right: 16, bottom: 28, left: 4 }}
+                margin={{ top: 8, right: 16, bottom: 28, left: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 12 }}
+                />
                 <YAxis
                   tickLine={false}
                   axisLine={false}
@@ -580,47 +584,47 @@ function Profile() {
               </div>
               <div className="profile-name-row">
                 <div className="profile-name-block">
-                {isEditing ? (
-                  <input
-                    className="profile-input-name"
-                    value={editForm.username}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        username: event.target.value,
-                      }))
-                    }
-                    placeholder="이름을 입력하세요"
-                  />
-                ) : (
-                  <p className="profile-display-name">{displayName}</p>
-                )}
-              </div>
-              <div className="profile-job-block">
-                {isEditing ? (
-                  <select
-                    className="profile-select-job"
-                    value={editForm.userType}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        userType: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">선택하세요</option>
-                    {USER_TYPE_OPTIONS.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="profile-job-badge">
-                    {getUserTypeLabel(userProfile.userType)}
-                  </span>
-                )}
-              </div>
+                  {isEditing ? (
+                    <input
+                      className="profile-input-name"
+                      value={editForm.username}
+                      onChange={(event) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          username: event.target.value,
+                        }))
+                      }
+                      placeholder="이름을 입력하세요"
+                    />
+                  ) : (
+                    <p className="profile-display-name">{displayName}</p>
+                  )}
+                </div>
+                <div className="profile-job-block">
+                  {isEditing ? (
+                    <select
+                      className="profile-select-job"
+                      value={editForm.userType}
+                      onChange={(event) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          userType: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">선택하세요</option>
+                      {USER_TYPE_OPTIONS.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="profile-job-badge">
+                      {getUserTypeLabel(userProfile.userType)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

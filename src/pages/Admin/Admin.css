@@ -1409,4 +1409,10 @@
   .admin-mobile-actions {
     grid-template-columns: 1fr;
   }
+
+  .admin-filter-wrap {
+    width: 100%;
+    overflow-x: auto;
+    padding: 5px;
+  }
 }
