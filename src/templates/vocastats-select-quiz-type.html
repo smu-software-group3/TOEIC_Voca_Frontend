@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vocastats - 단어테스트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0eef8;
+      --white: #ffffff;
+      --purple: #5c45e0;
+      --purple-light: #ede9ff;
+      --purple-dark: #4232c2;
+      --green: #28a164;
+      --green-dark: #1e8752;
+      --text-dark: #1a1560;
+      --text-body: #444;
+      --text-muted: #888;
+      --border: #e0daf5;
+      --shadow: 0 4px 24px rgba(92,69,224,0.08);
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-dark);
+      text-decoration: none;
+    }
+    .logo svg { width: 28px; height: 28px; }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-body);
+      padding-bottom: 4px;
+      transition: color .2s;
+    }
+    .nav-links a.active {
+      color: var(--purple);
+      border-bottom: 2.5px solid var(--purple);
+      font-weight: 700;
+    }
+    .nav-links a:hover { color: var(--purple); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .bell-btn {
+      position: relative;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 4px;
+    }
+    .bell-badge {
+      position: absolute;
+      top: 0; right: 0;
+      background: #e83a3a;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 99px;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+    }
+    .user-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 32px 32px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .hero-text h1 {
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: var(--text-dark);
+    }
+    .hero-text h1 span { color: var(--purple); }
+    .hero-text p {
+      margin-top: 12px;
+      font-size: 15px;
+      color: var(--text-body);
+    }
+
+    /* ── CARDS ── */
+    .cards {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 8px 32px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 36px 36px 32px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: transform .22s, box-shadow .22s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(92,69,224,0.13);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .card-icon {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-icon.purple { background: var(--purple); }
+    .card-icon.green  { background: var(--green); }
+    .card-icon svg { width: 34px; height: 34px; color: #fff; }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .card-title.purple { color: var(--purple); }
+    .card-title.green  { color: var(--green); }
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-body);
+      line-height: 1.6;
+      margin-top: 4px;
+    }
+
+    .features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-body);
+      font-weight: 500;
+    }
+    .feature-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-icon.purple { background: var(--purple-light); color: var(--purple); }
+    .feature-icon.green  { background: #d4f0e3; color: var(--green); }
+    .feature-icon svg { width: 14px; height: 14px; }
+
+    .start-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      border-radius: 12px;
+      padding: 16px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      color: var(--white);
+      transition: opacity .2s, transform .15s;
+      margin-top: 4px;
+    }
+    .start-btn:hover { opacity: .9; transform: scale(1.01); }
+    .start-btn.purple { background: var(--purple); }
+    .start-btn.green  { background: var(--green); }
+    .start-btn svg { width: 18px; height: 18px; }
+
+    /* ── FOOTER BANNER ── */
+    .info-banner {
+      max-width: 1100px;
+      margin: 0 auto 40px;
+      padding: 0 32px;
+    }
+    .info-inner {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+    }
+    .info-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 14px;
+      color: var(--text-body);
+    }
+    .settings-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      background: var(--white);
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+    .settings-btn:hover { border-color: var(--purple); color: var(--purple); }
+    .settings-btn svg { width: 16px; height: 16px; }
+
+    /* ── PAGE FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 20px 0 32px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="#5c45e0"/>
+      <path d="M8 22L14 10L20 18L23 14L28 22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Vocastats
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#">단어장 조회</a></li>
+    <li><a href="#" class="active">단어테스트</a></li>
+    <li><a href="#">재학습</a></li>
+    <li><a href="#">대시보드</a></li>
+  </ul>
+
+  <div class="nav-right">
+    <button class="bell-btn" aria-label="알림">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="bell-badge">3</span>
+    </button>
+    <button class="user-btn">
+      <div class="avatar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5c45e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      지우바보
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <h1>어떤 방식으로<br><span>테스트</span>를 진행할까요?</h1>
+    <p>원하는 방식을 선택하고 단어 실력을 확인해 보세요!</p>
+  </div>
+</section>
+
+<!-- CARDS -->
+<section class="cards">
+
+  <!-- 객관식 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="6" height="4" rx="1"/><line x1="13" y1="7" x2="21" y2="7"/>
+          <rect x="3" y="13" width="6" height="4" rx="1"/><line x1="13" y1="15" x2="21" y2="15"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title purple">객관식 테스트</div>
+        <div class="card-desc">보기 중 정답을 선택하는<br>객관식 테스트입니다.</div>
+      </div>
+    </div>
+
+    <ul class="features">
+      <li>
+        <span class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        4지선다형 문제
+      </li>
+      <li>
+        <span class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+        </span>
+        빠르게 실력 측정
+      </li>
+      <li>
+        <span class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+        </span>
+        난이도별 자동 출제
+      </li>
+    </ul>
+
+    <button class="start-btn purple">
+      객관식 테스트 시작
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <!-- 주관식 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title green">주관식 테스트</div>
+        <div class="card-desc">단어의 뜻을 직접 입력하는<br>주관식 테스트입니다.</div>
+      </div>
+    </div>
+
+    <ul class="features">
+      <li>
+        <span class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        직접 입력하여 학습 효과 UP
+      </li>
+      <li>
+        <span class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        기억력과 스펠링 강화
+      </li>
+      <li>
+        <span class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        난이도별 자동 출제
+      </li>
+    </ul>
+
+    <button class="start-btn green">
+      주관식 테스트 시작
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+</section>
+
+<!-- INFO BANNER -->
+<div class="info-banner">
+  <div class="info-inner">
+    <div class="info-left">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f5a623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      테스트는 선택한 단어장과 난이도에 따라 출제됩니다.
+    </div>
+    <button class="settings-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      테스트 설정 변경
+    </button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>© 2024 Vocastats. All rights reserved.</footer>
+
+</body>
+</html>

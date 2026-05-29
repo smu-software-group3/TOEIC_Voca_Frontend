@@ -11,3 +11,23 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #f4f3fb;
+  --white: #ffffff;
+  --purple: #5c45e0;
+  --purple-light: #ede9ff;
+  --purple-dark: #4232c2;
+  --green: #28a164;
+  --red: #e02424;
+  --green-light: #e8f7ee;
+  --text-dark: #1a1560;
+  --text-body: #555;
+  --text-muted: #aaa;
+  --border: #e2ddf5;
+  --shadow: 0 2px 16px rgba(92, 69, 224, 0.07);
+}

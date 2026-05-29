@@ -14,6 +14,13 @@
   --login-error: #b91c1c;
 }
 
+.landing-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--login-light-bg);
+}
+
 .login-page {
   min-height: 100vh;
   display: flex;

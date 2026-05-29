@@ -10,7 +10,6 @@ export function Input({ placeholder, value, onChange, type, style, ...props }) {
       onChange={onChange}
       {...props}
       style={{
-        width: "100%",
         padding: "12px 16px",
         border: "1.5px solid #d1d5db",
         borderRadius: "8px",

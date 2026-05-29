@@ -1,12 +1,13 @@
 /* 공통 난이도 배지 — Admin / 단어장 등에서 공유 */
 
 .diff-badge {
-  display: inline-block;
   font-size: 14px;
   padding: 7px 16px;
   border-radius: 999px;
   font-weight: 600;
   line-height: 1.2;
+  width: max-content;
+
 }
 
 .diff-badge--easy {
@@ -25,4 +26,12 @@
   background: rgba(139, 92, 246, 0.14);
   color: #4c1d95;
   border: 0.5px solid rgba(139, 92, 246, 0.22);
+}
+
+@media (max-width: 640px) {
+  .diff-badge {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+  
 }

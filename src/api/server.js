@@ -2,6 +2,7 @@ import axios from "axios";
 
 const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const SESSION_REFRESH_TOKEN_KEY = "sessionRefreshToken";
 const AUTO_LOGIN_ENABLED_KEY = "autoLoginEnabled";
 const SILENT_REFRESH_DELAY_MS = 12 * 60 * 1000;
 const SILENT_REFRESH_EXCLUDED_PATHS = [
@@ -13,9 +14,13 @@ const SILENT_REFRESH_EXCLUDED_PATHS = [
   "/api/password/find",
 ];
 
+const isLocal = false;
+
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
-  const baseUrl = process.env.REACT_APP_SERVER_URL || "";
+  const baseUrl = isLocal
+    ? process.env.REACT_APP_LOCAL_SERVER_URL_2
+    : process.env.REACT_APP_SERVER_URL;
 
   if (!baseUrl) {
     throw new Error("REACT_APP_SERVER_URL is not defined");
@@ -95,7 +100,11 @@ export function getStoredAccessToken() {
 }
 
 export function getStoredRefreshToken() {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  // Prefer persistent refresh token, then the session-scoped token used when auto login is off.
+  return (
+    localStorage.getItem(REFRESH_TOKEN_KEY) ||
+    sessionStorage.getItem(SESSION_REFRESH_TOKEN_KEY)
+  );
 }
 
 export function isAutoLoginEnabled() {
@@ -110,6 +119,7 @@ export function clearAuthTokens() {
   clearSilentRefreshTimer();
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
 
   window.dispatchEvent(new Event("authchange"));
 }
@@ -123,10 +133,19 @@ export function storeAuthTokens({
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   }
 
-  if (persistRefreshToken && refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  // If the user opted into persistent login, store the refresh token in localStorage.
+  // Otherwise, keep it in sessionStorage so silent refresh survives page reloads.
+  if (refreshToken) {
+    if (persistRefreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
+    } else {
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      sessionStorage.setItem(SESSION_REFRESH_TOKEN_KEY, refreshToken);
+    }
   } else if (!persistRefreshToken) {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
   }
 
   window.dispatchEvent(new Event("authchange"));
@@ -209,16 +228,37 @@ const getRefreshTokenPromise = () => {
   return refreshTokenPromise;
 };
 
+// Request 인터셉터: 모든 요청에 access token 자동 추가
+axios.interceptors.request.use(
+  (config) => {
+    const accessToken = getStoredAccessToken();
+
+    if (accessToken) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
 const triggerSilentRefresh = async () => {
   try {
     await getRefreshTokenPromise();
+    // Silent refresh 성공 후 다시 스케줄
+    scheduleSilentRefresh();
   } catch {
     clearAuthTokens();
   }
 };
 
 axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 성공 응답 후 silent refresh 타이머 갱신
+    scheduleSilentRefresh();
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
@@ -256,6 +296,7 @@ axios.interceptors.response.use(
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`;
 
+      // 토큰 갱신 후 원래 요청 재시도
       return axios(originalRequest);
     } catch (refreshError) {
       clearAuthTokens();
@@ -270,6 +311,8 @@ axios.interceptors.response.use(
 );
 
 const bootstrapSilentRefresh = () => {
+  // Schedule silent refresh if we have both an access token and either a persisted
+  // or in-memory refresh token (session logins).
   if (getStoredAccessToken() && getStoredRefreshToken()) {
     scheduleSilentRefresh();
   }
@@ -450,6 +493,91 @@ export async function updateMyProfile({ username, birthDate, userType }) {
   }
 }
 
+const PROFILE_IMAGE_REGEX =
+  /^data:image\/(png|jpe?g|gif);base64,([a-z0-9+/=]+)$/i;
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function createInvalidProfileImageError() {
+  const requestError = new Error("입력값이 올바르지 않습니다.");
+  requestError.code = "INVALID_INPUT";
+  return requestError;
+}
+
+function validateProfileImage(profileImage) {
+  if (!profileImage || typeof profileImage !== "string") {
+    throw createInvalidProfileImageError();
+  }
+
+  const trimmedProfileImage = profileImage.trim();
+  const matched = trimmedProfileImage.match(PROFILE_IMAGE_REGEX);
+
+  if (!matched) {
+    throw createInvalidProfileImageError();
+  }
+
+  const base64Data = matched[2] || "";
+  const paddingLength = base64Data.endsWith("==")
+    ? 2
+    : base64Data.endsWith("=")
+      ? 1
+      : 0;
+  const byteLength = Math.floor((base64Data.length * 3) / 4) - paddingLength;
+
+  if (byteLength >= MAX_PROFILE_IMAGE_BYTES) {
+    throw createInvalidProfileImageError();
+  }
+
+  return trimmedProfileImage;
+}
+
+// 현재 로그인한 사용자의 프로필 이미지를 업로드한다.
+export async function uploadProfileImage(profileImage) {
+  const url = `${getServerUrl()}/api/users/me/profile-image`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const validatedProfileImage = validateProfileImage(profileImage);
+    const response = await axios.post(
+      url,
+      { profileImage: validatedProfileImage },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error.code === "INVALID_INPUT") {
+      throw error;
+    }
+
+    const status = error.response?.status;
+    const code = error.response?.data?.code;
+    const message =
+      status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : status === 400
+            ? "입력값이 올바르지 않습니다."
+            : error.response?.data?.message ||
+              "프로필 이미지 업로드 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code =
+      code ||
+      (status === 404
+        ? "NOT_FOUND"
+        : status === 401
+          ? "UNAUTHORIZED"
+          : "INVALID_INPUT");
+    throw requestError;
+  }
+}
+
 // 현재 비밀번호와 새 비밀번호를 서버에 전달해 변경한다.
 export async function changePassword(
   currentPassword,
@@ -549,14 +677,200 @@ export async function getWords({
   }
 }
 
+// 사용자의 즐겨찾기 단어 목록을 가져온다.
+export async function getBookmarks() {
+  const url = `${getServerUrl()}/api/words/bookmarks`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.data?.message || "즐겨찾기 조회 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 단어 즐겨찾기 등록/삭제를 처리한다.
+export async function toggleBookmark(wordId) {
+  const url = `${getServerUrl()}/api/words/${encodeURIComponent(wordId)}/bookmark`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const status = error.response?.status;
+    const message =
+      status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : error.response?.data?.message || "즐겨찾기 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 품사별 단어 목록을 가져온다.
+export async function getWordsByPartOfSpeech(partOfSpeech) {
+  const url = `${getServerUrl()}/api/words/part-of-speech/${encodeURIComponent(partOfSpeech)}`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.data?.message ||
+          "품사별 단어 조회 요청에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 사용자의 취약 단어를 가져온다.
+export async function getWeakWords({ difficulty = "", limit = 10 } = {}) {
+  const url = `${getServerUrl()}/api/users/me/weak-words`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      params: { difficulty, limit },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 400
+          ? "잘못된 요청입니다."
+          : error.response?.data?.message || "취약 단어 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 오래된 문제 재학습 단어를 가져온다.
+export async function getRelearningWords() {
+  const url = `${getServerUrl()}/api/users/me/relearning-words`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const status = error.response?.status;
+    const message =
+      status === 401
+        ? "인증이 필요합니다."
+        : status === 404
+          ? "회원을 찾을 수 없습니다."
+          : status === 400
+            ? "유효하지 않은 요청입니다."
+            : status >= 500
+              ? "서버 오류가 발생했습니다."
+              : error.response?.data?.message ||
+                "오래된 문제 재학습 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 오늘 틀린 단어를 가져온다.
+export async function getTodayWrongWords() {
+  const url = `${getServerUrl()}/api/users/me/today-wrong`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : error.response?.status === 400
+            ? "잘못된 요청입니다."
+            : error.response?.data?.message ||
+              "오늘 틀린 단어 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
 // 랜덤 단어를 요청해 단어 테스트의 출제 후보를 가져온다.
-export async function getRandomWords(count) {
+export async function getRandomWords(count, partOfSpeech = "") {
   const url = `${getServerUrl()}/api/words/random`;
   const token = localStorage.getItem("token");
 
   try {
     const response = await axios.get(url, {
-      params: { count },
+      params: { count, partOfSpeech },
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -613,14 +927,17 @@ export async function getWordTestQuestion(wordId) {
 }
 
 // 사용자가 제출한 답안을 서버로 보내 정답 여부를 확인한다.
-export async function checkWordAnswer(wordId, submittedSpelling) {
+export async function checkWordAnswer(answerOrWordId, submittedSpelling) {
   const url = `${getServerUrl()}/api/words/check-answer`;
   const token = localStorage.getItem("token");
+  const answers = Array.isArray(answerOrWordId)
+    ? answerOrWordId
+    : [{ wordId: answerOrWordId, submittedSpelling }];
 
   try {
     const response = await axios.post(
       url,
-      { wordId, submittedSpelling },
+      { answers },
       {
         headers: {
           "Content-Type": "application/json",
@@ -674,22 +991,104 @@ export async function getMemberInfo() {
   }
 }
 
-// 관리자 단어 추가 요청을 보낸다.
-export async function createAdminWord({ spelling, meaning, difficulty }) {
-  const url = `${getServerUrl()}/api/admin/words`;
+// 현재 로그인한 사용자의 점수 정보를 조회한다.
+export async function getUserScore() {
+  const url = `${getServerUrl()}/api/users/me/score`;
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.post(
-      url,
-      { spelling, meaning, difficulty },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    );
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다. 다시 로그인해주세요."
+        : error.response?.data?.message || "점수 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code = code;
+    throw requestError;
+  }
+}
+
+// 현재 로그인한 사용자의 학습 대시보드를 조회한다.
+export async function getDashboard() {
+  const url = `${getServerUrl()}/api/users/me/dashboard`;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const code = error.response?.data?.code;
+    const message =
+      error.response?.status === 401
+        ? "인증이 필요합니다."
+        : error.response?.status === 404
+          ? "요청한 리소스를 찾을 수 없습니다."
+          : error.response?.status === 400
+            ? "잘못된 요청입니다."
+            : error.response?.data?.message || "대시보드 조회에 실패했습니다.";
+    const requestError = new Error(message);
+
+    requestError.code =
+      code ||
+      (error.response?.status === 401 ? "UNAUTHORIZED" : "INVALID_INPUT");
+    throw requestError;
+  }
+}
+
+function normalizeAdminWordMeanings({ meanings }) {
+  if (!Array.isArray(meanings) || meanings.length === 0) {
+    return [];
+  }
+
+  return meanings
+    .map((item) => ({
+      meaning: String(item?.meaning || "").trim(),
+      partOfSpeech: String(item?.partOfSpeech || "NOUN").trim(),
+    }))
+    .filter((item) => item.meaning);
+}
+
+function buildAdminWordRequestBody(payload) {
+  const spelling = String(payload?.spelling || "").trim();
+  const meanings = normalizeAdminWordMeanings(payload);
+
+  return {
+    spelling,
+    meanings,
+    difficulty: payload?.difficulty,
+  };
+}
+
+// 관리자 단어 추가 요청을 보낸다.
+export async function createAdminWord(payload) {
+  const url = `${getServerUrl()}/api/admin/words`;
+  const token = localStorage.getItem("token");
+
+  const requestBody = buildAdminWordRequestBody(payload);
+
+  try {
+    const response = await axios.post(url, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
     return response.data;
   } catch (error) {
@@ -713,24 +1112,19 @@ export async function createAdminWord({ spelling, meaning, difficulty }) {
 }
 
 // 관리자 단어 수정 요청을 보낸다.
-export async function updateAdminWord(
-  wordId,
-  { spelling, meaning, difficulty },
-) {
+export async function updateAdminWord(wordId, payload) {
   const url = `${getServerUrl()}/api/admin/words/${wordId}`;
   const token = localStorage.getItem("token");
 
+  const requestBody = buildAdminWordRequestBody(payload);
+
   try {
-    const response = await axios.patch(
-      url,
-      { spelling, meaning, difficulty },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+    const response = await axios.patch(url, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
@@ -741,10 +1135,11 @@ export async function updateAdminWord(
         : error.response?.status === 403
           ? "관리자 권한이 필요합니다."
           : error.response?.status === 400
-          ? "유효하지 않은 난이도입니다. EASY, MEDIUM, HARD 중 하나여야 합니다."
-          : error.response?.status === 404
-            ? "수정할 단어를 찾을 수 없습니다."
-            : error.response?.data?.message || "단어 수정 요청에 실패했습니다.";
+            ? "유효하지 않은 난이도입니다. EASY, MEDIUM, HARD 중 하나여야 합니다."
+            : error.response?.status === 404
+              ? "수정할 단어를 찾을 수 없습니다."
+              : error.response?.data?.message ||
+                "단어 수정 요청에 실패했습니다.";
     const requestError = new Error(message);
 
     requestError.code = code;
