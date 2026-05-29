@@ -150,6 +150,7 @@ function WordTest() {
   const [error, setError] = useState("");
   const [testResults, setTestResults] = useState([]);
   const [wrongWords, setWrongWords] = useState([]);
+  const [userAnswers, setUserAnswers] = useState([]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -188,7 +189,6 @@ function WordTest() {
   );
 
   const isObjectiveTest = selectedTestType === "objective";
-  const isSubjectiveTest = selectedTestType === "subjective";
 
   useEffect(() => {
     if (!selectedTestType) {
@@ -215,6 +215,7 @@ function WordTest() {
     setError("");
     setTestResults([]);
     setWrongWords([]);
+    setUserAnswers([]);
 
     const loadQuestions = async () => {
       setLoading(true);
@@ -306,7 +307,9 @@ function WordTest() {
       return "";
     }
 
-    return currentQuestion.type === "objective" ? selectedChoiceId : userAnswer;
+    return currentQuestion.type === "objective"
+      ? String(selectedChoiceId)
+      : userAnswer;
   }, [currentQuestion, selectedChoiceId, userAnswer]);
 
   const handleSubmit = async (e) => {
@@ -328,76 +331,89 @@ function WordTest() {
       return;
     }
 
+    // Save the user's answer
+    setUserAnswers((prev) => [
+      ...prev,
+      {
+        wordId: currentQuestion.wordId,
+        submittedSpelling,
+      },
+    ]);
+
+    // Move to next question or finish
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex((prevIndex) => prevIndex + 1);
+      setSelectedChoiceId("");
+      setUserAnswer("");
+      setFeedback("");
+    } else {
+      // All questions answered - check answers
+      await checkAllAnswers(submittedSpelling);
+    }
+  };
+
+  const checkAllAnswers = async (lastSubmittedSpelling) => {
     setLoading(true);
     setError("");
 
     try {
-      const response = await checkWordAnswer([
-        {
+      // Build the complete answers array
+      const answersToCheck = userAnswers.map((answer) => ({
+        wordId: answer.wordId,
+        submittedSpelling: answer.submittedSpelling,
+      }));
+      // Add the last answer
+      if (currentQuestion) {
+        answersToCheck.push({
           wordId: currentQuestion.wordId,
-          submittedSpelling,
-        },
-      ]);
+          submittedSpelling: lastSubmittedSpelling,
+        });
+      }
+
+      const response = await checkWordAnswer(answersToCheck);
 
       if (!response?.success) {
         throw new Error(response?.message || "정답 확인에 실패했습니다.");
       }
 
-      const answerArray = Array.isArray(response.data)
-        ? response.data
-        : [response.data || {}];
-      const answerData = answerArray[0] || {};
-      const isCorrect = Boolean(answerData.correct);
-      const correctAnswer = answerData.answer || currentQuestion.spelling || "";
+      const answerArray = Array.isArray(response.data) ? response.data : [];
+      let correctCount = 0;
+      const resultsToSave = [];
+      const wrongWordsToSave = [];
 
-      if (!isCorrect) {
-        setWrongWords((currentWrongWords) => {
-          const alreadyIncluded = currentWrongWords.some(
-            (word) => word.wordId === currentQuestion.wordId,
-          );
+      answerArray.forEach((answerData, index) => {
+        const question = questions[index];
+        if (!question) return;
 
-          if (alreadyIncluded) {
-            return currentWrongWords;
-          }
+        const isCorrect = Boolean(answerData.correct);
+        const correctAnswer = answerData.answer || question.spelling || "";
+        const submittedAnswer = answersToCheck[index]?.submittedSpelling || "";
 
-          return [...currentWrongWords, currentQuestion];
-        });
-      }
+        if (isCorrect) {
+          correctCount += 1;
+        } else {
+          wrongWordsToSave.push(question);
+        }
 
-      setTestResults((currentResults) => [
-        ...currentResults,
-        {
-          wordId: currentQuestion.wordId,
-          spelling: currentQuestion.spelling || currentQuestion.meaning,
-          meaning: currentQuestion.meaning,
-          submittedAnswer: submittedSpelling,
+        resultsToSave.push({
+          wordId: question.wordId,
+          spelling: question.spelling || question.meaning,
+          meaning: question.meaning,
+          submittedAnswer,
           correctAnswer,
           isCorrect,
-        },
-      ]);
+        });
+      });
 
-      if (isCorrect) {
-        setScore((prevScore) => prevScore + 1);
-        setFeedback("정답입니다!");
-      } else {
-        setFeedback(`틀렸습니다. 정답은 "${correctAnswer}"입니다.`);
-      }
-
-      setTimeout(() => {
-        if (currentIndex < questions.length - 1) {
-          setCurrentIndex((prevIndex) => prevIndex + 1);
-          setSelectedChoiceId("");
-          setUserAnswer("");
-          setFeedback("");
-        } else {
-          setIsFinished(true);
-        }
-      }, 1500);
+      setScore(correctCount);
+      setTestResults(resultsToSave);
+      setWrongWords(wrongWordsToSave);
+      setIsFinished(true);
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
         setError("인증이 필요합니다. 다시 로그인해주세요.");
       } else {
-        setFeedback(requestError.message || "정답 확인에 실패했습니다.");
+        setError(requestError.message || "정답 확인에 실패했습니다.");
       }
     } finally {
       setLoading(false);
@@ -416,7 +432,9 @@ function WordTest() {
         const response = await getUserScore();
 
         if (!response?.success) {
-          throw new Error(response?.message || "점수 정보를 불러오지 못했습니다.");
+          throw new Error(
+            response?.message || "점수 정보를 불러오지 못했습니다.",
+          );
         }
 
         setUserScore(response.data);
@@ -446,6 +464,7 @@ function WordTest() {
     setError("");
     setTestResults([]);
     setWrongWords([]);
+    setUserAnswers([]);
   };
 
   const handleSelectTestType = (type) => {
@@ -468,6 +487,33 @@ function WordTest() {
       setUserAnswer(event.target.value);
     }
   };
+
+  // Restore answer when navigating to a different question
+  useEffect(() => {
+    if (!currentQuestion) {
+      return;
+    }
+
+    if (currentQuestion.type === "objective") {
+      const existingAnswer = userAnswers.find(
+        (ans) => ans.wordId === currentQuestion.wordId,
+      );
+      if (existingAnswer) {
+        const choice = currentQuestion.choices?.find(
+          (c) => c.spelling === existingAnswer.submittedSpelling,
+        );
+        setSelectedChoiceId(choice?.choiceId || "");
+      } else {
+        setSelectedChoiceId("");
+      }
+    } else {
+      const existingAnswer = userAnswers.find(
+        (ans) => ans.wordId === currentQuestion.wordId,
+      );
+      setUserAnswer(existingAnswer?.submittedSpelling || "");
+    }
+    setFeedback("");
+  }, [currentIndex, currentQuestion, userAnswers]);
 
   if (loading && questions.length === 0) {
     return (
@@ -518,22 +564,7 @@ function WordTest() {
             <div className="wordtest-user-score-card">
               <h2 className="wordtest-user-score-title">내 점수</h2>
               <p className="wordtest-user-score-row">
-                <span>누적 점수</span>
                 <strong>{userScore.score?.toLocaleString()}</strong>
-              </p>
-              <p className="wordtest-user-score-row">
-                <span>평균 정답률</span>
-                <strong>
-                  {Math.round((userScore.averageCorrectRate || 0) * 10000) / 100}%
-                </strong>
-              </p>
-              <p className="wordtest-user-score-row">
-                <span>최근 학습</span>
-                <strong>
-                  {userScore.lastStudiedAt
-                    ? new Date(userScore.lastStudiedAt).toLocaleString()
-                    : "정보 없음"}
-                </strong>
               </p>
             </div>
           )}
@@ -630,10 +661,7 @@ function WordTest() {
               </p>
             </div>
 
-            <div
-              className="wordtest-select-visual"
-              aria-hidden="true"
-            >
+            <div className="wordtest-select-visual" aria-hidden="true">
               <img
                 src={testSelectImage}
                 alt=""
@@ -888,7 +916,7 @@ function WordTest() {
                         : "wordtest-count-pill"
                     }
                   >
-                    {value === 50 ? "전체" : `${value}문제`}
+                    {`${value}문제`}
                   </button>
                 ))}
               </div>
@@ -922,6 +950,38 @@ function WordTest() {
       ) : (
         <section className="wordtest-test-shell">
           <div className="wordtest-test-layout">
+            <div className="wordtest-top-row-mobile">
+              <div className="wordtest-top-left">
+                <button
+                  type="button"
+                  className="wordtest-back-btn"
+                  onClick={() => navigate("/wtest")}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                  나가기
+                </button>
+                <div className="wordtest-progress-center">
+                  <span className="wordtest-progress-label">
+                    문제 {currentIndex + 1} / {questions.length}
+                  </span>
+                  <div className="wordtest-progress-track">
+                    <div
+                      className="wordtest-progress-fill"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="wordtest-test-main">
               <div className="wordtest-top-row">
                 <div className="wordtest-top-left">
@@ -940,7 +1000,7 @@ function WordTest() {
                     >
                       <polyline points="15 18 9 12 15 6" />
                     </svg>
-                    {isObjectiveTest ? "객관식 테스트" : "주관식 테스트"}
+                    나가기
                   </button>
                   <div className="wordtest-progress-center">
                     <span className="wordtest-progress-label">
@@ -954,13 +1014,6 @@ function WordTest() {
                     </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="wordtest-end-btn"
-                  onClick={() => setIsFinished(true)}
-                >
-                  테스트 종료
-                </button>
               </div>
 
               <Form onSubmit={handleSubmit} className="wordtest-form">
@@ -1020,7 +1073,6 @@ function WordTest() {
                                 className={[
                                   "wordtest-option-btn",
                                   active && "wordtest-option-btn--active",
-                                  feedback && "wordtest-option-btn--disabled",
                                 ]
                                   .filter(Boolean)
                                   .join(" ")}
@@ -1033,7 +1085,6 @@ function WordTest() {
                                   onChange={() =>
                                     setSelectedChoiceId(String(choice.choiceId))
                                   }
-                                  disabled={!!feedback}
                                 />
                                 <span
                                   className="wordtest-radio-circle"
@@ -1079,7 +1130,7 @@ function WordTest() {
                           placeholder="영어 단어를 입력하세요"
                           value={userAnswer}
                           onChange={handleAnswerChange}
-                          disabled={!!feedback}
+                          disabled={false}
                           autoComplete="off"
                           className="wordtest-subjective-input"
                           style={{
@@ -1103,15 +1154,7 @@ function WordTest() {
                 </div>
 
                 {feedback && (
-                  <p
-                    className={
-                      feedback.includes("정답")
-                        ? "wordtest-feedback-correct"
-                        : "wordtest-feedback-wrong"
-                    }
-                  >
-                    {feedback}
-                  </p>
+                  <p className={"wordtest-feedback-hidden"}>{feedback}</p>
                 )}
 
                 {error && (
@@ -1128,19 +1171,16 @@ function WordTest() {
                       setCurrentIndex((prev) => Math.max(0, prev - 1))
                     }
                     className="wordtest-btn-exit"
+                    disabled={currentIndex === 0}
                   />
                   <Button
-                    buttonText={isSubjectiveTest ? "정답 제출" : "다음 문제"}
-                    disabled={
-                      isSubjectiveTest
-                        ? !answerValue.trim() || !!feedback || loading
-                        : !!feedback || loading
+                    buttonText={
+                      currentIndex === questions.length - 1
+                        ? "제출하기"
+                        : "다음 문제"
                     }
-                    className={
-                      isObjectiveTest
-                        ? "wordtest-btn-submit-objective"
-                        : "wordtest-btn-submit-subjective"
-                    }
+                    disabled={!answerValue.trim() || loading}
+                    className={"wordtest-btn-submit-objective"}
                   />
                 </div>
               </Form>
@@ -1158,23 +1198,8 @@ function WordTest() {
                   </span>
                 </div>
 
-                <div className="wordtest-side-legend">
-                  <span>
-                    <i className="wordtest-legend-dot wordtest-legend-dot--correct" />
-                    정답
-                  </span>
-                  <span>
-                    <i className="wordtest-legend-dot wordtest-legend-dot--wrong" />
-                    오답
-                  </span>
-                  <span>
-                    <i className="wordtest-legend-dot wordtest-legend-dot--current" />
-                    현재
-                  </span>
-                </div>
-
                 <div className="wordtest-answer-grid">
-                  {answerStatusItems.map((item) => (
+                  {answerStatusItems.map((item, index) => (
                     <button
                       key={`${item.label}-${item.status}`}
                       type="button"
@@ -1182,8 +1207,8 @@ function WordTest() {
                         "wordtest-answer-cell",
                         `wordtest-answer-cell--${item.status}`,
                       ].join(" ")}
-                      aria-disabled="true"
-                      tabIndex={-1}
+                      onClick={() => setCurrentIndex(index)}
+                      disabled={item.status === "current" && !feedback}
                     >
                       {item.label}
                     </button>

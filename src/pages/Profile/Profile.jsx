@@ -14,6 +14,7 @@ import {
   deleteMyAccount,
   getDashboard,
   getMemberInfo,
+  logout,
   uploadProfileImage,
   updateMyProfile,
 } from "../../api/server";
@@ -112,7 +113,6 @@ function formatDateLabel(dateValue) {
   }
 
   return new Intl.DateTimeFormat("ko-KR", {
-    month: "numeric",
     day: "numeric",
   }).format(parsedDate);
 }
@@ -181,11 +181,12 @@ function ChartCard({
   horizontal = false,
   valueFormatter,
   emptyText,
+  isDaysChart = false,
 }) {
   const chartData = Array.isArray(data) ? data : [];
-
+  const style = isDaysChart ? { borderTopRightRadius: "0px" } : {};
   return (
-    <article className="dashboard-chart-card">
+    <article className="dashboard-chart-card" style={style}>
       <div className="dashboard-chart-header">
         <div>
           <p className="dashboard-chart-eyebrow">{subtitle}</p>
@@ -233,10 +234,15 @@ function ChartCard({
             ) : (
               <BarChart
                 data={chartData}
-                margin={{ top: 8, right: 16, bottom: 28, left: 4 }}
+                margin={{ top: 8, right: 16, bottom: 28, left: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 12 }}
+                />
                 <YAxis
                   tickLine={false}
                   axisLine={false}
@@ -278,6 +284,7 @@ function Profile() {
   const [actionError, setActionError] = useState("");
   const [profileImageError, setProfileImageError] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
@@ -416,6 +423,28 @@ function Profile() {
     }
   };
 
+  const handleLogout = async () => {
+    setActionError("");
+    setLoggingOut(true);
+
+    try {
+      const response = await logout();
+
+      if (!response?.success) {
+        throw new Error(response?.message || "로그아웃 요청에 실패했습니다.");
+      }
+    } catch (requestError) {
+      if (requestError.code !== "UNAUTHORIZED") {
+        setActionError(requestError.message || "로그아웃 요청에 실패했습니다.");
+        setLoggingOut(false);
+        return;
+      }
+    }
+
+    clearAuthTokens();
+    navigate("/login");
+  };
+
   const handleSaveProfile = async () => {
     const trimmedUsername = editForm.username.trim();
 
@@ -476,7 +505,8 @@ function Profile() {
     loadDashboard();
   }, []);
 
-  const displayName = userProfile?.username || userProfile?.nickname || "사용자";
+  const displayName =
+    userProfile?.username || userProfile?.nickname || "사용자";
   const dashboardSummary = dashboard || {};
   const todayStats = dashboardSummary.todayStats || {};
   const progress = dashboardSummary.progress || {};
@@ -503,7 +533,9 @@ function Profile() {
     Number(progress.totalWordCount) > 0
       ? Math.min(
           100,
-          (Number(progress.studiedWordCount) / Number(progress.totalWordCount)) * 100,
+          (Number(progress.studiedWordCount) /
+            Number(progress.totalWordCount)) *
+            100,
         )
       : 0;
 
@@ -546,27 +578,80 @@ function Profile() {
 
         <div className="profile-body">
           <div className="profile-header-row">
-            <div className="profile-avatar-wrap">
-              <DefaultProfile
-                src={userProfile.profileImage || ""}
-                alt={`${displayName} 프로필 사진`}
-              />
-              <button
-                type="button"
-                className="profile-avatar-upload-btn"
-                onClick={handleProfileImageButtonClick}
-                disabled={uploadingProfileImage}
-              >
-                {uploadingProfileImage ? "업로드 중..." : "사진 변경"}
-              </button>
-              <input
-                ref={profileImageInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif"
-                className="profile-avatar-file-input"
-                onChange={handleProfileImageChange}
-              />
+            <div className="profile-avatar-row">
+              <div className="profile-avatar-wrap profile-avatar-media">
+                <DefaultProfile
+                  src={userProfile.profileImage || ""}
+                  alt={`${displayName} 프로필 사진`}
+                  width={100}
+                  height={100}
+                />
+                {isEditing && (
+                  <div className="profile-avatar-edit-wrap">
+                    <button
+                      type="button"
+                      className="profile-avatar-upload-btn"
+                      onClick={handleProfileImageButtonClick}
+                      disabled={uploadingProfileImage}
+                    >
+                      {uploadingProfileImage ? "업로드 중..." : "사진 변경"}
+                    </button>
+                    <input
+                      ref={profileImageInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/gif"
+                      className="profile-avatar-file-input"
+                      onChange={handleProfileImageChange}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="profile-name-row">
+                <div className="profile-name-block">
+                  {isEditing ? (
+                    <input
+                      className="profile-input-name"
+                      value={editForm.username}
+                      onChange={(event) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          username: event.target.value,
+                        }))
+                      }
+                      placeholder="이름을 입력하세요"
+                    />
+                  ) : (
+                    <p className="profile-display-name">{displayName}</p>
+                  )}
+                </div>
+                <div className="profile-job-block">
+                  {isEditing ? (
+                    <select
+                      className="profile-select-job"
+                      value={editForm.userType}
+                      onChange={(event) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          userType: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">선택하세요</option>
+                      {USER_TYPE_OPTIONS.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="profile-job-badge">
+                      {getUserTypeLabel(userProfile.userType)}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+
             <div className="profile-actions-col">
               <div className="profile-actions-row">
                 {!isEditing ? (
@@ -612,58 +697,22 @@ function Profile() {
                 )}
                 <button
                   type="button"
+                  className="profile-btn-logout"
+                  onClick={handleLogout}
+                  disabled={loggingOut || withdrawing || savingProfile}
+                >
+                  {loggingOut ? "로그아웃 중..." : "로그아웃"}
+                </button>
+                <button
+                  type="button"
                   className="profile-btn-withdraw"
                   onClick={handleDeleteAccount}
-                  disabled={withdrawing || savingProfile}
+                  disabled={withdrawing || savingProfile || loggingOut}
                 >
                   {withdrawing ? "탈퇴 처리 중..." : "회원 탈퇴"}
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="profile-name-block">
-            {isEditing ? (
-              <input
-                className="profile-input-name"
-                value={editForm.username}
-                onChange={(event) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    username: event.target.value,
-                  }))
-                }
-                placeholder="이름을 입력하세요"
-              />
-            ) : (
-              <p className="profile-display-name">{displayName}</p>
-            )}
-          </div>
-
-          <div className="profile-job-block">
-            {isEditing ? (
-              <select
-                className="profile-select-job"
-                value={editForm.userType}
-                onChange={(event) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    userType: event.target.value,
-                  }))
-                }
-              >
-                <option value="">선택하세요</option>
-                {USER_TYPE_OPTIONS.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span className="profile-job-badge">
-                {getUserTypeLabel(userProfile.userType)}
-              </span>
-            )}
           </div>
 
           <div className="profile-details">
@@ -703,124 +752,132 @@ function Profile() {
             </div>
           </div>
         </div>
-      </div>
 
-      <section className="dashboard-section">
-        <div className="dashboard-header">
-          <div>
-            <p className="dashboard-eyebrow">학습 대시보드</p>
-            <h2 className="dashboard-title">오늘의 학습 현황</h2>
-          </div>
-          <div className="dashboard-range-toggle" role="tablist" aria-label="학습량 기간 선택">
-            {DAILY_RANGE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={[
-                  "dashboard-range-button",
-                  dashboardRange === option.value && "dashboard-range-button--active",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onClick={() => setDashboardRange(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {dashboardError ? (
-          <div role="alert" className="dashboard-error">
-            {dashboardError}
-          </div>
-        ) : dashboardLoading ? (
-          <div className="dashboard-loading">대시보드를 불러오는 중입니다...</div>
-        ) : (
-          <>
-            <div className="dashboard-summary-grid">
-              <SummaryCard
-                label="오늘 학습한 단어 수"
-                value={formatNumber(todayStats.studiedWordCount)}
-                subtext=""
-                accent={CHART_COLORS.daily}
-              />
-              <SummaryCard
-                label="평균 정답률"
-                value={formatRate(todayStats.avgCorrectRate)}
-                subtext=""
-                accent={CHART_COLORS.correct}
-              />
-              <SummaryCard
-                label="연속 학습 일수"
-                value={formatNumber(streak.currentStreak)}
-                subtext=""
-                accent={CHART_COLORS.weak}
-              />
-              <SummaryCard
-                label="사용자 점수"
-                value={formatNumber(score.score)}
-                subtext=""
-                accent={CHART_COLORS.wrong}
-              />
+        <section className="dashboard-section">
+          <div className="dashboard-header">
+            <div>
+              <p className="dashboard-eyebrow">학습 대시보드</p>
+              <h2 className="dashboard-title">오늘의 학습 현황</h2>
             </div>
+          </div>
 
-            <article className="dashboard-progress-card">
-              <div className="dashboard-progress-copy">
-                <span className="dashboard-summary-label">전체 단어 수 대비 누적 학습 단어 수</span>
-                <strong className="dashboard-progress-value">
-                  {formatNumber(progress.studiedWordCount)} / {formatNumber(progress.totalWordCount)}
-                </strong>
-              </div>
-              <div className="dashboard-progress-track" aria-hidden="true">
-                <span
-                  className="dashboard-progress-fill"
-                  style={{ width: `${progressPercent}%` }}
+          {dashboardError ? (
+            <div role="alert" className="dashboard-error">
+              {dashboardError}
+            </div>
+          ) : dashboardLoading ? (
+            <div className="dashboard-loading">
+              대시보드를 불러오는 중입니다...
+            </div>
+          ) : (
+            <>
+              <div className="dashboard-summary-grid">
+                <SummaryCard
+                  label="오늘 학습한 단어 수"
+                  value={formatNumber(todayStats.studiedWordCount)}
+                  subtext=""
+                  accent={CHART_COLORS.daily}
+                />
+                <SummaryCard
+                  label="평균 정답률"
+                  value={formatRate(todayStats.avgCorrectRate)}
+                  subtext=""
+                  accent={CHART_COLORS.correct}
+                />
+                <SummaryCard
+                  label="연속 학습 일수"
+                  value={formatNumber(streak.currentStreak)}
+                  subtext=""
+                  accent={CHART_COLORS.weak}
+                />
+                <SummaryCard
+                  label="사용자 점수"
+                  value={formatNumber(score.score)}
+                  subtext=""
+                  accent={CHART_COLORS.wrong}
                 />
               </div>
-            </article>
 
-            <div className="dashboard-chart-grid">
-              <ChartCard
-                title="오답률 기준 취약 단어"
-                subtitle="weakWords"
-                data={weakWordChartData}
-                barColor={CHART_COLORS.weak}
-                horizontal
-                valueFormatter={formatRate}
-                emptyText="취약 단어 데이터가 없습니다."
-              />
-              <ChartCard
-                title="틀린 횟수 기준 많이 틀린 단어"
-                subtitle="topWrongWords"
-                data={topWrongWordChartData}
-                barColor={CHART_COLORS.wrong}
-                horizontal
-                valueFormatter={formatNumber}
-                emptyText="오답 단어 데이터가 없습니다."
-              />
-              <ChartCard
-                title="맞은 횟수 기준 많이 맞은 단어"
-                subtitle="topCorrectWords"
-                data={topCorrectWordChartData}
-                barColor={CHART_COLORS.correct}
-                horizontal
-                valueFormatter={formatNumber}
-                emptyText="정답 단어 데이터가 없습니다."
-              />
-            </div>
+              <article className="dashboard-progress-card">
+                <div className="dashboard-progress-copy">
+                  <span className="dashboard-summary-label">
+                    전체 단어 수 대비 누적 학습 단어 수
+                  </span>
+                  <strong className="dashboard-progress-value">
+                    {formatNumber(progress.studiedWordCount)} /{" "}
+                    {formatNumber(progress.totalWordCount)}
+                  </strong>
+                </div>
+                <div className="dashboard-progress-track" aria-hidden="true">
+                  <span
+                    className="dashboard-progress-fill"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </article>
 
-            <ChartCard
-              title="날짜별 학습량"
-              subtitle={dashboardRange === "30" ? "dailyStats.last30Days" : "dailyStats.last7Days"}
-              data={dailyChartData}
-              barColor={CHART_COLORS.daily}
-              valueFormatter={formatNumber}
-              emptyText="날짜별 학습 데이터가 없습니다."
-            />
-          </>
-        )}
-      </section>
+              <div className="dashboard-chart-grid">
+                <ChartCard
+                  title="오답률 기준 취약 단어"
+                  data={weakWordChartData}
+                  barColor={CHART_COLORS.weak}
+                  horizontal
+                  valueFormatter={formatRate}
+                  emptyText="취약 단어 데이터가 없습니다."
+                />
+                <ChartCard
+                  title="틀린 횟수 기준 많이 틀린 단어"
+                  data={topWrongWordChartData}
+                  barColor={CHART_COLORS.wrong}
+                  horizontal
+                  valueFormatter={formatNumber}
+                  emptyText="오답 단어 데이터가 없습니다."
+                />
+                <ChartCard
+                  title="맞은 횟수 기준 많이 맞은 단어"
+                  data={topCorrectWordChartData}
+                  barColor={CHART_COLORS.correct}
+                  horizontal
+                  valueFormatter={formatNumber}
+                  emptyText="정답 단어 데이터가 없습니다."
+                />
+              </div>
+              <div className="dashboard-range-container">
+                <div
+                  className="dashboard-range-toggle"
+                  role="tablist"
+                  aria-label="학습량 기간 선택"
+                >
+                  {DAILY_RANGE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={[
+                        "dashboard-range-button",
+                        dashboardRange === option.value &&
+                          "dashboard-range-button--active",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => setDashboardRange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <ChartCard
+                title="날짜별 학습량"
+                data={dailyChartData}
+                barColor={CHART_COLORS.daily}
+                valueFormatter={formatNumber}
+                emptyText="날짜별 학습 데이터가 없습니다."
+                isDaysChart={true}
+              />
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

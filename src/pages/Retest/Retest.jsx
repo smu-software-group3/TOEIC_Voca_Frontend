@@ -132,6 +132,7 @@ function Retest() {
   const [, setModePickerOpen] = useState(false);
   const [selectedWeakWordIds, setSelectedWeakWordIds] = useState([]);
   const [, setWeakSelectionOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   const activeListWords =
     activeListType === "today-wrong"
@@ -251,6 +252,30 @@ function Retest() {
     setWeakSelectionOpen(false);
   }, [activeListType, activeFlowType]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
+
+    const updateViewportFlag = () => {
+      setIsMobileViewport(mediaQuery.matches);
+    };
+
+    updateViewportFlag();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updateViewportFlag);
+
+      return () => {
+        mediaQuery.removeEventListener("change", updateViewportFlag);
+      };
+    }
+
+    mediaQuery.addListener(updateViewportFlag);
+
+    return () => {
+      mediaQuery.removeListener(updateViewportFlag);
+    };
+  }, []);
+
   const goToList = (type) => {
     navigate(`/retest/${type}`);
   };
@@ -348,7 +373,7 @@ function Retest() {
 
           <div className="retest-toolbar">
             <span className="retest-toolbar-info">
-              {activeListWords.length}문제가 준비되어 있습니다.
+              {activeListWords.length} 문제가 준비되어 있습니다.
             </span>
             <button
               type="button"
@@ -361,15 +386,19 @@ function Retest() {
 
           <div className="retest-list-container">
             <div className="table-card">
-              <table>
-                <colgroup>
-                  {isSelectableList && <col style={{ width: "40px" }} />}
-                  <col style={{ width: "40px" }} />
-                  <col />
-                  <col style={{ width: "240px" }} />
-                  <col style={{ width: "140px" }} />
-                  <col style={{ width: "130px" }} />
-                </colgroup>
+              <table
+                className={`retest-table ${isSelectableList ? "retest-table--selectable" : ""}`}
+              >
+                {!isMobileViewport && (
+                  <colgroup>
+                    {isSelectableList && <col style={{ width: "40px" }} />}
+                    <col style={{ width: "40px" }} />
+                    <col />
+                    <col style={{ width: "240px" }} />
+                    <col style={{ width: "140px" }} />
+                    <col style={{ width: "130px" }} />
+                  </colgroup>
+                )}
                 <thead>
                   <tr>
                     {isSelectableList && (
@@ -392,11 +421,35 @@ function Retest() {
                     <th style={{ textAlign: "center" }}>난이도</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="retest-tbody">
                   {listWords.map((word, idx) => {
                     const partOfSpeechList = getUniquePartOfSpeechList(word);
                     return (
-                      <tr key={word.wordId}>
+                      <tr
+                        key={word.wordId}
+                        className={
+                          selectedWeakWordIds.includes(word.wordId)
+                            ? "retest-row retest-row--selected"
+                            : "retest-row"
+                        }
+                        role={isMobileViewport && isSelectableList ? "button" : undefined}
+                        tabIndex={isMobileViewport && isSelectableList ? 0 : undefined}
+                        onClick={
+                          isMobileViewport && isSelectableList
+                            ? () => toggleWeakWordSelection(word.wordId)
+                            : undefined
+                        }
+                        onKeyDown={
+                          isMobileViewport && isSelectableList
+                            ? (e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggleWeakWordSelection(word.wordId);
+                                }
+                              }
+                            : undefined
+                        }
+                      >
                         {isSelectableList && (
                           <td>
                             <input
@@ -411,13 +464,7 @@ function Retest() {
                             />
                           </td>
                         )}
-                        <td
-                          style={{
-                            textAlign: "center",
-                          }}
-                        >
-                          {idx + 1}
-                        </td>
+                        <td>{idx + 1}</td>
                         <td>{word.spelling}</td>
                         <td>{getPrimaryMeaning(word)}</td>
                         <td>
@@ -455,7 +502,7 @@ function Retest() {
                   {listWords.length === 0 && (
                     <tr>
                       <td
-                        colSpan="6"
+                        colSpan={isSelectableList ? 6 : 5}
                         className="weak-list-empty"
                       >
                         목록이 없습니다.
@@ -526,7 +573,10 @@ function Retest() {
         <section className="retest-header">
           <div className="retest-hero">
             <span className="eyebrow">재학습</span>
-            <h1 className="retest-title">원하시는 단어를 선택하고<br /> <span>재학습</span>하세요.</h1>
+            <h1 className="retest-title">
+              원하시는 단어를 선택하고
+              <br /> <span>재학습</span>하세요.
+            </h1>
             <p>
               오늘 틀린 단어와 취약 단어를 분리해 확인하고, 각 목록에서 바로
               테스트할 수 있습니다.

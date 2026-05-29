@@ -183,6 +183,9 @@ body {
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .hero-card h1 {
+    font-size: 24px;
+  }
 }
 @media (max-width: 640px) {
   .hero-card {

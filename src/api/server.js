@@ -2,6 +2,7 @@ import axios from "axios";
 
 const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const SESSION_REFRESH_TOKEN_KEY = "sessionRefreshToken";
 const AUTO_LOGIN_ENABLED_KEY = "autoLoginEnabled";
 const SILENT_REFRESH_DELAY_MS = 12 * 60 * 1000;
 const SILENT_REFRESH_EXCLUDED_PATHS = [
@@ -13,12 +14,12 @@ const SILENT_REFRESH_EXCLUDED_PATHS = [
   "/api/password/find",
 ];
 
-const isLocal = true;
+const isLocal = false;
 
 // 환경 변수에서 서버 주소를 읽고, 없으면 오류를 발생시킨다.
 const getServerUrl = () => {
   const baseUrl = isLocal
-    ? process.env.REACT_APP_LOCAL_SERVER_URL
+    ? process.env.REACT_APP_LOCAL_SERVER_URL_2
     : process.env.REACT_APP_SERVER_URL;
 
   if (!baseUrl) {
@@ -99,7 +100,11 @@ export function getStoredAccessToken() {
 }
 
 export function getStoredRefreshToken() {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  // Prefer persistent refresh token, then the session-scoped token used when auto login is off.
+  return (
+    localStorage.getItem(REFRESH_TOKEN_KEY) ||
+    sessionStorage.getItem(SESSION_REFRESH_TOKEN_KEY)
+  );
 }
 
 export function isAutoLoginEnabled() {
@@ -114,6 +119,7 @@ export function clearAuthTokens() {
   clearSilentRefreshTimer();
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
 
   window.dispatchEvent(new Event("authchange"));
 }
@@ -127,10 +133,19 @@ export function storeAuthTokens({
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   }
 
-  if (persistRefreshToken && refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  // If the user opted into persistent login, store the refresh token in localStorage.
+  // Otherwise, keep it in sessionStorage so silent refresh survives page reloads.
+  if (refreshToken) {
+    if (persistRefreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
+    } else {
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      sessionStorage.setItem(SESSION_REFRESH_TOKEN_KEY, refreshToken);
+    }
   } else if (!persistRefreshToken) {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_REFRESH_TOKEN_KEY);
   }
 
   window.dispatchEvent(new Event("authchange"));
@@ -213,16 +228,37 @@ const getRefreshTokenPromise = () => {
   return refreshTokenPromise;
 };
 
+// Request 인터셉터: 모든 요청에 access token 자동 추가
+axios.interceptors.request.use(
+  (config) => {
+    const accessToken = getStoredAccessToken();
+
+    if (accessToken) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
 const triggerSilentRefresh = async () => {
   try {
     await getRefreshTokenPromise();
+    // Silent refresh 성공 후 다시 스케줄
+    scheduleSilentRefresh();
   } catch {
     clearAuthTokens();
   }
 };
 
 axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 성공 응답 후 silent refresh 타이머 갱신
+    scheduleSilentRefresh();
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
@@ -260,6 +296,7 @@ axios.interceptors.response.use(
       originalRequest.headers = originalRequest.headers || {};
       originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`;
 
+      // 토큰 갱신 후 원래 요청 재시도
       return axios(originalRequest);
     } catch (refreshError) {
       clearAuthTokens();
@@ -274,6 +311,8 @@ axios.interceptors.response.use(
 );
 
 const bootstrapSilentRefresh = () => {
+  // Schedule silent refresh if we have both an access token and either a persisted
+  // or in-memory refresh token (session logins).
   if (getStoredAccessToken() && getStoredRefreshToken()) {
     scheduleSilentRefresh();
   }
@@ -985,15 +1024,12 @@ export async function getDashboard() {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.get(
-      url,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-    );
+    });
 
     return response.data;
   } catch (error) {
@@ -1008,33 +1044,24 @@ export async function getDashboard() {
             : error.response?.data?.message || "대시보드 조회에 실패했습니다.";
     const requestError = new Error(message);
 
-    requestError.code = code || (error.response?.status === 401 ? "UNAUTHORIZED" : "INVALID_INPUT");
+    requestError.code =
+      code ||
+      (error.response?.status === 401 ? "UNAUTHORIZED" : "INVALID_INPUT");
     throw requestError;
   }
 }
 
-function normalizeAdminWordMeanings({ meaning, partOfSpeech, meanings }) {
-  if (Array.isArray(meanings) && meanings.length > 0) {
-    return meanings
-      .map((item) => ({
-        meaning: String(item?.meaning || "").trim(),
-        partOfSpeech: String(item?.partOfSpeech || "NOUN").trim(),
-      }))
-      .filter((item) => item.meaning);
-  }
-
-  const normalizedMeaning = String(meaning || "").trim();
-
-  if (!normalizedMeaning) {
+function normalizeAdminWordMeanings({ meanings }) {
+  if (!Array.isArray(meanings) || meanings.length === 0) {
     return [];
   }
 
-  return [
-    {
-      meaning: normalizedMeaning,
-      partOfSpeech: String(partOfSpeech || "NOUN").trim(),
-    },
-  ];
+  return meanings
+    .map((item) => ({
+      meaning: String(item?.meaning || "").trim(),
+      partOfSpeech: String(item?.partOfSpeech || "NOUN").trim(),
+    }))
+    .filter((item) => item.meaning);
 }
 
 function buildAdminWordRequestBody(payload) {

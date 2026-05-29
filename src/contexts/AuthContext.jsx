@@ -6,13 +6,22 @@ import React, {
   useState,
 } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { getStoredAccessToken } from "../api/server";
+import {
+  clearAuthTokens,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  refreshAccessToken,
+} from "../api/server";
 
 const AuthContext = createContext(null);
 
 function readAuthState() {
+  const accessToken = getStoredAccessToken();
+  const refreshToken = getStoredRefreshToken();
+
   return {
-    isAuthenticated: !!getStoredAccessToken(),
+    isAuthenticated: !!accessToken,
+    isRestoring: !accessToken && !!refreshToken,
   };
 }
 
@@ -22,10 +31,33 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const syncAuthState = () => setAuthState(readAuthState());
 
+    let isMounted = true;
+
+    const restoreSession = async () => {
+      const accessToken = getStoredAccessToken();
+      const refreshToken = getStoredRefreshToken();
+
+      if (accessToken || !refreshToken) {
+        return;
+      }
+
+      try {
+        await refreshAccessToken();
+      } catch {
+        clearAuthTokens();
+      } finally {
+        if (isMounted) {
+          setAuthState(readAuthState());
+        }
+      }
+    };
+
     window.addEventListener("authchange", syncAuthState);
     window.addEventListener("storage", syncAuthState);
+    restoreSession();
 
     return () => {
+      isMounted = false;
       window.removeEventListener("authchange", syncAuthState);
       window.removeEventListener("storage", syncAuthState);
     };
@@ -34,9 +66,10 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       isAuthenticated: authState.isAuthenticated,
+      isRestoring: authState.isRestoring,
       refreshAuthState: () => setAuthState(readAuthState()),
     }),
-    [authState.isAuthenticated],
+    [authState.isAuthenticated, authState.isRestoring],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -54,7 +87,11 @@ export function useAuth() {
 
 export function RequireAuth({ children }) {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isRestoring } = useAuth();
+
+  if (isRestoring) {
+    return <div role="status">로그인 정보를 불러오는 중...</div>;
+  }
 
   if (!isAuthenticated) {
     return (

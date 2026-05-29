@@ -205,9 +205,10 @@
 
 .word-filter-row {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+  font-size: 14px;
+  width: max-content;
 }
 
 .word-select {
@@ -789,6 +790,9 @@
   .word-hero-figure {
     display: none;
   }
+  .word-side-card {
+    display: none;
+  }
 }
 
 @media (max-width: 875px) {
@@ -901,5 +905,22 @@
 
   .word-spelling-button {
     font-size: 24px;
+  }
+  .word-select,
+  .word-bookmark-filter-btn {
+    font-size: 10px;
+  }
+  .word-filter-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding: 5px;
+  }
+  .word-filter-row {
+    width: max-content;
+  }
+  .word-page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
   }
 }

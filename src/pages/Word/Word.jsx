@@ -97,6 +97,7 @@ function Word() {
   const [selectedWord, setSelectedWord] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [bookmarkLoadingIds, setBookmarkLoadingIds] = useState([]);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
 
   useEffect(() => {
@@ -185,6 +186,7 @@ function Word() {
               ? response.data.map((item) => item.wordId)
               : [],
           );
+          setFavoriteCount(response.data?.length || 0);
         }
       } catch (requestError) {
         if (!mounted) {
@@ -402,25 +404,23 @@ function Word() {
 
     try {
       const response = await toggleBookmark(wordId);
-      const nextIds = response.code === "FAVORITE_ADDED"
-        ? Array.from(new Set([...bookmarkedIds, wordId]))
-        : bookmarkedIds.filter((id) => id !== wordId);
+      const nextIds =
+        response.code === "FAVORITE_ADDED"
+          ? Array.from(new Set([...bookmarkedIds, wordId]))
+          : bookmarkedIds.filter((id) => id !== wordId);
 
       setBookmarkedIds(nextIds);
+      setFavoriteCount(nextIds.length);
     } catch (requestError) {
       if (requestError.code === "UNAUTHORIZED") {
         setError("인증이 필요합니다. 다시 로그인해주세요.");
       } else if (requestError.code === "NOT_FOUND") {
         setError("존재하지 않는 단어입니다.");
       } else {
-        setError(
-          requestError.message || "즐겨찾기 요청에 실패했습니다.",
-        );
+        setError(requestError.message || "즐겨찾기 요청에 실패했습니다.");
       }
     } finally {
-      setBookmarkLoadingIds((current) =>
-        current.filter((id) => id !== wordId),
-      );
+      setBookmarkLoadingIds((current) => current.filter((id) => id !== wordId));
     }
   };
 
@@ -463,51 +463,53 @@ function Word() {
                 </p>
               </div>
 
-              <div className="word-filter-row">
-                <button
-                  type="button"
-                  className={[
-                    "word-bookmark-filter-btn",
-                    showBookmarksOnly && "word-bookmark-filter-btn--active",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => setShowBookmarksOnly((prev) => !prev)}
-                >
-                  {showBookmarksOnly ? "전체 단어 보기" : "즐겨찾기만 보기"}
-                  {` (${bookmarkedIds.length})`}
-                </button>
+              <div className="word-filter-wrapper">
+                <div className="word-filter-row">
+                  <button
+                    type="button"
+                    className={[
+                      "word-bookmark-filter-btn",
+                      showBookmarksOnly && "word-bookmark-filter-btn--active",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => setShowBookmarksOnly((prev) => !prev)}
+                  >
+                    {showBookmarksOnly ? "전체 단어" : "즐겨찾기"}
+                    {` (${bookmarkedIds.length})`}
+                  </button>
 
-                <select
-                  value={partOfSpeech}
-                  onChange={handleFilterChange(setPartOfSpeech)}
-                  className="word-select"
-                >
-                  <option value="">품사 전체</option>
-                  <option value="NOUN">명사</option>
-                  <option value="VERB">동사</option>
-                  <option value="ADJECTIVE">형용사</option>
-                </select>
+                  <select
+                    value={partOfSpeech}
+                    onChange={handleFilterChange(setPartOfSpeech)}
+                    className="word-select"
+                  >
+                    <option value="">품사</option>
+                    <option value="NOUN">명사</option>
+                    <option value="VERB">동사</option>
+                    <option value="ADJECTIVE">형용사</option>
+                  </select>
 
-                <select
-                  value={difficulty}
-                  onChange={handleFilterChange(setDifficulty)}
-                  className="word-select"
-                >
-                  <option value="">난이도 전체</option>
-                  <option value="EASY">쉬움</option>
-                  <option value="MEDIUM">중간</option>
-                  <option value="HARD">어려움</option>
-                </select>
+                  <select
+                    value={difficulty}
+                    onChange={handleFilterChange(setDifficulty)}
+                    className="word-select"
+                  >
+                    <option value="">난이도</option>
+                    <option value="EASY">쉬움</option>
+                    <option value="MEDIUM">중간</option>
+                    <option value="HARD">어려움</option>
+                  </select>
 
-                <select
-                  value={sort}
-                  onChange={handleFilterChange(setSort)}
-                  className="word-select"
-                >
-                  <option value="asc">오름차순</option>
-                  <option value="desc">내림차순</option>
-                </select>
+                  <select
+                    value={sort}
+                    onChange={handleFilterChange(setSort)}
+                    className="word-select"
+                  >
+                    <option value="asc">오름차순</option>
+                    <option value="desc">내림차순</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div className="word-search-bar">
@@ -607,14 +609,24 @@ function Word() {
                               }
                               type="button"
                               onClick={() => handleToggleBookmark(item.wordId)}
-                              disabled={bookmarkLoadingIds.includes(item.wordId)}
+                              disabled={bookmarkLoadingIds.includes(
+                                item.wordId,
+                              )}
                             >
                               <svg
                                 width="16"
                                 height="16"
                                 viewBox="0 0 24 24"
-                                fill={bookmarkedIds.includes(item.wordId) ? "#f59e0b" : "none"}
-                                stroke={bookmarkedIds.includes(item.wordId) ? "#f59e0b" : "currentColor"}
+                                fill={
+                                  bookmarkedIds.includes(item.wordId)
+                                    ? "#f59e0b"
+                                    : "none"
+                                }
+                                stroke={
+                                  bookmarkedIds.includes(item.wordId)
+                                    ? "#f59e0b"
+                                    : "currentColor"
+                                }
                                 strokeWidth="2"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -734,8 +746,8 @@ function Word() {
             <section className="word-side-card">
               <div className="word-side-card-header">
                 <div>
-                  <p className="word-side-eyebrow">내 학습 현황</p>
-                  <h2 className="word-side-title">학습 데이터 요약</h2>
+                  <p className="word-side-eyebrow">정보</p>
+                  <h2 className="word-side-title">단어장 정보 요약</h2>
                 </div>
                 <span className="word-side-count">
                   {filteredCount.toLocaleString()}개
@@ -777,8 +789,8 @@ function Word() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                   </div>
                   <div className="word-stat-label">현재 조회 결과</div>
@@ -802,9 +814,9 @@ function Word() {
                       <path d="M12 2l3 7h7l-5.5 4 2.1 7L12 16l-6.6 4 2.1-7L2 9h7z" />
                     </svg>
                   </div>
-                  <div className="word-stat-label">난이도 참고</div>
+                  <div className="word-stat-label">즐겨찾기</div>
                   <div className="word-stat-value">
-                    고급 {hardCount.toLocaleString()}개
+                    {favoriteCount.toLocaleString()}개
                   </div>
                 </div>
               </div>
